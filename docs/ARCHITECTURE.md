@@ -2,6 +2,8 @@
 
 Detailed architecture and design decisions for Griham Home Automation System.
 
+> **Visual Diagram**: Open [architecture.drawio](architecture.drawio) in Draw.io for an interactive architecture diagram.
+
 ## System Layers
 
 ### 1. Presentation Layer

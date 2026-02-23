@@ -17,6 +17,12 @@ Detailed documentation for each module:
 
 ---
 
+## 🏗️ System Architecture
+
+![System Architecture](docs/architecture.drawio.png)
+
+---
+
 ## 🎯 Core Modules
 
 1. **Finance Track** - Income, expenses, cards, bills, investments, savings, transactions
