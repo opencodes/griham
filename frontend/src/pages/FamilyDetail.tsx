@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, Household } from '@/lib/api';
-import { ArrowLeft, UserPlus, Users, Shield, Eye, Menu, Bell, Flame } from 'lucide-react';
+import { ArrowLeft, UserPlus, Users, Shield, Eye, Menu, Bell, Flame, Edit2 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
 
 interface Member {
   id: string;
@@ -11,10 +12,12 @@ interface Member {
   household_id: string;
   role: string;
   status: string;
+  relation: string | null;
   invitation_email: string | null;
   invitation_sent_at: string | null;
   joined_at: string;
   user_email: string | null;
+  user_phone: string | null;
   full_name: string | null;
 }
 
@@ -28,6 +31,7 @@ export default function FamilyDetail() {
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>('viewer');
   const [showModal, setShowModal] = useState(false);
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [formData, setFormData] = useState({ fname: '', lname: '', phone: '', email: '', relation: '' });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -70,15 +74,32 @@ export default function FamilyDetail() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await householdAPI.addMember(id!, formData);
+      if (editingMember) {
+        await householdAPI.updateMember(id!, editingMember.id, formData);
+      } else {
+        await householdAPI.addMember(id!, formData);
+      }
       setShowModal(false);
+      setEditingMember(null);
       setFormData({ fname: '', lname: '', phone: '', email: '', relation: '' });
       loadMembers();
     } catch (error) {
-      console.error('Failed to invite member', error);
+      console.error('Failed to save member', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEdit = (member: Member) => {
+    setEditingMember(member);
+    setFormData({
+      fname: member.full_name?.split(' ')[0] || '',
+      lname: member.full_name?.split(' ').slice(1).join(' ') || '',
+      phone: member.user_phone?.replace('+91', '') || '',
+      email: member.user_email || member.invitation_email || '',
+      relation: member.relation || ''
+    });
+    setShowModal(true);
   };
 
   const getRoleIcon = (role: string) => {
@@ -97,7 +118,7 @@ export default function FamilyDetail() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       <Sidebar
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -109,53 +130,19 @@ export default function FamilyDetail() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 px-4 md:px-8 h-[73px] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-bold text-gray-800 text-lg">
-                Good morning, {user?.full_name || 'User'} 👋
-              </h1>
-              <p className="text-xs text-gray-500 hidden sm:block">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
-          </div>
+        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-sm font-bold">
-              <Flame className="w-4 h-4" />
-              <span>0-day streak</span>
-            </div>
-            <button className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/')}
-                className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100"
+                className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
               </button>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-800">Family</h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Family</h2>
                 {currentUserRole === 'admin' ? (
                   <input
                     type="text"
@@ -163,10 +150,10 @@ export default function FamilyDetail() {
                     onChange={(e) => setHousehold(household ? { ...household, address: e.target.value } : null)}
                     onBlur={() => household && updateAddress(household.address || '')}
                     placeholder="Enter address"
-                    className="text-gray-600 mt-1 border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none px-1 -ml-1 w-full"
+                    className="text-gray-600 dark:text-gray-300 mt-1 border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-indigo-500 focus:outline-none px-1 -ml-1 w-full dark:bg-transparent"
                   />
                 ) : (
-                  <p className="text-gray-600 mt-1">{household?.address || 'No address'}</p>
+                  <p className="text-gray-600 dark:text-gray-300 mt-1">{household?.address || 'No address'}</p>
                 )}
               </div>
               {currentUserRole === 'admin' && (
@@ -180,8 +167,8 @@ export default function FamilyDetail() {
               )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5" />
                 Family Members ({members.length})
               </h3>
@@ -196,27 +183,45 @@ export default function FamilyDetail() {
                     : member.user_email;
 
                   return (
-                    <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
+                    <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center gap-3 flex-1">
                         <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
                           {displayName?.charAt(0).toUpperCase() || 'U'}
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-800">{displayName}</p>
-                          <p className="text-sm text-gray-500">{displayEmail}</p>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800 dark:text-gray-100">{displayName}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {displayEmail}
+                            {member.user_phone && (
+                              <span> • {member.user_phone}</span>
+                            )}
+                          </p>
+                          {member.relation && (
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                              {member.relation}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         {member.status === 'active' && getRoleIcon(member.role)}
                         {getRoleBadge(member.role, member.status)}
+                        {currentUserRole === 'admin' && member.role !== 'admin' && (
+                          <button
+                            onClick={() => handleEdit(member)}
+                            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
                 })}
 
                 {members.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <Users className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
                     <p>No members yet</p>
                   </div>
                 )}
@@ -229,14 +234,16 @@ export default function FamilyDetail() {
       {/* Invite Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Invite Family Member</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Invited members will have read-only access to household data.
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+              {editingMember ? 'Edit Family Member' : 'Invite Family Member'}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              {editingMember ? 'Update member information.' : 'Invited members will have read-only access to household data.'}
             </p>
             <form onSubmit={handleInvite} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
                 <input
                   type="text"
                   placeholder="John"
@@ -244,11 +251,11 @@ export default function FamilyDetail() {
                   onChange={(e) => setFormData({ ...formData, fname: e.target.value })}
                   required
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
                 <input
                   type="text"
                   placeholder="Doe"
@@ -256,37 +263,44 @@ export default function FamilyDetail() {
                   onChange={(e) => setFormData({ ...formData, lname: e.target.value })}
                   required
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
                 <div className="flex gap-2">
-                  <input
-                    type="text"
+                  <select
                     value="+91"
                     disabled
-                    className="w-16 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-                  />
+                    className="w-20 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                  >
+                    <option value="+91">+91</option>
+                  </select>
                   <input
                     type="tel"
                     placeholder="9876543210"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: value });
+                    }}
                     required
+                    pattern="[0-9]{10}"
+                    maxLength={10}
                     disabled={isLoading}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Enter 10-digit mobile number</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Relation</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Relation</label>
                 <select
                   value={formData.relation}
                   onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
                   required
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="">Select relation</option>
                   <option value="spouse">Spouse</option>
@@ -304,7 +318,7 @@ export default function FamilyDetail() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
                 <input
                   type="email"
                   placeholder="member@example.com"
@@ -312,7 +326,7 @@ export default function FamilyDetail() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
@@ -321,7 +335,7 @@ export default function FamilyDetail() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
@@ -330,7 +344,7 @@ export default function FamilyDetail() {
                   disabled={isLoading}
                   className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  {isLoading ? 'Sending...' : 'Send Invitation'}
+                  {isLoading ? 'Saving...' : editingMember ? 'Update' : 'Send Invitation'}
                 </button>
               </div>
             </form>

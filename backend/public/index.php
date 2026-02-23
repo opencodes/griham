@@ -52,6 +52,8 @@ try {
             (new FamilyController())->listMembers($currentUser, $matches[1]);
         } elseif (preg_match('/^\/families\/([a-f0-9-]+)\/members$/', $path, $matches) && $method === 'POST') {
             (new FamilyController())->addMember($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/families\/([a-f0-9-]+)\/members\/([a-f0-9-]+)$/', $path, $matches) && $method === 'PUT') {
+            (new FamilyController())->updateMember($currentUser, $matches[1], $matches[2]);
         } elseif (preg_match('/^\/households\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
             (new FamilyController())->get($currentUser, $matches[1]);
         } elseif (preg_match('/^\/households\/([a-f0-9-]+)$/', $path, $matches) && $method === 'PUT') {

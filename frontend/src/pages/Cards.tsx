@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, Card } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
 import CardSMSParser from '@/components/CardSMSParser';
-import { Menu, Bell, Flame, CreditCard, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Menu, Bell, Flame, CreditCard, Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react';
 
 export default function Cards() {
   const { user } = useAuth();
@@ -127,7 +128,7 @@ export default function Cards() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -136,38 +137,20 @@ export default function Cards() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-4 md:px-8 h-[73px] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-bold text-gray-800 text-lg">Cards</h1>
-              <p className="text-xs text-gray-500 hidden sm:block">Manage your credit & debit cards</p>
-            </div>
-          </div>
+        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-sm font-bold">
-              <Flame className="w-4 h-4" />
-              <span>0-day streak</span>
-            </div>
-            <button className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
-          </div>
-        </header>
-
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800">My Cards</h2>
-                <p className="text-gray-600 mt-1">{cards.length} cards</p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/finance')}
+                className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+              </button>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">My Cards</h2>
+                <p className="text-gray-600 dark:text-gray-300 mt-1">{cards.length} cards</p>
               </div>
               {userRole === 'admin' && (
                 <button
@@ -242,10 +225,10 @@ export default function Cards() {
             </div>
 
             {cards.length === 0 && (
-              <div className="text-center py-12 bg-white rounded-xl border">
-                <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">No cards yet</p>
-                <p className="text-sm text-gray-500">Add your first card to get started</p>
+              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700">
+                <CreditCard className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-300 mb-2">No cards yet</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Add your first card to get started</p>
               </div>
             )}
           </div>
@@ -254,12 +237,12 @@ export default function Cards() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                 {editingCard ? 'Edit Card' : 'Add Card'}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -280,17 +263,17 @@ export default function Cards() {
                 }}
               />
 
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-600 mb-3">Or fill manually:</p>
+              <div className="border-t dark:border-gray-700 pt-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Or fill manually:</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Card Type</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Type</label>
                 <select
                   value={formData.card_type}
                   onChange={(e) => setFormData({ ...formData, card_type: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="credit">Credit Card</option>
                   <option value="debit">Debit Card</option>
@@ -298,31 +281,31 @@ export default function Cards() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bank Name</label>
                 <input
                   type="text"
                   value={formData.bank_name}
                   onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
                   required
                   placeholder="HDFC Bank"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Card Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Name</label>
                 <input
                   type="text"
                   value={formData.card_name}
                   onChange={(e) => setFormData({ ...formData, card_name: e.target.value })}
                   required
                   placeholder="Platinum Credit Card"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last 4 Digits</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last 4 Digits</label>
                 <input
                   type="text"
                   value={formData.last_four_digits}
@@ -330,25 +313,25 @@ export default function Cards() {
                   required
                   maxLength={4}
                   placeholder="1234"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               {formData.card_type === 'credit' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Credit Limit (Optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Credit Limit (Optional)</label>
                     <input
                       type="number"
                       value={formData.card_limit}
                       onChange={(e) => setFormData({ ...formData, card_limit: e.target.value })}
                       placeholder="100000"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Billing Date (Optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Billing Date (Optional)</label>
                     <input
                       type="number"
                       value={formData.billing_date}
@@ -356,19 +339,19 @@ export default function Cards() {
                       min="1"
                       max="31"
                       placeholder="15"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -381,7 +364,7 @@ export default function Cards() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>

@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, Household } from '@/lib/api';
 import { Home, Plus, Users, Menu, Bell, Flame } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -48,7 +49,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
@@ -57,55 +58,22 @@ export default function Dashboard() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 px-4 md:px-8 h-[73px] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-bold text-gray-800 text-lg">
-                Good morning, {user?.full_name || 'User'} 👋
-              </h1>
-              <p className="text-xs text-gray-500 hidden sm:block">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-sm font-bold">
-              <Flame className="w-4 h-4" />
-              <span>0-day streak</span>
-            </div>
-            <button className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
-          </div>
-        </header>
+        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
         {/* Main Content */}
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-xl shadow-sm border p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                      <Users className="w-6 h-6 text-indigo-600" />
+                    <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center">
+                      <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800">{households.length}</h3>
-                  <p className="text-sm text-gray-600">Family</p>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{households.length}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Family</p>
                 </div>
               </div>
             </div>
@@ -115,8 +83,8 @@ export default function Dashboard() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800">My Family</h2>
-                  <p className="text-gray-600 mt-1">Manage your family</p>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">My Family</h2>
+                  <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your family</p>
                 </div>
                 {households.length === 0 && (
                   <button
@@ -134,18 +102,18 @@ export default function Dashboard() {
                   <div 
                     key={household.id} 
                     onClick={() => window.location.href = `/families/${household.id}`}
-                    className="bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition cursor-pointer"
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6 hover:shadow-md transition cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                        <Users className="w-6 h-6 text-indigo-600" />
+                      <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center">
+                        <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                       </div>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">{household.name}</h3>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">{household.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
                       {household.address || 'No address'}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Created {new Date(household.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -153,9 +121,9 @@ export default function Dashboard() {
 
                 {households.length === 0 && (
                   <div className="col-span-full text-center py-12">
-                    <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">No family yet</p>
-                    <p className="text-sm text-gray-500">Create your first family to get started</p>
+                    <Users className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-300 mb-2">No family yet</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Create your first family to get started</p>
                   </div>
                 )}
               </div>
@@ -164,14 +132,14 @@ export default function Dashboard() {
 
           {activeTab !== 'dashboard' && activeTab !== 'family' && activeTab !== 'finance' && (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">Coming soon...</p>
-              <p className="text-sm text-gray-500 mt-2">This module will be available in Phase 2</p>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">Coming soon...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">This module will be available in Phase 2</p>
             </div>
           )}
 
           {activeTab === 'finance' && (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">Redirecting to Finance...</p>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">Redirecting to Finance...</p>
             </div>
           )}
         </main>
@@ -180,11 +148,11 @@ export default function Dashboard() {
       {/* Create Family Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Create Family</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Create Family</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Family Name
                 </label>
                 <input
@@ -194,12 +162,12 @@ export default function Dashboard() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Address (Optional)
                 </label>
                 <input
@@ -208,7 +176,7 @@ export default function Dashboard() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
@@ -217,7 +185,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>

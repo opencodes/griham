@@ -37,14 +37,14 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-purple-200">
+    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl shadow-lg p-6 border border-purple-200 dark:border-purple-800">
       <div className="flex items-center gap-3 mb-4">
         <div className="bg-purple-600 p-2 rounded-lg">
           <Sparkles className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-800">AI SMS Parser</h2>
-          <p className="text-sm text-gray-600">Paste bank SMS to auto-add transactions</p>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">AI SMS Parser</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300">Paste bank SMS to auto-add transactions</p>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
             required
             rows={5}
             disabled={isLoading}
-            className="w-full px-4 py-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+            className="w-full px-4 py-3 border border-purple-300 dark:border-purple-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
 
@@ -93,8 +93,8 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
         </button>
       </form>
 
-      <div className="mt-4 p-3 bg-purple-100 border border-purple-300 rounded-lg">
-        <p className="text-xs text-purple-800">
+      <div className="mt-4 p-3 bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700 rounded-lg">
+        <p className="text-xs text-purple-800 dark:text-purple-200">
           <strong>💡 Tip:</strong> Works with most bank SMS formats. AI extracts amount, date, category, and description automatically.
         </p>
       </div>

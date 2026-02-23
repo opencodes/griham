@@ -33,7 +33,7 @@ class FamilyMember extends Model
 
     public function findByFamilyId(string $familyId): array
     {
-        $sql = "SELECT fm.*, u.email as user_email, u.full_name 
+        $sql = "SELECT fm.*, u.email as user_email, u.full_name, u.phone as user_phone 
                 FROM family_members fm
                 LEFT JOIN users u ON fm.user_id = u.id
                 WHERE fm.family_id = :family_id

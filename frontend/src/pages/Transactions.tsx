@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, BankAccount, Transaction } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
 import SMSParser from '@/components/SMSParser';
 import { Menu, Bell, Flame, Plus, Trash2, ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -112,7 +113,7 @@ export default function Transactions() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -121,52 +122,20 @@ export default function Transactions() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-4 md:px-8 h-[73px] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-bold text-gray-800 text-lg">
-                Good morning, {user?.full_name || 'User'} 👋
-              </h1>
-              <p className="text-xs text-gray-500 hidden sm:block">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
-          </div>
+        <Header />
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-sm font-bold">
-              <Flame className="w-4 h-4" />
-              <span>0-day streak</span>
-            </div>
-            <button className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
-          </div>
-        </header>
-
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/finance')}
-                className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100"
+                className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
               </button>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-800">Transactions</h2>
-                <p className="text-gray-600 mt-1">Track your income and expenses</p>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Transactions</h2>
+                <p className="text-gray-600 dark:text-gray-300 mt-1">Track your income and expenses</p>
               </div>
               {userRole === 'admin' && (
                 <div className="flex gap-2">
@@ -182,25 +151,25 @@ export default function Transactions() {
               )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Category</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Account</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Description</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Amount</th>
                       {userRole === 'admin' && (
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
                       )}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {transactions.map((txn) => (
-                      <tr key={txn.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <tr key={txn.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                           {new Date(txn.transaction_date).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -210,13 +179,13 @@ export default function Transactions() {
                             ) : (
                               <TrendingDown className="w-4 h-4 text-red-600" />
                             )}
-                            <span className="text-sm text-gray-900">{txn.category}</span>
+                            <span className="text-sm text-gray-900 dark:text-gray-100">{txn.category}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                           {txn.account_name}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                           {txn.description || '-'}
                         </td>
                         <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${
@@ -246,16 +215,16 @@ export default function Transactions() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Add Transaction</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Add Transaction</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value, category: '' })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
@@ -263,12 +232,12 @@ export default function Transactions() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="">Select category</option>
                   {TRANSACTION_CATEGORIES[formData.type as 'income' | 'expense'].map((cat) => (
@@ -278,12 +247,12 @@ export default function Transactions() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Account</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account</label>
                 <select
                   value={formData.account_id}
                   onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="">Select account</option>
                   {accounts.map((acc) => (
@@ -293,7 +262,7 @@ export default function Transactions() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
                 <input
                   type="number"
                   step="0.01"
@@ -301,29 +270,29 @@ export default function Transactions() {
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
                 <input
                   type="date"
                   value={formData.transaction_date}
                   onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (Optional)</label>
                 <textarea
                   placeholder="Add notes..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
@@ -332,7 +301,7 @@ export default function Transactions() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>

@@ -132,4 +132,56 @@ class FamilyController
         $member = $this->memberModel->findById($memberId);
         Response::success($member, 'Member added successfully', 201);
     }
+
+    public function updateMember($currentUser, $familyId, $memberId): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $adminMember = $this->memberModel->findOne([
+            'family_id' => $familyId,
+            'user_id' => $currentUser->userId
+        ]);
+
+        if (!$adminMember || $adminMember['role'] !== 'admin') {
+            Response::error('Only admins can update members', 403);
+        }
+
+        $member = $this->memberModel->findById($memberId);
+        if (!$member || $member['family_id'] !== $familyId) {
+            Response::error('Member not found', 404);
+        }
+
+        if ($member['role'] === 'admin') {
+            Response::error('Cannot edit admin members', 403);
+        }
+
+        $updateData = [];
+        if (isset($data['relation'])) {
+            $updateData['relation'] = $data['relation'];
+        }
+
+        if (!empty($updateData)) {
+            $this->memberModel->update($memberId, $updateData);
+        }
+
+        if (isset($data['fname']) || isset($data['lname']) || isset($data['email']) || isset($data['phone'])) {
+            $userModel = new User();
+            $userData = [];
+            if (isset($data['fname']) || isset($data['lname'])) {
+                $userData['full_name'] = trim(($data['fname'] ?? '') . ' ' . ($data['lname'] ?? ''));
+            }
+            if (isset($data['email'])) {
+                $userData['email'] = $data['email'];
+            }
+            if (isset($data['phone'])) {
+                $userData['phone'] = '+91' . $data['phone'];
+            }
+            if (!empty($userData) && $member['user_id']) {
+                $userModel->update($member['user_id'], $userData);
+            }
+        }
+
+        $updated = $this->memberModel->findById($memberId);
+        Response::success($updated, 'Member updated successfully');
+    }
 }

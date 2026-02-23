@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, BankAccount, Transaction, Bill } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
 import AIWidget from '@/components/AIWidget';
-import { Menu, Bell, Flame, Wallet, TrendingUp, TrendingDown, AlertCircle, Plus, CreditCard } from 'lucide-react';
+import { Menu, Bell, Flame, Wallet, TrendingUp, TrendingDown, AlertCircle, Plus, CreditCard, Moon, Sun } from 'lucide-react';
 
 export default function FinanceOverview() {
   const { user } = useAuth();
@@ -80,7 +81,7 @@ export default function FinanceOverview() {
   const totalBalance = accounts.reduce((sum, acc) => sum + parseFloat(acc.balance.toString()), 0);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -89,78 +90,46 @@ export default function FinanceOverview() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-4 md:px-8 h-[73px] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="font-bold text-gray-800 text-lg">
-                Good morning, {user?.full_name || 'User'} 👋
-              </h1>
-              <p className="text-xs text-gray-500 hidden sm:block">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
-          </div>
+        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-sm font-bold">
-              <Flame className="w-4 h-4" />
-              <span>0-day streak</span>
-            </div>
-            <button className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
-          </div>
-        </header>
-
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">Finance Overview</h2>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Finance Overview</h2>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <Wallet className="w-8 h-8 text-indigo-600" />
+                  <Wallet className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800">₹{totalBalance.toFixed(2)}</h3>
-                <p className="text-sm text-gray-600">Total Balance</p>
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">₹{totalBalance.toFixed(2)}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Total Balance</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <TrendingUp className="w-8 h-8 text-green-600" />
+                  <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-green-600">₹{parseFloat(summary.total_income || 0).toFixed(2)}</h3>
-                <p className="text-sm text-gray-600">Income (This Month)</p>
+                <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">₹{parseFloat(summary.total_income || 0).toFixed(2)}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Income (This Month)</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <TrendingDown className="w-8 h-8 text-red-600" />
+                  <TrendingDown className="w-8 h-8 text-red-600 dark:text-red-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-red-600">₹{parseFloat(summary.total_expense || 0).toFixed(2)}</h3>
-                <p className="text-sm text-gray-600">Expenses (This Month)</p>
+                <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">₹{parseFloat(summary.total_expense || 0).toFixed(2)}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Expenses (This Month)</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <AlertCircle className="w-8 h-8 text-orange-600" />
+                  <AlertCircle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-orange-600">{upcomingBills.length}</h3>
-                <p className="text-sm text-gray-600">Upcoming Bills</p>
+                <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400">{upcomingBills.length}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Upcoming Bills</p>
               </div>
             </div>
 
@@ -168,35 +137,35 @@ export default function FinanceOverview() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <button
                 onClick={() => navigate('/finance/accounts')}
-                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+                className="p-4 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 hover:shadow-md transition text-left"
               >
-                <Wallet className="w-8 h-8 text-indigo-600 mb-2" />
-                <p className="font-semibold text-gray-800">Accounts</p>
-                <p className="text-xs text-gray-500">Manage bank accounts</p>
+                <Wallet className="w-8 h-8 text-indigo-600 dark:text-indigo-400 mb-2" />
+                <p className="font-semibold text-gray-800 dark:text-gray-100">Accounts</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Manage bank accounts</p>
               </button>
               <button
                 onClick={() => navigate('/finance/cards')}
-                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+                className="p-4 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 hover:shadow-md transition text-left"
               >
-                <CreditCard className="w-8 h-8 text-purple-600 mb-2" />
-                <p className="font-semibold text-gray-800">Cards</p>
-                <p className="text-xs text-gray-500">Credit & debit cards</p>
+                <CreditCard className="w-8 h-8 text-purple-600 dark:text-purple-400 mb-2" />
+                <p className="font-semibold text-gray-800 dark:text-gray-100">Cards</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Credit & debit cards</p>
               </button>
               <button
                 onClick={() => navigate('/finance/transactions')}
-                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+                className="p-4 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 hover:shadow-md transition text-left"
               >
-                <TrendingUp className="w-8 h-8 text-green-600 mb-2" />
-                <p className="font-semibold text-gray-800">Transactions</p>
-                <p className="text-xs text-gray-500">View all transactions</p>
+                <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400 mb-2" />
+                <p className="font-semibold text-gray-800 dark:text-gray-100">Transactions</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">View all transactions</p>
               </button>
               <button
                 onClick={() => navigate('/finance/bills')}
-                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+                className="p-4 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 hover:shadow-md transition text-left"
               >
-                <AlertCircle className="w-8 h-8 text-orange-600 mb-2" />
-                <p className="font-semibold text-gray-800">Bills</p>
-                <p className="text-xs text-gray-500">Manage bills</p>
+                <AlertCircle className="w-8 h-8 text-orange-600 dark:text-orange-400 mb-2" />
+                <p className="font-semibold text-gray-800 dark:text-gray-100">Bills</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Manage bills</p>
               </button>
             </div>
 
@@ -210,12 +179,12 @@ export default function FinanceOverview() {
             )}
 
             {/* Bank Accounts */}
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Bank Accounts</h3>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Bank Accounts</h3>
                 <button
                   onClick={() => navigate('/finance/accounts')}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                  className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
                 >
                   View All
                 </button>
@@ -233,24 +202,24 @@ export default function FinanceOverview() {
             </div>
 
             {/* Recent Transactions */}
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Recent Transactions</h3>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Recent Transactions</h3>
                 <button
                   onClick={() => navigate('/finance/transactions')}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                  className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
                 >
                   View All
                 </button>
               </div>
               <div className="space-y-3">
                 {transactions.map((txn) => (
-                  <div key={txn.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={txn.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-800">{txn.category}</p>
-                      <p className="text-sm text-gray-500">{new Date(txn.transaction_date).toLocaleDateString()}</p>
+                      <p className="font-medium text-gray-800 dark:text-gray-100">{txn.category}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(txn.transaction_date).toLocaleDateString()}</p>
                     </div>
-                    <p className={`font-bold ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`font-bold ${txn.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {txn.type === 'income' ? '+' : '-'}₹{parseFloat(txn.amount.toString()).toFixed(2)}
                     </p>
                   </div>

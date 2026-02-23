@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { DarkModeProvider } from './hooks/useDarkMode';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import FamilyDetail from './pages/FamilyDetail';
@@ -100,9 +101,11 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <DarkModeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </DarkModeProvider>
     </BrowserRouter>
   );
 }
