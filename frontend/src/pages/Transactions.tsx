@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, BankAccount, Transaction } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
+import SMSParser from '@/components/SMSParser';
 import { Menu, Bell, Flame, Plus, Trash2, ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
 
 const TRANSACTION_CATEGORIES = {
@@ -168,13 +169,16 @@ export default function Transactions() {
                 <p className="text-gray-600 mt-1">Track your income and expenses</p>
               </div>
               {userRole === 'admin' && (
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Transaction
-                </button>
+                <div className="flex gap-2">
+                  <SMSParser familyId={familyId} onSuccess={() => { loadTransactions(); loadAccounts(); }} />
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add Transaction
+                  </button>
+                </div>
               )}
             </div>
 

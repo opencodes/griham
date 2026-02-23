@@ -7,6 +7,7 @@ import FinanceOverview from './pages/FinanceOverview';
 import BankAccounts from './pages/BankAccounts';
 import Transactions from './pages/Transactions';
 import Bills from './pages/Bills';
+import Cards from './pages/Cards';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -81,6 +82,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Bills />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/cards"
+        element={
+          <ProtectedRoute>
+            <Cards />
           </ProtectedRoute>
         }
       />

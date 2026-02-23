@@ -10,6 +10,8 @@ use App\Modules\Family\Controllers\FamilyController;
 use App\Modules\Finance\Controllers\BankAccountController;
 use App\Modules\Finance\Controllers\TransactionController;
 use App\Modules\Finance\Controllers\BillController;
+use App\Modules\Finance\Controllers\CardController;
+use App\Modules\AI\Controllers\AIController;
 
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
@@ -84,6 +86,22 @@ try {
             (new BillController())->update($currentUser, $matches[2]);
         } elseif (preg_match('/^\/finance\/bills\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'DELETE') {
             (new BillController())->delete($currentUser, $matches[2]);
+        } elseif (preg_match('/^\/finance\/ai\/insights\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
+            (new AIController())->getFinanceInsights($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/ai\/savings-tips\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
+            (new AIController())->getSavingsTips($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/ai\/parse-sms\/([a-f0-9-]+)$/', $path, $matches) && $method === 'POST') {
+            (new AIController())->parseSMS($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/ai\/parse-sms-card\/([a-f0-9-]+)$/', $path, $matches) && $method === 'POST') {
+            (new AIController())->parseSMSCard($currentUser, $matches[1]);
+        } elseif ($path === '/finance/cards' && $method === 'POST') {
+            (new CardController())->create($currentUser);
+        } elseif (preg_match('/^\/finance\/cards\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
+            (new CardController())->list($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/cards\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'PUT') {
+            (new CardController())->update($currentUser, $matches[2]);
+        } elseif (preg_match('/^\/finance\/cards\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'DELETE') {
+            (new CardController())->delete($currentUser, $matches[2]);
         } else {
             Response::error('Route not found', 404);
         }

@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, BankAccount, Transaction, Bill } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
-import { Menu, Bell, Flame, Wallet, TrendingUp, TrendingDown, AlertCircle, Plus } from 'lucide-react';
+import AIWidget from '@/components/AIWidget';
+import { Menu, Bell, Flame, Wallet, TrendingUp, TrendingDown, AlertCircle, Plus, CreditCard } from 'lucide-react';
 
 export default function FinanceOverview() {
   const { user } = useAuth();
@@ -162,6 +163,51 @@ export default function FinanceOverview() {
                 <p className="text-sm text-gray-600">Upcoming Bills</p>
               </div>
             </div>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <button
+                onClick={() => navigate('/finance/accounts')}
+                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+              >
+                <Wallet className="w-8 h-8 text-indigo-600 mb-2" />
+                <p className="font-semibold text-gray-800">Accounts</p>
+                <p className="text-xs text-gray-500">Manage bank accounts</p>
+              </button>
+              <button
+                onClick={() => navigate('/finance/cards')}
+                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+              >
+                <CreditCard className="w-8 h-8 text-purple-600 mb-2" />
+                <p className="font-semibold text-gray-800">Cards</p>
+                <p className="text-xs text-gray-500">Credit & debit cards</p>
+              </button>
+              <button
+                onClick={() => navigate('/finance/transactions')}
+                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+              >
+                <TrendingUp className="w-8 h-8 text-green-600 mb-2" />
+                <p className="font-semibold text-gray-800">Transactions</p>
+                <p className="text-xs text-gray-500">View all transactions</p>
+              </button>
+              <button
+                onClick={() => navigate('/finance/bills')}
+                className="p-4 bg-white rounded-xl border hover:shadow-md transition text-left"
+              >
+                <AlertCircle className="w-8 h-8 text-orange-600 mb-2" />
+                <p className="font-semibold text-gray-800">Bills</p>
+                <p className="text-xs text-gray-500">Manage bills</p>
+              </button>
+            </div>
+
+            {/* AI Widget */}
+            {familyId && (
+              <AIWidget familyId={familyId} onTransactionAdded={() => {
+                loadAccounts();
+                loadTransactions();
+                loadSummary();
+              }} />
+            )}
 
             {/* Bank Accounts */}
             <div className="bg-white rounded-xl shadow-sm border p-6">

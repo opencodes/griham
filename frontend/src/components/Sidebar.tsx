@@ -1,5 +1,6 @@
 import { Home, Users, DollarSign, Calendar, Package, Heart, ListTodo, MessageSquare, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
   activeTab: string;
@@ -9,18 +10,20 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
-  { id: 'family', label: 'Family', icon: Users },
-  { id: 'finance', label: 'Finance', icon: DollarSign },
-  { id: 'events', label: 'Events', icon: Calendar },
-  { id: 'assets', label: 'Assets', icon: Package },
-  { id: 'health', label: 'Health', icon: Heart },
-  { id: 'organizer', label: 'Organizer', icon: ListTodo },
-  { id: 'messages', label: 'Messages', icon: MessageSquare },
+  { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
+  { id: 'family', label: 'Family', icon: Users, path: '/' },
+  { id: 'finance', label: 'Finance', icon: DollarSign, path: '/finance' },
+  { id: 'events', label: 'Events', icon: Calendar, path: '/' },
+  { id: 'assets', label: 'Assets', icon: Package, path: '/' },
+  { id: 'health', label: 'Health', icon: Heart, path: '/' },
+  { id: 'organizer', label: 'Organizer', icon: ListTodo, path: '/' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/' },
 ];
 
 export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: SidebarProps) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const getInitials = (name: string) => {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -38,7 +41,7 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: 
 
       {/* Sidebar */}
       <aside className={`
-        fixed md:static inset-y-0 left-0 z-50
+        fixed md:static inset-y-0 left-0 z-[100]
         w-64 bg-white border-r border-gray-200
         transform transition-transform duration-200 ease-in-out
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -65,6 +68,9 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: 
               <button
                 key={item.id}
                 onClick={() => {
+                  if (item.path !== location.pathname) {
+                    navigate(item.path);
+                  }
                   onTabChange(item.id);
                   if (mobileOpen) onMobileToggle();
                 }}
