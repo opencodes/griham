@@ -1,0 +1,704 @@
+{
+	"info": {
+		"_postman_id": "griham-api-collection",
+		"name": "Griham API",
+		"description": "Complete API collection for Griham Home Automation System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "family_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set('token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Family",
+			"item": [
+				{
+					"name": "Create Family",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.id) {",
+									"    pm.collectionVariables.set('family_id', jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"My Family\",\n  \"address\": \"123 Main Street, City\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/families",
+							"host": ["{{base_url}}"],
+							"path": ["families"]
+						}
+					}
+				},
+				{
+					"name": "List Families",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/families",
+							"host": ["{{base_url}}"],
+							"path": ["families"]
+						}
+					}
+				},
+				{
+					"name": "Get Family",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/families/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["families", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Family",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"456 New Street, City\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/families/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["families", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "List Members",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/families/{{family_id}}/members",
+							"host": ["{{base_url}}"],
+							"path": ["families", "{{family_id}}", "members"]
+						}
+					}
+				},
+				{
+					"name": "Add Member",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fname\": \"Jane\",\n  \"lname\": \"Doe\",\n  \"phone\": \"9876543210\",\n  \"email\": \"jane@example.com\",\n  \"relation\": \"spouse\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/families/{{family_id}}/members",
+							"host": ["{{base_url}}"],
+							"path": ["families", "{{family_id}}", "members"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Finance - Bank Accounts",
+			"item": [
+				{
+					"name": "Create Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"family_id\": \"{{family_id}}\",\n  \"account_name\": \"Primary Savings\",\n  \"account_number\": \"1234567890\",\n  \"bank_name\": \"HDFC Bank\",\n  \"account_type\": \"savings\",\n  \"balance\": 50000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/accounts",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "accounts"]
+						}
+					}
+				},
+				{
+					"name": "List Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/accounts/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "accounts", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Account",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"account_name\": \"Updated Savings\",\n  \"balance\": 60000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/accounts/{{family_id}}/{account_id}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "accounts", "{{family_id}}", "{account_id}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Account",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/accounts/{{family_id}}/{account_id}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "accounts", "{{family_id}}", "{account_id}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Finance - Transactions",
+			"item": [
+				{
+					"name": "Create Transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"family_id\": \"{{family_id}}\",\n  \"account_id\": \"{account_id}\",\n  \"type\": \"expense\",\n  \"category\": \"Food\",\n  \"amount\": 500,\n  \"description\": \"Grocery shopping\",\n  \"transaction_date\": \"2024-01-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "transactions"]
+						}
+					}
+				},
+				{
+					"name": "List Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/transactions/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "transactions", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Monthly Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/transactions/{{family_id}}/summary",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "transactions", "{{family_id}}", "summary"]
+						}
+					}
+				},
+				{
+					"name": "Delete Transaction",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/transactions/{{family_id}}/{transaction_id}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "transactions", "{{family_id}}", "{transaction_id}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Finance - Bills",
+			"item": [
+				{
+					"name": "Create Bill",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"family_id\": \"{{family_id}}\",\n  \"bill_name\": \"Electricity Bill\",\n  \"category\": \"Electricity\",\n  \"amount\": 2500,\n  \"due_date\": \"2024-02-05\",\n  \"is_recurring\": true,\n  \"recurrence_pattern\": \"monthly\",\n  \"status\": \"pending\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/bills",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "bills"]
+						}
+					}
+				},
+				{
+					"name": "List Bills",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/bills/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "bills", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Upcoming Bills",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/bills/{{family_id}}/upcoming",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "bills", "{{family_id}}", "upcoming"]
+						}
+					}
+				},
+				{
+					"name": "Update Bill",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"paid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/bills/{{family_id}}/{bill_id}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "bills", "{{family_id}}", "{bill_id}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Bill",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/bills/{{family_id}}/{bill_id}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "bills", "{{family_id}}", "{bill_id}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Finance - Cards",
+			"item": [
+				{
+					"name": "Create Card",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"family_id\": \"{{family_id}}\",\n  \"card_type\": \"credit\",\n  \"bank_name\": \"HDFC Bank\",\n  \"card_name\": \"Platinum Credit Card\",\n  \"last_four_digits\": \"1234\",\n  \"card_limit\": 100000,\n  \"billing_date\": 15,\n  \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/cards",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "cards"]
+						}
+					}
+				},
+				{
+					"name": "List Cards",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/cards/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "cards", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Card",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"card_limit\": 150000,\n  \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/cards/{{family_id}}/{card_id}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "cards", "{{family_id}}", "{card_id}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Card",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/cards/{{family_id}}/{card_id}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "cards", "{{family_id}}", "{card_id}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "AI Services",
+			"item": [
+				{
+					"name": "Get Finance Insights",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/ai/insights/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "ai", "insights", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Savings Tips",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/finance/ai/savings-tips/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "ai", "savings-tips", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Parse SMS Transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sms_text\": \"Your A/c XX1234 debited with Rs.5000 on 23-Feb-26. Spent at Amazon. Avl Bal: Rs.45000\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/ai/parse-sms/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "ai", "parse-sms", "{{family_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Parse SMS Card",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sms_text\": \"Your HDFC Bank Platinum Credit Card ending 1234 has been activated. Credit limit: Rs.100000\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/finance/ai/parse-sms-card/{{family_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["finance", "ai", "parse-sms-card", "{{family_id}}"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
