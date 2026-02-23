@@ -38,12 +38,12 @@ Detailed documentation for each module:
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.11+ / Node.js 18+
-- PostgreSQL 14+
-- Redis 7+
-- Docker & Docker Compose
+- PHP 8.1+
+- MySQL 5.7+
+- Node.js 18+
+- Composer
 
-### Installation
+### Quick Start
 
 ```bash
 # Clone repository
@@ -52,22 +52,27 @@ cd griham
 
 # Setup backend
 cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Setup database
-createdb griham_db
-python manage.py migrate
+composer install
+cp .env.example .env
+# Edit .env with your database credentials
+php database/migrate.php
 
 # Setup frontend
 cd ../frontend
 npm install
 
-# Run development servers
-python manage.py runserver  # Backend
-npm start                    # Frontend
+# Start both servers
+cd ..
+./start-dev.sh
 ```
+
+### Access Application
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000/api
+
+### Test Credentials
+- Email: `admin@griham.com`
+- Password: `admin123`
 
 ---
 

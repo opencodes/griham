@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Modules\Auth\Controllers;
+
+use App\Modules\User\Models\User;
+use App\Utils\JWT;
+use App\Core\Response;
+
+class AuthController
+{
+    private User $userModel;
+
+    public function __construct()
+    {
+        $this->userModel = new User();
+    }
+
+    public function register(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($data['email']) || !isset($data['password']) || !isset($data['full_name'])) {
+            Response::error('Email, password, and full name are required', 400);
+        }
+
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            Response::error('Invalid email format', 400);
+        }
+
+        if (strlen($data['password']) < 6) {
+            Response::error('Password must be at least 6 characters', 400);
+        }
+
+        $existingUser = $this->userModel->findByEmail($data['email']);
+        if ($existingUser) {
+            Response::error('Email already registered', 409);
+        }
+
+        $userId = $this->userModel->createUser([
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'full_name' => $data['full_name'],
+            'role' => 'user'
+        ]);
+
+        $user = $this->userModel->findById($userId);
+        unset($user['password']);
+
+        $token = JWT::encode(['userId' => $user['id'], 'email' => $user['email']]);
+
+        Response::success([
+            'user' => $user,
+            'token' => $token
+        ], 'User registered successfully', 201);
+    }
+
+    public function login(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($data['email']) || !isset($data['password'])) {
+            Response::error('Email and password are required', 400);
+        }
+
+        $user = $this->userModel->findByEmail($data['email']);
+        if (!$user) {
+            Response::error('Invalid credentials', 401);
+        }
+
+        if (!$this->userModel->verifyPassword($data['password'], $user['password'])) {
+            Response::error('Invalid credentials', 401);
+        }
+
+        unset($user['password']);
+
+        $token = JWT::encode(['userId' => $user['id'], 'email' => $user['email']]);
+
+        Response::success([
+            'user' => $user,
+            'token' => $token
+        ], 'Login successful');
+    }
+
+    public function me($currentUser): void
+    {
+        $user = $this->userModel->findById($currentUser->userId);
+        if (!$user) {
+            Response::error('User not found', 404);
+        }
+
+        unset($user['password']);
+        Response::success($user);
+    }
+}
