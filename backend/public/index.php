@@ -7,6 +7,9 @@ use App\Core\Response;
 use App\Middleware\AuthMiddleware;
 use App\Modules\Auth\Controllers\AuthController;
 use App\Modules\Family\Controllers\FamilyController;
+use App\Modules\Finance\Controllers\BankAccountController;
+use App\Modules\Finance\Controllers\TransactionController;
+use App\Modules\Finance\Controllers\BillController;
 
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
@@ -55,6 +58,32 @@ try {
             (new FamilyController())->listMembers($currentUser, $matches[1]);
         } elseif (preg_match('/^\/households\/([a-f0-9-]+)\/members$/', $path, $matches) && $method === 'POST') {
             (new FamilyController())->addMember($currentUser, $matches[1]);
+        } elseif ($path === '/finance/accounts' && $method === 'POST') {
+            (new BankAccountController())->create($currentUser);
+        } elseif (preg_match('/^\/finance\/accounts\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
+            (new BankAccountController())->list($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/accounts\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'PUT') {
+            (new BankAccountController())->update($currentUser, $matches[2]);
+        } elseif (preg_match('/^\/finance\/accounts\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'DELETE') {
+            (new BankAccountController())->delete($currentUser, $matches[2]);
+        } elseif ($path === '/finance/transactions' && $method === 'POST') {
+            (new TransactionController())->create($currentUser);
+        } elseif (preg_match('/^\/finance\/transactions\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
+            (new TransactionController())->list($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/transactions\/([a-f0-9-]+)\/summary$/', $path, $matches) && $method === 'GET') {
+            (new TransactionController())->summary($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/transactions\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'DELETE') {
+            (new TransactionController())->delete($currentUser, $matches[2]);
+        } elseif ($path === '/finance/bills' && $method === 'POST') {
+            (new BillController())->create($currentUser);
+        } elseif (preg_match('/^\/finance\/bills\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
+            (new BillController())->list($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/bills\/([a-f0-9-]+)\/upcoming$/', $path, $matches) && $method === 'GET') {
+            (new BillController())->upcoming($currentUser, $matches[1]);
+        } elseif (preg_match('/^\/finance\/bills\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'PUT') {
+            (new BillController())->update($currentUser, $matches[2]);
+        } elseif (preg_match('/^\/finance\/bills\/([a-f0-9-]+)\/([a-f0-9-]+)$/', $path, $matches) && $method === 'DELETE') {
+            (new BillController())->delete($currentUser, $matches[2]);
         } else {
             Response::error('Route not found', 404);
         }

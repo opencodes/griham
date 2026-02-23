@@ -17,6 +17,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (activeTab === 'family') {
       loadHouseholds();
+    } else if (activeTab === 'finance') {
+      window.location.href = '/finance';
     }
   }, [activeTab]);
 
@@ -160,10 +162,16 @@ export default function Dashboard() {
             </div>
           )}
 
-          {activeTab !== 'dashboard' && activeTab !== 'family' && (
+          {activeTab !== 'dashboard' && activeTab !== 'family' && activeTab !== 'finance' && (
             <div className="text-center py-12">
               <p className="text-gray-600 text-lg">Coming soon...</p>
               <p className="text-sm text-gray-500 mt-2">This module will be available in Phase 2</p>
+            </div>
+          )}
+
+          {activeTab === 'finance' && (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">Redirecting to Finance...</p>
             </div>
           )}
         </main>

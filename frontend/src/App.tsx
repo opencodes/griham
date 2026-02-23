@@ -3,6 +3,10 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import FamilyDetail from './pages/FamilyDetail';
+import FinanceOverview from './pages/FinanceOverview';
+import BankAccounts from './pages/BankAccounts';
+import Transactions from './pages/Transactions';
+import Bills from './pages/Bills';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -45,6 +49,38 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <FamilyDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance"
+        element={
+          <ProtectedRoute>
+            <FinanceOverview />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/accounts"
+        element={
+          <ProtectedRoute>
+            <BankAccounts />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/transactions"
+        element={
+          <ProtectedRoute>
+            <Transactions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/bills"
+        element={
+          <ProtectedRoute>
+            <Bills />
           </ProtectedRoute>
         }
       />
