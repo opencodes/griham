@@ -100,3 +100,14 @@ flutter --version
 ```
 
 You should see Flutter version information.
+
+For mobile_app/griham
+
+Add feature to read SMS from device list and add button to trigger
+curl --location 'https://api.opencodes.dev/finance/ai/parse-sms/'
+--header 'Authorization: Bearer '
+--header 'Content-Type: application/json'
+--data '{
+"sms_text": "Your A/c XX1234 debited with Rs.5000 on 23-Feb-26. Spent at Amazon. Avl Bal: Rs.45000"
+}'
+with sms content

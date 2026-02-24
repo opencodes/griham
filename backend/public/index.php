@@ -92,7 +92,7 @@ try {
             (new AIController())->getFinanceInsights($currentUser, $matches[1]);
         } elseif (preg_match('/^\/finance\/ai\/savings-tips\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
             (new AIController())->getSavingsTips($currentUser, $matches[1]);
-        } elseif (preg_match('/^\/finance\/ai\/parse-sms\/([a-f0-9-]+)$/', $path, $matches) && $method === 'POST') {
+        } elseif (preg_match('/^\/finance\/ai\/parse-sms\/([a-f0-9-]+)$/', $path, $matches) && $method === 'POST') { // /finance/ai/parse-sms/{accountId}
             (new AIController())->parseSMS($currentUser, $matches[1]);
         } elseif (preg_match('/^\/finance\/ai\/parse-sms-card\/([a-f0-9-]+)$/', $path, $matches) && $method === 'POST') {
             (new AIController())->parseSMSCard($currentUser, $matches[1]);

@@ -14,6 +14,9 @@ class User extends Model
         $data['is_active'] = true;
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['updated_at'] = date('Y-m-d H:i:s');
+        // Hash the password
+        $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+        
         return $this->create($data);
     }
 

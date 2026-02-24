@@ -6,6 +6,9 @@
 echo "🏠 Starting Griham Home Automation System..."
 echo ""
 
+LOCAL_IP=$(ipconfig getifaddr en1)
+sleep 1
+echo "📡 Local IP Address: $LOCAL_IP"
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -28,10 +31,10 @@ echo ""
 # Start backend
 echo -e "${BLUE}Starting PHP Backend API...${NC}"
 cd backend
-php -S localhost:8000 -t public &
+php -S $LOCAL_IP:8000 -t public &
 BACKEND_PID=$!
 echo -e "${GREEN}✓ Backend started (PID: $BACKEND_PID)${NC}"
-echo "   API: http://localhost:8000/api"
+echo "   API: http://$LOCAL_IP:8000/api"
 echo ""
 
 # Wait a moment for backend to initialize
@@ -40,15 +43,15 @@ sleep 2
 # Start frontend
 echo -e "${BLUE}Starting React Frontend...${NC}"
 cd ../frontend
-npm run dev &
+npm run dev -- --host $LOCAL_IP --port 3001 &
 FRONTEND_PID=$!
 echo -e "${GREEN}✓ Frontend started (PID: $FRONTEND_PID)${NC}"
-echo "   UI: http://localhost:3001"
+echo "   UI: http://$LOCAL_IP:3001"
 echo ""
 
 echo -e "${GREEN}✅ Both servers are running!${NC}"
 echo ""
-echo "📍 Access the application at: http://localhost:3001"
+echo "📍 Access the application at: http://$LOCAL_IP:3001"
 echo ""
 echo -e "${YELLOW}🔐 Test Credentials:${NC}"
 echo "   Email: admin@griham.com"
