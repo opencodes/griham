@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:griham/sms_list_screen.dart';
+import 'sms_list_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -50,9 +50,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'main_add',
         onPressed: _readSms,
-        tooltip: 'Read SMS',
-        child: const Icon(Icons.sms),
+        tooltip: 'Add',
+        child: const Icon(Icons.add),
       ),
     );
   }

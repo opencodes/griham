@@ -16,7 +16,30 @@ use App\Modules\AI\Controllers\AIController;
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
-header('Access-Control-Allow-Origin: ' . ($_ENV['CORS_ORIGIN'] ?? '*'));
+$allowed_origins = array_map('trim', explode(',', $_ENV['CORS_ORIGIN'] ?? ''));
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$is_allowed = false;
+
+if ($origin) {
+    // First, check for an exact match
+    if (in_array($origin, $allowed_origins, true)) {
+        $is_allowed = true;
+    } else {
+        // If no exact match, check for flexible localhost origins
+        $is_localhost_request = preg_match('/^https?:\/\/localhost(:\d+)?$/', $origin);
+        $localhost_allowed = in_array('http://localhost', $allowed_origins, true) || in_array('https://localhost', $allowed_origins, true);
+
+        if ($is_localhost_request && $localhost_allowed) {
+            $is_allowed = true;
+        }
+    }
+}
+
+if ($is_allowed) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+} else {
+    header('Access-Control-Allow-Origin: ' . ($_ENV['CORS_ORIGIN'] ?? '*'));
+}
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
