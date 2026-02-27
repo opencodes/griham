@@ -6,7 +6,7 @@
 echo "🏠 Starting Griham Home Automation System..."
 echo ""
 
-LOCAL_IP=$(ipconfig getifaddr en1)
+LOCAL_IP=localhost
 sleep 1
 echo "📡 Local IP Address: $LOCAL_IP"
 # Colors for output

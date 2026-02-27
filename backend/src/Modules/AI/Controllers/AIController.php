@@ -40,11 +40,11 @@ class AIController
 
         $month = date('Y-m');
         $summary = $this->transactionModel->getMonthlySummary($familyId, $month);
-        
+
         $upcomingBills = $this->billModel->findUpcoming($familyId);
-        
-        $savingsRate = $summary['total_income'] > 0 
-            ? (($summary['total_income'] - $summary['total_expense']) / $summary['total_income']) * 100 
+
+        $savingsRate = $summary['total_income'] > 0
+            ? (($summary['total_income'] - $summary['total_expense']) / $summary['total_income']) * 100
             : 0;
 
         $data = [
@@ -122,6 +122,7 @@ class AIController
             'transaction_date' => $parsed['date'],
             'created_by' => $currentUser->userId
         ];
+
 
         $transactionId = $this->transactionModel->createTransaction($transactionData);
 

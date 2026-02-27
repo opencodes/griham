@@ -51,11 +51,7 @@ logs/
 *.log
 log/
 
-# Database
-*.sql
-*.sqlite
-*.sqlite3
-*.db
+ 
 
 # Environment Variables
 .env
@@ -86,5 +82,4 @@ temp/
 # package-lock.json
 # yarn.lock
 # composer.lock
-domesti-single-pack-master/
-ui-bkp/
+ 

@@ -42,6 +42,8 @@ class HuggingFaceClient
             'messages' => [
                 ['role' => 'user', 'content' => $prompt],
             ],
+            'temperature' => 0.1,
+            'top_p' => 0.9,
             'max_tokens' => $maxTokens,
         ];
 
