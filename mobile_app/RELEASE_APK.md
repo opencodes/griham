@@ -12,12 +12,12 @@ keytool -genkey -v -keystore app/key.jks -keyalg RSA -keysize 2048 -validity 100
 ```
 
 You'll be prompted for:
-- **Keystore Password** (write this down!)
+- **Keystore Password** Cisco@123
 - **Keystore Password** (confirm)
-- **First and Last Name** (your name or organization name)
-- **Organizational Unit** (optional, e.g. "Engineering")
-- **Organization** (e.g. "Griham Finance")
-- **City, State, Country code** (your location)
+- **First and Last Name** opencodes
+- **Organizational Unit** opencodes
+- **Organization** opencodes
+- **City, State, Country code** bengaluru, ka, in
 - **CN=?** (usually same as name)
 
 When asked "Is this correct?" type `yes` and press `[Enter]`.
@@ -70,14 +70,21 @@ keyPassword=YOUR_KEY_PASSWORD
 Update `build.gradle.kts` to read from `local.properties`:
 
 ```kotlin
-signingConfigs {
-    create("release") {
-        keyAlias = "release"
-        keyPassword = properties["keyPassword"] as String
-        storeFile = file("key.jks")
-        storePassword = properties["storePassword"] as String
+// ADD THIS BLOCK before buildTypes:
+    signingConfigs {
+        create("release") {
+            keyAlias = "release"
+            keyPassword = properties["keyPassword"] as String
+            storeFile = file("key.jks")
+            storePassword = properties["storePassword"] as String
+        }
     }
-}
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release")  // Change from debug
+        }
+    }
 ```
 
 `local.properties` is already in `.gitignore`, so your passwords stay private.
