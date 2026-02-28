@@ -4,7 +4,7 @@ import api from '@/lib/api';
 
 interface CardSMSParserProps {
   familyId: string;
-  onParsed: (cardData: any) => void;
+  onParsed: (cardData: unknown) => void;
 }
 
 export default function CardSMSParser({ familyId, onParsed }: CardSMSParserProps) {
@@ -25,17 +25,20 @@ export default function CardSMSParser({ familyId, onParsed }: CardSMSParserProps
 
       onParsed(data.data);
       setSmsText('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to parse SMS');
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to parse SMS';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+    <div className="hero-ai-card rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="w-5 h-5 text-purple-600" />
+        <Sparkles className="w-5 h-5 text-gray-800 dark:text-gray-100" />
         <h3 className="font-semibold text-gray-800 dark:text-gray-100">AI SMS Parser</h3>
       </div>
 
@@ -45,7 +48,7 @@ export default function CardSMSParser({ familyId, onParsed }: CardSMSParserProps
         onChange={(e) => setSmsText(e.target.value)}
         rows={3}
         disabled={isLoading}
-        className="w-full px-3 py-2 border border-purple-300 dark:border-purple-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-100 text-sm mb-2"
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-100 text-sm mb-2"
       />
 
       {error && (
@@ -58,7 +61,7 @@ export default function CardSMSParser({ familyId, onParsed }: CardSMSParserProps
       <button
         onClick={handleParse}
         disabled={isLoading || !smsText.trim()}
-        className="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium"
+        className="w-full ai-gradient-button px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium"
       >
         {isLoading ? (
           <>

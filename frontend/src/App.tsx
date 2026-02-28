@@ -157,7 +157,9 @@ function App() {
     <BrowserRouter>
       <DarkModeProvider>
         <AuthProvider>
-          <AppRoutes />
+          <div className="premium-shell">
+            <AppRoutes />
+          </div>
         </AuthProvider>
       </DarkModeProvider>
     </BrowserRouter>

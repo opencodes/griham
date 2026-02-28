@@ -99,7 +99,9 @@ export default function TransactionsPage() {
       if (families.length > 0) {
         setFamilyId(families[0].id);
         const members = await householdAPI.listMembers(families[0].id);
-        const currentMember = members.find((m: any) => m.user_id === user?.id);
+        const currentMember = (members as Array<{ user_id?: string; role?: string }>).find(
+          (member) => member.user_id === user?.id
+        );
         if (currentMember?.role) {
           setUserRole(currentMember.role);
         }
@@ -290,18 +292,19 @@ export default function TransactionsPage() {
                   Reset filters
                 </button>
 
+                {familyId && (
+                  <SMSParser familyId={familyId} onSuccess={() => { loadTransactions(); loadAccounts(); }} />
+                )}
+
                 {userRole === 'admin' && (
-                  <>
-                    <SMSParser familyId={familyId} onSuccess={() => { loadTransactions(); loadAccounts(); }} />
-                    <button
-                      onClick={() => setShowModal(true)}
-                      className="inline-flex h-11 items-center gap-2 bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 text-sm font-medium whitespace-nowrap"
-                      type="button"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Transaction
-                    </button>
-                  </>
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="inline-flex h-11 items-center gap-2 bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 text-sm font-medium whitespace-nowrap"
+                    type="button"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Transaction
+                  </button>
                 )}
               </div>
             </div>

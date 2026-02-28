@@ -1,34 +1,85 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { householdAPI, Household } from '@/lib/api';
-import { Home, Plus, Users, Menu, Bell, Flame } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { householdAPI, financeAPI, Household, Transaction, Bill, Card, BankAccount } from '@/lib/api';
+import {
+  Plus,
+  Users,
+  Wallet,
+  Calendar,
+  Package,
+  Heart,
+  ContactRound,
+  ListTodo,
+  MessageSquare,
+  ArrowUpRight,
+  AlertTriangle,
+  Sparkles,
+  CreditCard,
+} from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('family');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [households, setHouseholds] = useState<Household[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(false);
+  const [membersCount, setMembersCount] = useState(0);
+  const [accounts, setAccounts] = useState<BankAccount[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [summary, setSummary] = useState({ total_income: 0, total_expense: 0, balance: 0 });
 
   useEffect(() => {
-    if (activeTab === 'family') {
-      loadHouseholds();
-    } else if (activeTab === 'finance') {
-      window.location.href = '/finance';
-    }
-  }, [activeTab]);
+    loadDashboardData();
+  }, []);
 
-  const loadHouseholds = async () => {
+  useEffect(() => {
+    if (activeTab === 'finance') navigate('/finance');
+  }, [activeTab, navigate]);
+
+  const loadDashboardData = async () => {
+    setIsDashboardLoading(true);
     try {
       const data = await householdAPI.list();
       setHouseholds(data);
+
+      if (data.length === 0) {
+        setMembersCount(0);
+        setAccounts([]);
+        setTransactions([]);
+        setBills([]);
+        setCards([]);
+        setSummary({ total_income: 0, total_expense: 0, balance: 0 });
+        return;
+      }
+
+      const familyId = data[0].id;
+      const [members, accountData, transactionData, billData, cardData, summaryData] = await Promise.all([
+        householdAPI.listMembers(familyId).catch(() => []),
+        financeAPI.listAccounts(familyId).catch(() => []),
+        financeAPI.listTransactions(familyId).catch(() => []),
+        financeAPI.listBills(familyId).catch(() => []),
+        financeAPI.listCards(familyId).catch(() => []),
+        financeAPI.getSummary(familyId).catch(() => ({ total_income: 0, total_expense: 0, balance: 0 })),
+      ]);
+
+      setMembersCount(Array.isArray(members) ? members.length : 0);
+      setAccounts(accountData);
+      setTransactions(transactionData);
+      setBills(billData);
+      setCards(cardData);
+      setSummary(summaryData);
     } catch (error) {
-      console.error('Failed to load households', error);
+      console.error('Failed to load dashboard data', error);
+    } finally {
+      setIsDashboardLoading(false);
     }
   };
 
@@ -40,13 +91,101 @@ export default function Dashboard() {
       setShowModal(false);
       setName('');
       setAddress('');
-      loadHouseholds();
+      loadDashboardData();
     } catch (error) {
       console.error('Failed to create household', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const totalBalance = useMemo(
+    () => accounts.reduce((sum, account) => sum + Number(account.balance || 0), 0),
+    [accounts]
+  );
+
+  const monthlyIncome = Number(summary.total_income || 0);
+  const monthlyExpense = Number(summary.total_expense || 0);
+  const savingsRate = monthlyIncome > 0 ? ((monthlyIncome - monthlyExpense) / monthlyIncome) * 100 : 0;
+  const pendingBills = bills.filter((bill) => bill.status === 'pending').length;
+  const overdueBills = bills.filter(
+    (bill) => bill.status === 'pending' && new Date(bill.due_date).getTime() < Date.now()
+  ).length;
+
+  const moduleCards = [
+    {
+      key: 'finance',
+      title: 'Finance',
+      icon: Wallet,
+      path: '/finance',
+      tone: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30',
+      primary: `₹${totalBalance.toFixed(2)}`,
+      secondary: `${transactions.length} transactions, ${pendingBills} pending bills`,
+    },
+    {
+      key: 'events',
+      title: 'Events',
+      icon: Calendar,
+      path: '/events',
+      tone: 'text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30',
+      primary: '4 upcoming',
+      secondary: '2 recurring occasions',
+    },
+    {
+      key: 'assets',
+      title: 'Assets',
+      icon: Package,
+      path: '/assets',
+      tone: 'text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/30',
+      primary: '6 tracked',
+      secondary: '1 expiry in 30 days',
+    },
+    {
+      key: 'health',
+      title: 'Health',
+      icon: Heart,
+      path: '/health',
+      tone: 'text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30',
+      primary: '2 appointments',
+      secondary: '1 vaccine due',
+    },
+    {
+      key: 'contacts',
+      title: 'Contacts',
+      icon: ContactRound,
+      path: '/contacts',
+      tone: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/30',
+      primary: '18 contacts',
+      secondary: '3 emergency entries',
+    },
+    {
+      key: 'organizer',
+      title: 'Organizer',
+      icon: ListTodo,
+      path: '/organizer',
+      tone: 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30',
+      primary: '5 pending tasks',
+      secondary: '3 reminders this week',
+    },
+    {
+      key: 'messages',
+      title: 'Messages',
+      icon: MessageSquare,
+      path: '/messages',
+      tone: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30',
+      primary: '4 unread',
+      secondary: '1 critical alert',
+    },
+  ];
+
+  const risks = useMemo(() => {
+    const items: string[] = [];
+    if (overdueBills > 0) items.push(`${overdueBills} bill${overdueBills > 1 ? 's are' : ' is'} overdue`);
+    if (savingsRate < 10 && monthlyIncome > 0) items.push('Monthly savings rate is below 10%');
+    if (transactions.length === 0) items.push('No finance transactions logged yet');
+    if (households.length === 0) items.push('Create your first family to activate modules');
+    return items;
+  }, [overdueBills, savingsRate, monthlyIncome, transactions.length, households.length]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
@@ -60,22 +199,146 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-        {/* Main Content */}
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center">
-                      <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              <section className="relative overflow-hidden rounded-2xl hero-ai-card p-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/80 dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      AI Command Center
                     </div>
+                    <h2 className="mt-3 text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                      Household Overview
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                      AI-enhanced summary of family, finance and key module signals in one place.
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{households.length}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Family</p>
+                  <button
+                    onClick={() => navigate('/finance')}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
+                  >
+                    Open Finance Center
+                    <ArrowUpRight className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
+              </section>
+
+              <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Families</p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{households.length}</p>
+                </article>
+                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Members</p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{membersCount}</p>
+                </article>
+                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Monthly Savings Rate</p>
+                  <p className={`mt-2 text-2xl font-bold ${savingsRate >= 20 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                    {monthlyIncome > 0 ? `${Math.max(savingsRate, -100).toFixed(1)}%` : 'No income'}
+                  </p>
+                </article>
+                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Pending Bills</p>
+                  <p className={`mt-2 text-2xl font-bold ${overdueBills > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                    {pendingBills}
+                  </p>
+                </article>
+                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Cards + Accounts</p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{cards.length + accounts.length}</p>
+                </article>
+              </section>
+
+              <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Module Pulse</h3>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {isDashboardLoading ? 'Refreshing...' : 'Live finance + module signals'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {moduleCards.map((module) => {
+                      const Icon = module.icon;
+                      return (
+                        <button
+                          key={module.key}
+                          onClick={() => navigate(module.path)}
+                          className="text-left border border-gray-200 dark:border-gray-700 rounded-xl p-3.5 hover:shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${module.tone}`}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <ArrowUpRight className="w-4 h-4 text-gray-400" />
+                          </div>
+                          <p className="mt-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{module.title}</p>
+                          <p className="mt-1 text-sm font-medium text-gray-700 dark:text-gray-200">{module.primary}</p>
+                          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{module.secondary}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Risk Radar</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Actionable alerts across household operations.
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    {risks.length > 0 ? (
+                      risks.map((risk, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 p-2.5"
+                        >
+                          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                          <p className="text-xs text-amber-800 dark:text-amber-200">{risk}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 p-2.5">
+                        <p className="text-xs text-emerald-700 dark:text-emerald-300">No major operational risks detected.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setActiveTab('family')}
+                  className="text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-sm transition"
+                >
+                  <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                  <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Family Management</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Create families and manage members.</p>
+                </button>
+                <button
+                  onClick={() => navigate('/finance/cards')}
+                  className="text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-sm transition"
+                >
+                  <CreditCard className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                  <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Card Command</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Track cards, limits and statuses.</p>
+                </button>
+                <button
+                  onClick={() => navigate('/messages')}
+                  className="text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-sm transition"
+                >
+                  <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Message Center</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Review alerts and internal updates.</p>
+                </button>
+              </section>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                Note: Finance and Family metrics are live. Other module cards currently show module-level operational snapshot values.
+              </p>
             </div>
           )}
 
@@ -99,9 +362,9 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {households.map((household) => (
-                  <div 
+                  <div
                     key={household.id} 
-                    onClick={() => window.location.href = `/families/${household.id}`}
+                    onClick={() => navigate(`/families/${household.id}`)}
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6 hover:shadow-md transition cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-4">

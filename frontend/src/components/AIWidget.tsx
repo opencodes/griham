@@ -29,17 +29,20 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
       onTransactionAdded();
       
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to parse SMS');
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to parse SMS';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl shadow-lg p-6 border border-purple-200 dark:border-purple-800">
+    <div className="hero-ai-card rounded-2xl shadow-lg p-6">
       <div className="flex items-center gap-3 mb-4">
-        <div className="bg-purple-600 p-2 rounded-lg">
+        <div className="ai-gradient-icon p-2 rounded-lg">
           <Sparkles className="w-6 h-6 text-white" />
         </div>
         <div>
@@ -57,7 +60,7 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
             required
             rows={5}
             disabled={isLoading}
-            className="w-full px-4 py-3 border border-purple-300 dark:border-purple-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-100"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
 
@@ -77,7 +80,7 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
         <button
           type="submit"
           disabled={isLoading || !smsText.trim()}
-          className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium transition-colors"
+          className="w-full ai-gradient-button px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium transition-colors"
         >
           {isLoading ? (
             <>
@@ -93,8 +96,8 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
         </button>
       </form>
 
-      <div className="mt-4 p-3 bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700 rounded-lg">
-        <p className="text-xs text-purple-800 dark:text-purple-200">
+      <div className="mt-4 p-3 ai-gradient-note rounded-lg">
+        <p className="text-xs text-gray-800 dark:text-gray-100">
           <strong>💡 Tip:</strong> Works with most bank SMS formats. AI extracts amount, date, category, and description automatically.
         </p>
       </div>
