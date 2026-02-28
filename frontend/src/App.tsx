@@ -9,6 +9,12 @@ import BankAccounts from './pages/BankAccounts';
 import Transactions from './pages/Transactions';
 import Bills from './pages/Bills';
 import Cards from './pages/Cards';
+import Events from './pages/Events';
+import Assets from './pages/Assets';
+import Health from './pages/Health';
+import Contacts from './pages/Contacts';
+import Organizer from './pages/Organizer';
+import Messaging from './pages/Messaging';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -91,6 +97,54 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Cards />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events"
+        element={
+          <ProtectedRoute>
+            <Events />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/assets"
+        element={
+          <ProtectedRoute>
+            <Assets />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/health"
+        element={
+          <ProtectedRoute>
+            <Health />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contacts"
+        element={
+          <ProtectedRoute>
+            <Contacts />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/organizer"
+        element={
+          <ProtectedRoute>
+            <Organizer />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <Messaging />
           </ProtectedRoute>
         }
       />

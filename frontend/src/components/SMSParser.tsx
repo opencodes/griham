@@ -37,9 +37,9 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-lg hover:bg-purple-700 font-medium"
+        className="inline-flex h-11 items-center gap-2 bg-purple-600 text-white px-4 rounded-lg hover:bg-purple-700 text-sm font-medium whitespace-nowrap"
       >
-        <MessageSquare className="w-5 h-5" />
+        <MessageSquare className="w-4 h-4" />
         Add from SMS
       </button>
 

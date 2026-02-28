@@ -1,4 +1,4 @@
-import { Home, Users, DollarSign, Calendar, Package, Heart, ListTodo, MessageSquare, LogOut, Menu } from 'lucide-react';
+import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -13,11 +13,12 @@ const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
   { id: 'family', label: 'Family', icon: Users, path: '/' },
   { id: 'finance', label: 'Finance', icon: DollarSign, path: '/finance' },
-  { id: 'events', label: 'Events', icon: Calendar, path: '/' },
-  { id: 'assets', label: 'Assets', icon: Package, path: '/' },
-  { id: 'health', label: 'Health', icon: Heart, path: '/' },
-  { id: 'organizer', label: 'Organizer', icon: ListTodo, path: '/' },
-  { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/' },
+  { id: 'events', label: 'Events', icon: Calendar, path: '/events' },
+  { id: 'assets', label: 'Assets', icon: Package, path: '/assets' },
+  { id: 'health', label: 'Health', icon: Heart, path: '/health' },
+  { id: 'contacts', label: 'Contacts', icon: ContactRound, path: '/contacts' },
+  { id: 'organizer', label: 'Organizer', icon: ListTodo, path: '/organizer' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
 ];
 
 export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: SidebarProps) {
