@@ -11,10 +11,10 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 md:px-8 h-[73px] flex items-center justify-between transition-colors">
+    <header className="bg-white dark:bg-transparent border-b border-gray-200 dark:border-gray-700/30 px-4 md:px-8 h-[73px] flex items-center justify-between transition-colors glass-black-surface">
       <div className="flex items-center gap-3">
         <button
-          className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100/70 dark:hover:bg-gray-800/70 transition-colors"
+          className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100/70 dark:hover:bg-gray-700/40 transition-colors"
           onClick={onMobileMenuToggle}
           style={{ display: onMobileMenuToggle ? 'flex' : 'none' }}
         >
@@ -37,7 +37,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
       <div className="flex items-center gap-2">
         <button
           onClick={toggleDarkMode}
-          className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100/70 dark:hover:bg-gray-800/70 text-gray-600 dark:text-gray-300 transition-colors"
+          className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100/70 dark:hover:bg-gray-700/40 text-gray-600 dark:text-gray-300 transition-colors"
           title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -47,7 +47,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           <span className="hidden sm:inline">0-day streak</span>
           <span className="sm:hidden">0d</span>
         </div>
-        <button className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100/70 dark:hover:bg-gray-800/70 relative transition-colors">
+        <button className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100/70 dark:hover:bg-gray-700/40 relative transition-colors">
           <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
         </button>

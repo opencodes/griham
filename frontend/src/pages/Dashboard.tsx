@@ -188,7 +188,7 @@ export default function Dashboard() {
   }, [overdueBills, savingsRate, monthlyIncome, transactions.length, households.length]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-transparent">
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
@@ -199,13 +199,13 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-transparent">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               <section className="relative overflow-hidden rounded-2xl hero-ai-card p-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/80 dark:bg-gray-900/70 border border-gray-300 dark:border-gray-700 text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/80 dark:bg-gray-900/55 border border-gray-300 dark:border-gray-600/45 text-xs font-medium text-gray-700 dark:text-gray-300">
                       <Sparkles className="w-3.5 h-3.5" />
                       AI Command Center
                     </div>
@@ -227,34 +227,34 @@ export default function Dashboard() {
               </section>
 
               <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                <article className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 glass-black-surface">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Families</p>
                   <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{households.length}</p>
                 </article>
-                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                <article className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 glass-black-surface">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Members</p>
                   <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{membersCount}</p>
                 </article>
-                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                <article className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 glass-black-surface">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Monthly Savings Rate</p>
                   <p className={`mt-2 text-2xl font-bold ${savingsRate >= 20 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                     {monthlyIncome > 0 ? `${Math.max(savingsRate, -100).toFixed(1)}%` : 'No income'}
                   </p>
                 </article>
-                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                <article className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 glass-black-surface">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Pending Bills</p>
                   <p className={`mt-2 text-2xl font-bold ${overdueBills > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
                     {pendingBills}
                   </p>
                 </article>
-                <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                <article className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 glass-black-surface">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Cards + Accounts</p>
                   <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{cards.length + accounts.length}</p>
                 </article>
               </section>
 
               <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+                <div className="lg:col-span-2 bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-5 glass-black-surface">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Module Pulse</h3>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -268,7 +268,7 @@ export default function Dashboard() {
                         <button
                           key={module.key}
                           onClick={() => navigate(module.path)}
-                          className="text-left border border-gray-200 dark:border-gray-700 rounded-xl p-3.5 hover:shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition"
+                          className="text-left border border-gray-200 dark:border-gray-700/35 rounded-xl p-3.5 hover:shadow-sm hover:border-gray-300 dark:hover:border-indigo-400/30 glass-black-soft transition"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${module.tone}`}>
@@ -285,7 +285,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+                <div className="bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-5 glass-black-surface">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Risk Radar</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Actionable alerts across household operations.
@@ -313,7 +313,7 @@ export default function Dashboard() {
               <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   onClick={() => setActiveTab('family')}
-                  className="text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-sm transition"
+                  className="text-left bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 hover:shadow-sm glass-black-surface transition"
                 >
                   <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                   <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Family Management</p>
@@ -321,7 +321,7 @@ export default function Dashboard() {
                 </button>
                 <button
                   onClick={() => navigate('/finance/cards')}
-                  className="text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-sm transition"
+                  className="text-left bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 hover:shadow-sm glass-black-surface transition"
                 >
                   <CreditCard className="w-6 h-6 text-violet-600 dark:text-violet-400" />
                   <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Card Command</p>
@@ -329,7 +329,7 @@ export default function Dashboard() {
                 </button>
                 <button
                   onClick={() => navigate('/messages')}
-                  className="text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-sm transition"
+                  className="text-left bg-white dark:bg-transparent border border-gray-200 dark:border-gray-700/30 rounded-xl p-4 hover:shadow-sm glass-black-surface transition"
                 >
                   <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   <p className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Message Center</p>
@@ -365,7 +365,7 @@ export default function Dashboard() {
                   <div
                     key={household.id} 
                     onClick={() => navigate(`/families/${household.id}`)}
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6 hover:shadow-md transition cursor-pointer"
+                    className="bg-white dark:bg-transparent rounded-xl shadow-sm border dark:border-gray-700/30 p-6 hover:shadow-md glass-black-surface transition cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg flex items-center justify-center">
@@ -411,7 +411,7 @@ export default function Dashboard() {
       {/* Create Family Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+          <div className="bg-white dark:bg-transparent rounded-2xl shadow-xl max-w-md w-full p-6 glass-black-surface">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Create Family</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
@@ -425,7 +425,7 @@ export default function Dashboard() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600/50 dark:bg-gray-800/55 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
@@ -439,7 +439,7 @@ export default function Dashboard() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600/50 dark:bg-gray-800/55 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
 
@@ -448,7 +448,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600/50 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/40"
                 >
                   Cancel
                 </button>

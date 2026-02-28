@@ -43,12 +43,12 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: 
       {/* Sidebar */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-[100]
-        w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
+        w-64 bg-white dark:bg-transparent border-r border-gray-200 dark:border-gray-700/30 glass-black-surface
         transform transition-transform duration-200 ease-in-out
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Logo */}
-        <div className="px-6 py-4 border-b border-gray-200/80 dark:border-gray-700/80 h-[73px] flex items-center">
+        <div className="px-6 py-4 border-b border-gray-200/80 dark:border-gray-700/40 h-[73px] flex items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-ai-soft">
               <Home className="w-6 h-6 text-white" />
@@ -77,8 +77,8 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: 
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/50 dark:to-blue-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-700/50'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/80 dark:hover:bg-gray-700/70'
+                    ? 'bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-500/20 dark:to-fuchsia-500/10 text-indigo-700 dark:text-indigo-200 border border-indigo-200/70 dark:border-indigo-400/35'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50/80 dark:hover:bg-gray-700/40'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -90,7 +90,7 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: 
 
         {/* User section */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200/80 dark:border-gray-700/80 bg-transparent">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 dark:bg-gray-700/70 mb-2 border border-gray-200/80 dark:border-gray-600/70">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 dark:bg-gray-700/40 mb-2 border border-gray-200/80 dark:border-gray-600/50">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
               {user?.full_name ? getInitials(user.full_name) : 'U'}
             </div>
@@ -103,7 +103,7 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle }: 
           </div>
           <button
             onClick={logout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50/80 dark:hover:bg-gray-700/70 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50/80 dark:hover:bg-gray-700/40 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Logout</span>

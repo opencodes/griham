@@ -50,10 +50,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             type: BottomNavigationBarType.fixed,
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.account_balance), label: 'Accounts'),
-              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Transactions'),
-              BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Analytics'),
-              BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.account_balance), label: 'Accounts'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.history), label: 'Transactions'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.analytics), label: 'Analytics'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.settings), label: 'Settings'),
             ],
           ),
         );
@@ -73,11 +77,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     final incomeTotal = financeProvider.transactions
-      .where((t) => t.type.toLowerCase() == 'income')
-      .fold<double>(0, (p, n) => p + n.amount);
+        .where((t) => t.type.toLowerCase() == 'income')
+        .fold<double>(0, (p, n) => p + n.amount);
     final expenseTotal = financeProvider.transactions
-      .where((t) => t.type.toLowerCase() == 'expense')
-      .fold<double>(0, (p, n) => p + n.amount);
+        .where((t) => t.type.toLowerCase() == 'expense')
+        .fold<double>(0, (p, n) => p + n.amount);
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(AppSpacing.md),
@@ -112,10 +116,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: const Icon(Icons.cloud_download),
                     tooltip: 'Load sample transactions',
                     onPressed: () async {
-                      const sampleJson = r'''{"success":true,"message":"Success","data":[{"id":"7d5577d4-1568-42fa-81ed-45518a6859f6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Salary","amount":"11053.38","description":"CreditPro Payment","transaction_date":"2026-03-09","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:01:51","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"36cfe520-5979-408e-9ff8-29db90fe16e7","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"316.00","description":"Transaction at FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:03:39","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"2e9a730d-b8cf-4832-b459-c04a2db7bcba","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Cashback","amount":"250.00","description":"Cashback received on IDFC FIRST Bank Credit Card","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:03:08","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"65e5bb1c-0038-489c-a687-6cf123542eb6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"316.00","description":"FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:01:26","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"546a7a20-2017-4a54-97dd-b7794024b96b","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"316.00","description":"FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:58:02","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"9bf01b37-1021-4ddc-af29-dde470fa70b2","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Other","amount":"250.00","description":"Cashback on Credit Card","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:57:54","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"e7bbbda2-5cdd-4700-aef1-c927f9ef0b0c","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Other","amount":"250.00","description":"Cashback received","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:52","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"a13a0396-2316-479d-904b-dca8b2208e12","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Cashback","amount":"250.00","description":"Cashback received","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:43","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"43044932-a584-4e85-8358-50929c0f3ccc","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"1615.00","description":"FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-23","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:52:42","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"3c8b91f3-e278-4cab-985f-8a58ec766fd9","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Food","amount":"2032.00","description":"DELTICIOUS PURCHASE ON CREDIT CARD","transaction_date":"2026-02-22","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:00","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"25a1e8cc-8fc6-4677-ab02-a441544e82d6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Food","amount":"323.00","description":"Spent at Swiggy","transaction_date":"2026-02-21","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:15","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"b403b593-8f11-4992-bbff-40f0cf82c2d6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"1332.00","description":"HDFC Bank Card","transaction_date":"2024-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:03:49","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"23883f98-8ea8-436f-a1cc-90edcc66acbd","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"1332.00","description":"EKART purchase on HDFC Bank Card","transaction_date":"2024-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:01:41","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"}]}''';
-                      final financeProv = Provider.of<FinanceProvider>(context, listen: false);
+                      const sampleJson =
+                          r'''{"success":true,"message":"Success","data":[{"id":"7d5577d4-1568-42fa-81ed-45518a6859f6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Salary","amount":"11053.38","description":"CreditPro Payment","transaction_date":"2026-03-09","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:01:51","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"36cfe520-5979-408e-9ff8-29db90fe16e7","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"316.00","description":"Transaction at FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:03:39","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"2e9a730d-b8cf-4832-b459-c04a2db7bcba","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Cashback","amount":"250.00","description":"Cashback received on IDFC FIRST Bank Credit Card","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:03:08","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"65e5bb1c-0038-489c-a687-6cf123542eb6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"316.00","description":"FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:01:26","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"546a7a20-2017-4a54-97dd-b7794024b96b","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"316.00","description":"FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:58:02","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"9bf01b37-1021-4ddc-af29-dde470fa70b2","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Other","amount":"250.00","description":"Cashback on Credit Card","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:57:54","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"e7bbbda2-5cdd-4700-aef1-c927f9ef0b0c","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Other","amount":"250.00","description":"Cashback received","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:52","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"a13a0396-2316-479d-904b-dca8b2208e12","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"income","category":"Cashback","amount":"250.00","description":"Cashback received","transaction_date":"2026-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:43","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"43044932-a584-4e85-8358-50929c0f3ccc","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"1615.00","description":"FASHNEAR TECHNOLOGIES PRI","transaction_date":"2026-02-23","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:52:42","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"3c8b91f3-e278-4cab-985f-8a58ec766fd9","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Food","amount":"2032.00","description":"DELTICIOUS PURCHASE ON CREDIT CARD","transaction_date":"2026-02-22","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:00","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"25a1e8cc-8fc6-4677-ab02-a441544e82d6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Food","amount":"323.00","description":"Spent at Swiggy","transaction_date":"2026-02-21","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 16:53:15","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"b403b593-8f11-4992-bbff-40f0cf82c2d6","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"1332.00","description":"HDFC Bank Card","transaction_date":"2024-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:03:49","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"},{"id":"23883f98-8ea8-436f-a1cc-90edcc66acbd","family_id":"679478a8-65b9-4f76-8a35-dd9b3b080073","account_id":"6b704083-44d3-4971-b012-dca4009dc5a1","type":"expense","category":"Shopping","amount":"1332.00","description":"EKART purchase on HDFC Bank Card","transaction_date":"2024-02-24","created_by":"91e6b2a4-e563-4be7-a544-70f11fc4cc81","created_at":"2026-02-24 17:01:41","account_name":"Test","bank_name":"HDFC","created_by_name":"John Doe"}]}''';
+                      final financeProv =
+                          Provider.of<FinanceProvider>(context, listen: false);
                       await financeProv.loadTransactionsFromJson(sampleJson);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sample transactions loaded')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Sample transactions loaded')));
                     },
                   ),
                   CircleAvatar(
@@ -147,13 +154,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.arrow_downward, color: AppColors.success),
+                            Icon(Icons.arrow_downward,
+                                color: AppColors.success),
                             SizedBox(width: AppSpacing.sm),
                             Text('Income', style: AppTypography.subtitle1),
                           ],
                         ),
                         SizedBox(height: AppSpacing.sm),
-                        Text('₹ ${incomeTotal.toStringAsFixed(2)}', style: AppTypography.heading2),
+                        Text('₹ ${incomeTotal.toStringAsFixed(2)}',
+                            style: AppTypography.heading2),
                       ],
                     ),
                   ),
@@ -175,7 +184,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         SizedBox(height: AppSpacing.sm),
-                        Text('₹ ${expenseTotal.toStringAsFixed(2)}', style: AppTypography.heading2),
+                        Text('₹ ${expenseTotal.toStringAsFixed(2)}',
+                            style: AppTypography.heading2),
                       ],
                     ),
                   ),
@@ -183,7 +193,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-
 
           // Recent Transactions
           Row(
