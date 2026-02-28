@@ -47,6 +47,62 @@ Microservices architecture with independent services:
 - Push Notifications (FCM)
 - Payment Gateway (Stripe/Razorpay)
 
+## Admin Portal - Functional Features
+
+This section outlines the user interactions, views, and actions available in the Griham Admin Portal. The portal is designed for administrators to manage the application's data, users, and overall system health.
+
+### 1. Admin Dashboard
+- **View**: A summary of key system metrics.
+    - Total users.
+    - Active sessions.
+    - Service health status (e.g., Finance Service: Online, Event Service: Degraded).
+    - Recent high-priority alerts.
+- **Actions**:
+    - Navigate to different management sections.
+
+### 2. User Management
+- **View**: A paginated list of all registered users with search and filter capabilities.
+    - Columns: User ID, Name, Email, Role (e.g., Admin, User), Status (Active, Suspended), Last Login.
+- **Actions**:
+    - **Create User**: Manually create a new user account.
+    - **Edit User**: Modify user details, change roles.
+    - **Suspend/Unsuspend User**: Temporarily disable or re-enable a user's account.
+    - **Delete User**: Permanently remove a user account.
+    - **Impersonate User**: Log in as a specific user for troubleshooting purposes (with strict auditing).
+
+### 3. Finance Management (Finance Service)
+- **View**:
+    - **Global Transactions**: A view of all transactions across all users, with powerful filtering (by user, date range, category, amount).
+    - **Category Management**: View and manage the default expense/income categories available to users.
+- **Actions**:
+    - **Edit/Delete Transactions**: Admins can correct or remove erroneous transaction entries.
+    - **Add/Edit/Delete Categories**: Manage the global list of transaction categories.
+
+### 4. System Health & Monitoring (Health Service)
+- **View**:
+    - **Service Status**: Detailed dashboard showing the real-time status of each microservice (e.g., API Gateway, Finance Service).
+    - **Logs Explorer**: An interface to search and view application logs from the centralized logging system (ELK).
+    - **Metrics Dashboard**: View key performance indicators from Prometheus/Grafana (e.g., API latency, error rates, CPU/memory usage).
+- **Actions**:
+    - **Trigger Health Checks**: Manually initiate health checks for a specific service.
+    - **Set Alert Rules**: Configure alerting thresholds and notification channels (e.g., alert if API error rate > 5% for 5 minutes).
+
+### 5. Content & Asset Management (Asset Service)
+- **View**:
+    - **Global Asset Registry**: A list of all user-uploaded assets (e.g., receipts, documents).
+    - Filter by user, file type, upload date.
+- **Actions**:
+    - **View Asset**: Open and inspect an asset.
+    - **Delete Asset**: Remove assets that violate terms of service or for data cleanup.
+
+### 6. Settings & Configuration
+- **View**:
+    - **Application Settings**: View and manage global application settings (e.g., feature flags, external service API keys).
+    - **API Gateway Config**: View rate limits, and API versioning rules.
+- **Actions**:
+    - **Update Settings**: Modify application settings. (e.g., enable/disable a new feature for all users).
+    - **Manage API Keys**: Rotate or revoke keys for external services (Twilio, SendGrid).
+
 ## Technology Stack
 
 ### Backend
