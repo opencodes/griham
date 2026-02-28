@@ -1,0 +1,11 @@
+ALTER TABLE transactions
+ADD COLUMN currency VARCHAR(3) NULL,
+ADD COLUMN merchant_name VARCHAR(255) NULL,
+ADD COLUMN payment_method VARCHAR(50) NULL,
+ADD COLUMN account_last4 VARCHAR(4) NULL,
+ADD COLUMN is_recurring BOOLEAN DEFAULT FALSE,
+ADD COLUMN transaction_status VARCHAR(50) NULL,
+ADD COLUMN available_balance DECIMAL(15, 2) NULL,
+ADD COLUMN available_limit DECIMAL(15, 2) NULL,
+ADD COLUMN confidence_score FLOAT NULL,
+ADD COLUMN bank_name VARCHAR(255) NULL;

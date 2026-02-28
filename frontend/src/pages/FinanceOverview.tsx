@@ -169,37 +169,9 @@ export default function FinanceOverview() {
               </button>
             </div>
 
-            {/* AI Widget */}
-            {familyId && (
-              <AIWidget familyId={familyId} onTransactionAdded={() => {
-                loadAccounts();
-                loadTransactions();
-                loadSummary();
-              }} />
-            )}
 
-            {/* Bank Accounts */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Bank Accounts</h3>
-                <button
-                  onClick={() => navigate('/finance/accounts')}
-                  className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
-                >
-                  View All
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {accounts.slice(0, 4).map((account) => (
-                  <div key={account.id} className="p-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg text-white">
-                    <p className="text-sm opacity-90">{account.bank_name}</p>
-                    <p className="text-lg font-semibold mt-1">{account.account_name}</p>
-                    <p className="text-2xl font-bold mt-2">₹{parseFloat(account.balance.toString()).toFixed(2)}</p>
-                    <p className="text-xs opacity-75 mt-1">{account.account_type}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+
+
 
             {/* Recent Transactions */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">

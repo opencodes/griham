@@ -24,9 +24,11 @@ class TransactionController
     {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (!isset($data['family_id']) || !isset($data['account_id']) || !isset($data['type']) || 
-            !isset($data['category']) || !isset($data['amount']) || !isset($data['transaction_date'])) {
-            Response::error('All fields are required', 400);
+        if (
+            !isset($data['family_id']) || !isset($data['account_id']) || !isset($data['type']) ||
+            !isset($data['category']) || !isset($data['amount']) || !isset($data['transaction_date'])
+        ) {
+            Response::error('Required fields are missing', 400);
         }
 
         $member = $this->memberModel->findOne([
@@ -39,7 +41,30 @@ class TransactionController
         }
 
         $data['created_by'] = $currentUser->userId;
-        $transactionId = $this->transactionModel->createTransaction($data);
+
+        // Prepare data for transaction creation, including new AI fields
+        $transactionData = [
+            'family_id' => $data['family_id'],
+            'account_id' => $data['account_id'],
+            'type' => $data['type'],
+            'category' => $data['category'],
+            'amount' => $data['amount'],
+            'description' => $data['description'] ?? null,
+            'transaction_date' => $data['transaction_date'],
+            'created_by' => $currentUser->userId,
+            'currency' => $data['currency'] ?? null,
+            'merchant_name' => $data['merchant_name'] ?? null,
+            'payment_method' => $data['payment_method'] ?? null,
+            'account_last4' => $data['account_last4'] ?? null,
+            'is_recurring' => $data['is_recurring'] ?? false,
+            'transaction_status' => $data['transaction_status'] ?? null,
+            'available_balance' => $data['available_balance'] ?? null,
+            'available_limit' => $data['available_limit'] ?? null,
+            'confidence_score' => $data['confidence_score'] ?? null,
+            'bank_name' => $data['bank_name'] ?? null,
+        ];
+
+        $transactionId = $this->transactionModel->createTransaction($transactionData);
 
         // Update account balance
         $this->accountModel->updateBalance($data['account_id'], $data['amount'], $data['type']);

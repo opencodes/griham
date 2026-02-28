@@ -12,7 +12,21 @@ class Transaction extends Model
     {
         $data['id'] = $this->generateUUID();
         $data['created_at'] = date('Y-m-d H:i:s');
-        return $this->create($data);
+
+        $columns = array_keys($data);
+        $placeholders = array_map(fn($c) => ":$c", $columns);
+
+        $sql = sprintf(
+            "INSERT INTO %s (%s) VALUES (%s)",
+            $this->table,
+            implode(', ', $columns),
+            implode(', ', $placeholders)
+        );
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($data);
+
+        return $data['id'];
     }
 
     public function findByFamilyId(string $familyId, array $filters = []): array
@@ -22,7 +36,7 @@ class Transaction extends Model
                 LEFT JOIN bank_accounts ba ON t.account_id = ba.id
                 LEFT JOIN users u ON t.created_by = u.id
                 WHERE t.family_id = :family_id";
-        
+
         $params = [':family_id' => $familyId];
 
         if (!empty($filters['type'])) {
@@ -55,7 +69,7 @@ class Transaction extends Model
                 FROM transactions
                 WHERE family_id = :family_id 
                 AND DATE_FORMAT(transaction_date, '%Y-%m') = :month";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':family_id' => $familyId, ':month' => $month]);
         return $stmt->fetch() ?: ['total_income' => 0, 'total_expense' => 0];
@@ -65,11 +79,14 @@ class Transaction extends Model
     {
         return sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
             mt_rand(0, 0xffff),
             mt_rand(0, 0x0fff) | 0x4000,
             mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
         );
     }
 }

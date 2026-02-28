@@ -90,21 +90,52 @@ TRANSACTION STATUS RULES:
 - If contains "EMI due" → due
 - If reminder only and no amount debited → due
 
-CATEGORY RULES:
-Food → restaurant, cafe, grocery
-Transport → fuel, cab, metro, flight
-Utilities → electricity, recharge, gas, water, hosting
-Shopping → amazon, flipkart, retail, ecommerce
-Entertainment → movie, OTT, gaming
-Healthcare → hospital, medical, pharmacy
-Education → school, college, fees
-Rental → rent
-Business → vendor/client payment
-Else → Other
+CATEGORY RULES (MANDATORY):
+
+Category must NEVER be null.
+
+Category must be determined primarily from merchant_name.
+
+Only use full SMS text if merchant_name is null.
+
+Matching must be case-insensitive.
+
+If no keyword match → "Other".
+
+Use EXACT values below only.
+
+Healthcare:
+medical, hospital, clinic, pharmacy, pharma, med, lab, diagnostics
+
+Food:
+restaurant, cafe, bakery, food, kitchen, dhaba, mess
+
+Transport:
+fuel, petrol, diesel, cab, taxi, uber, ola, metro, rail, airline
+
+Utilities:
+electricity, power, gas, water, broadband, telecom, recharge, hosting
+
+Shopping:
+amazon, flipkart, mart, store, retail, mall, fashion, electronics
+
+Entertainment:
+movie, cinema, netflix, prime, hotstar, gaming, theatre
+
+Education:
+school, college, university, academy, institute, coaching
+
+Rental:
+rent
+
+Business:
+solutions, technologies, services, enterprises, consulting, traders
+
+If no match → Other
 
 RECURRING RULES:
-If contains EMI, subscription, SIP, auto-debit, standing instruction, e-Mandate → true
-Else → false
+- If contains EMI, subscription, SIP, auto-debit, standing instruction, e-Mandate → true
+- Else → false
 
 Return JSON with EXACT structure:
 
