@@ -95,27 +95,4 @@ class FinanceProvider with ChangeNotifier {
     }
   }
 
-  /// Load transactions from a JSON payload (useful for local testing)
-  Future<void> loadTransactionsFromJson(String json) async {
-    try {
-      final data = jsonDecode(json)['data'] as List;
-      _transactions = data.map((item) {
-        final amt = double.tryParse(item['amount']?.toString() ?? '0') ?? 0.0;
-        final normType = (item['type'] ?? '').toString().toLowerCase();
-        final date = item['transaction_date'] != null ? DateTime.parse(item['transaction_date']) : DateTime.now();
-
-        return Transaction(
-          id: item['id'] ?? '',
-          amount: amt,
-          type: normType,
-          category: item['category'] ?? '',
-          description: item['description'] ?? '',
-          transactionDate: date,
-        );
-      }).toList();
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error loading transactions from json: $e');
-    }
-  }
 }

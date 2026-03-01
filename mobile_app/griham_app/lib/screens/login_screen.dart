@@ -171,33 +171,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _login,
                   isLoading: _isLoading,
                 ),
-                const SizedBox(height: AppSpacing.lg),
-
-                // Sign Up Link
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Don't have an account? ",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // TODO: Navigate to sign up
-                        },
-                        child: Text(
-                          'Sign Up',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
