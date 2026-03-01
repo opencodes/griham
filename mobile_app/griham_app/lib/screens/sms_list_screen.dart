@@ -69,35 +69,45 @@ class _SmsListScreenState extends State<SmsListScreen> {
         title: const Text('SMS Messages'),
       ),
       body: granted
-          ? ListView.builder(
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-
-                return Dismissible(
-                  key: ValueKey('${message.address}_${message.date}_${message.body.hashCode}'),
-                  onDismissed: (direction) async {
-                    if (direction == DismissDirection.startToEnd) {
-                      if (message.body != null && message.body!.trim().isNotEmpty) {
-                        await _callApi(message);
-                      }
-                    }
-
-                    setState(() {
-                      _messages.removeWhere((m) => m.date == message.date && m.address == message.address && m.body == message.body);
-                    });
-                  },
-                  background: Container(color: Colors.green),
-                  secondaryBackground: Container(color: Colors.red),
-                  child: Card(
-                    child: ListTile(
-                      title: Text(message.address ?? 'Unknown Address'),
-                      subtitle: Text(message.body ?? 'No Content'),
+          ? (_messages.isEmpty
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Text(
+                      'No new financial SMS found.\nTry again after receiving a bank transaction message.',
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                );
-              },
-            )
+                )
+              : ListView.builder(
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+
+                    return Dismissible(
+                      key: ValueKey('${message.address}_${message.date}_${message.body.hashCode}'),
+                      onDismissed: (direction) async {
+                        if (direction == DismissDirection.startToEnd) {
+                          if (message.body != null && message.body!.trim().isNotEmpty) {
+                            await _callApi(message);
+                          }
+                        }
+
+                        setState(() {
+                          _messages.removeWhere((m) => m.date == message.date && m.address == message.address && m.body == message.body);
+                        });
+                      },
+                      background: Container(color: Colors.green),
+                      secondaryBackground: Container(color: Colors.red),
+                      child: Card(
+                        child: ListTile(
+                          title: Text(message.address ?? 'Unknown Address'),
+                          subtitle: Text(message.body ?? 'No Content'),
+                        ),
+                      ),
+                    );
+                  },
+                ))
           : Center(
               child: Text('Permission Status: $_permissionStatus'),
             ),

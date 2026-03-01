@@ -20,10 +20,21 @@ class AuthProvider with ChangeNotifier {
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString('auth_token');
+    final savedUserId = prefs.getString('auth_user_id');
+    final savedUserName = prefs.getString('auth_user_name');
+    final savedUserEmail = prefs.getString('auth_user_email');
     if (saved != null && saved.isNotEmpty) {
       _token = saved;
       _isAuthenticated = true;
-      // user info isn't stored; callers can fetch if needed
+      if (savedUserId != null &&
+          savedUserName != null &&
+          savedUserEmail != null) {
+        _user = User(
+          id: savedUserId,
+          name: savedUserName,
+          email: savedUserEmail,
+        );
+      }
       notifyListeners();
     }
   }
@@ -40,6 +51,9 @@ class AuthProvider with ChangeNotifier {
         // persist token for future API calls and reloads
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', _token!);
+        await prefs.setString('auth_user_id', _user!.id);
+        await prefs.setString('auth_user_name', _user!.name);
+        await prefs.setString('auth_user_email', _user!.email);
 
         // Fetch and save family ID
         await _fetchAndSaveFamilyId();
@@ -77,6 +91,9 @@ class AuthProvider with ChangeNotifier {
     _isAuthenticated = false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('auth_user_id');
+    await prefs.remove('auth_user_name');
+    await prefs.remove('auth_user_email');
 
     notifyListeners();
   }

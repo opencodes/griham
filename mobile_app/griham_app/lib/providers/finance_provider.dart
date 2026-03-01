@@ -46,7 +46,14 @@ class FinanceProvider with ChangeNotifier {
     }
     debugPrint('Fetching finance data for familyId: $familyId');
     try {
-      final bankAccountsResponse = await ApiService.getBankAccounts(familyId);
+      final responses = await Future.wait([
+        ApiService.getBankAccounts(familyId),
+        ApiService.getBills(familyId),
+        ApiService.getCards(familyId),
+        ApiService.getTransactions(familyId),
+      ]);
+
+      final bankAccountsResponse = responses[0];
       if (bankAccountsResponse.statusCode == 200) {
         final data = jsonDecode(bankAccountsResponse.body)['data'] as List;
         _bankAccounts = data.map((item) => BankAccount.fromJson(item)).toList();
@@ -55,7 +62,7 @@ class FinanceProvider with ChangeNotifier {
         debugPrint('Failed to load bank accounts: ${bankAccountsResponse.statusCode}');
       }
 
-      final billsResponse = await ApiService.getBills(familyId);
+      final billsResponse = responses[1];
       if (billsResponse.statusCode == 200) {
         final data = jsonDecode(billsResponse.body)['data'] as List;
         _bills = data.map((item) => Bill.fromJson(item)).toList();
@@ -64,7 +71,7 @@ class FinanceProvider with ChangeNotifier {
         debugPrint('Failed to load bills: ${billsResponse.statusCode}');
       }
 
-      final cardsResponse = await ApiService.getCards(familyId);
+      final cardsResponse = responses[2];
       if (cardsResponse.statusCode == 200) {
         final data = jsonDecode(cardsResponse.body)['data'] as List;
         _cards = data.map((item) => model.Card.fromJson(item)).toList();
@@ -73,7 +80,7 @@ class FinanceProvider with ChangeNotifier {
         debugPrint('Failed to load cards: ${cardsResponse.statusCode}');
       }
 
-      final transactionsResponse = await ApiService.getTransactions(familyId);
+      final transactionsResponse = responses[3];
       if (transactionsResponse.statusCode == 200) {
         final data = jsonDecode(transactionsResponse.body)['data'] as List;
         _transactions = data.map((item) => Transaction.fromJson(item)).toList();

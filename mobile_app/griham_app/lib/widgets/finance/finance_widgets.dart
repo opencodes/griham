@@ -153,6 +153,7 @@ class TransactionItem extends StatelessWidget {
   final String type; // 'INCOME' or 'EXPENSE'
   final String date;
   final VoidCallback? onTap;
+  final bool compact;
 
   const TransactionItem({
     Key? key,
@@ -162,30 +163,39 @@ class TransactionItem extends StatelessWidget {
     required this.type,
     required this.date,
     this.onTap,
+    this.compact = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = type == 'INCOME';
+    final normalizedType = type.toLowerCase();
+    final isIncome = normalizedType == 'income' || normalizedType == 'credit';
     final amountColor = isIncome ? AppColors.success : AppColors.danger;
+    final categoryIcon = _getCategoryIcon(category);
+    final categoryIconColor = _getCategoryIconColor(category);
+    final formattedDate = _formatDisplayDate(date);
+    final verticalPadding = compact ? AppSpacing.sm : AppSpacing.md;
+    final iconSize = compact ? 20.0 : 26.0;
+    final amountStyle = compact
+        ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: amountColor,
+              fontWeight: FontWeight.w600,
+            )
+        : Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: amountColor,
+              fontWeight: FontWeight.w600,
+            );
 
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        padding: EdgeInsets.symmetric(vertical: verticalPadding),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: amountColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                isIncome ? Icons.add : Icons.remove,
-                color: amountColor,
-              ),
+            Icon(
+              categoryIcon,
+              color: categoryIconColor,
+              size: iconSize,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -194,21 +204,25 @@ class TransactionItem extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    style: (compact
+                            ? Theme.of(context).textTheme.bodyMedium
+                            : Theme.of(context).textTheme.bodyLarge)
+                        ?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
-                      Text(
-                        category,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const Spacer(),
-                      Text(
-                        date,
-                        style: Theme.of(context).textTheme.bodySmall,
+                      Expanded(
+                        child: Text(
+                          category,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -216,17 +230,112 @@ class TransactionItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            Text(
-              '${isIncome ? '+' : '-'}₹ ${amount.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: amountColor,
-                fontWeight: FontWeight.w600,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${isIncome ? '+' : '-'}₹ ${amount.toStringAsFixed(2)}',
+                  style: amountStyle,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  formattedDate,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.right,
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  IconData _getCategoryIcon(String value) {
+    final category = value.toLowerCase();
+    if (category.contains('food') || category.contains('grocery')) {
+      return Icons.restaurant;
+    }
+    if (category.contains('shop') || category.contains('amazon')) {
+      return Icons.shopping_bag;
+    }
+    if (category.contains('travel') || category.contains('flight')) {
+      return Icons.flight;
+    }
+    if (category.contains('fuel') || category.contains('petrol')) {
+      return Icons.local_gas_station;
+    }
+    if (category.contains('bill') || category.contains('utility')) {
+      return Icons.receipt_long;
+    }
+    if (category.contains('emi') || category.contains('loan')) {
+      return Icons.account_balance;
+    }
+    if (category.contains('salary')) {
+      return Icons.work;
+    }
+    if (category.contains('cashback') || category.contains('reward')) {
+      return Icons.card_giftcard;
+    }
+    if (category.contains('medical') || category.contains('health')) {
+      return Icons.local_hospital;
+    }
+    if (category.contains('rent') || category.contains('home')) {
+      return Icons.home;
+    }
+    return Icons.category;
+  }
+
+  Color _getCategoryIconColor(String value) {
+    final category = value.toLowerCase();
+    if (category.contains('salary') || category.contains('cashback') || category.contains('reward')) {
+      return AppColors.success;
+    }
+    if (category.contains('food') || category.contains('grocery')) {
+      return AppColors.warning;
+    }
+    if (category.contains('bill') || category.contains('utility') || category.contains('emi') || category.contains('loan')) {
+      return AppColors.primary;
+    }
+    if (category.contains('medical') || category.contains('health')) {
+      return AppColors.danger;
+    }
+    return AppColors.textSecondary;
+  }
+
+  String _formatDisplayDate(String value) {
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) {
+      return value;
+    }
+
+    const weekdays = <String>[
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+      'Sun',
+    ];
+    const months = <String>[
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    final weekday = weekdays[parsed.weekday - 1];
+    final month = months[parsed.month - 1];
+    return '$weekday, ${parsed.day} $month';
   }
 }
 

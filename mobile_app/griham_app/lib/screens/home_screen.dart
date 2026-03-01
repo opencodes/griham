@@ -13,11 +13,17 @@ class HomeScreen extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final financeProvider = Provider.of<FinanceProvider>(context);
 
-    double incomeTotal = financeProvider.transactions
-      .where((t) => t.type.toLowerCase() == 'income')
+    double creditTotal = financeProvider.transactions
+      .where((t) {
+        final type = t.type.toLowerCase();
+        return type == 'income' || type == 'credit';
+      })
       .fold(0.0, (p, n) => p + n.amount);
-    double expenseTotal = financeProvider.transactions
-      .where((t) => t.type.toLowerCase() == 'expense')
+    double debitTotal = financeProvider.transactions
+      .where((t) {
+        final type = t.type.toLowerCase();
+        return type == 'expense' || type == 'debit';
+      })
       .fold(0.0, (p, n) => p + n.amount);
 
     return Scaffold(
@@ -54,9 +60,9 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             const Icon(Icons.arrow_downward, color: Colors.green),
                             const SizedBox(height: 8),
-                            const Text('Income', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Credit', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 6),
-                            Text('₦${incomeTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18)),
+                            Text('₦${creditTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
                           ],
                         ),
                       ),
@@ -73,9 +79,9 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             const Icon(Icons.arrow_upward, color: Colors.red),
                             const SizedBox(height: 8),
-                            const Text('Expense', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Debit', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 6),
-                            Text('₦${expenseTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18)),
+                            Text('₦${debitTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
                           ],
                         ),
                       ),
