@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Griham - Hero Slide</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0A0E27; /* Dark Navy Fallback */
+        }
+        #slide-container {
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            background-color: #0A0E27;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .font-heading {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+        }
+        .accent-text {
+            color: #2DD4BF; /* Teal-400 */
+        }
+        .accent-border {
+            border-color: #2DD4BF;
+        }
+    </style>
+</head>
+<body>
+<div class="flex flex-col items-center justify-center relative" id="slide-container">
+<!-- Abstract Background Canvas -->
+<canvas class="absolute top-0 left-0 w-full h-full z-0" id="network-canvas"></canvas>
+<!-- Decorative Glow Elements (Simulated with SVGs instead of CSS gradients) -->
+<div class="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full opacity-20 z-0" style="background-color: #00F0FF; filter: blur(120px);"></div>
+<div class="absolute bottom-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full opacity-10 z-0" style="background-color: #00D2A0; filter: blur(140px);"></div>
+<!-- Main Content -->
+<div class="z-10 max-w-5xl w-full px-12 flex flex-col items-center text-center">
+<!-- Logo / Brand Indicator -->
+<div class="mb-8 flex items-center space-x-3 bg-[#111827] px-4 py-2 rounded-full border border-gray-700">
+<i class="fa-solid fa-house-chimney text-[#2DD4BF]"></i>
+<p class="text-sm font-bold tracking-widest uppercase text-gray-300 m-0">Griham Project</p>
+</div>
+<!-- Main Title -->
+<h1 class="text-7xl font-heading font-bold mb-6 leading-tight tracking-tight">
+<span class="text-white">AI-Powered</span><br/>
+<span class="text-[#2DD4BF]">Family Finance</span> Intelligence
+            </h1>
+<!-- Subtitle / Value Prop -->
+<div class="mb-12 max-w-3xl">
+<p class="text-xl text-gray-300 font-light leading-relaxed">
+                    Turning noisy SMS data into actionable financial intelligence for modern households.
+                    Reliable, duplicate-safe, and family-first.
+                </p>
+</div>
+<!-- Feature Pills -->
+<div class="flex flex-wrap justify-center gap-4 mb-16">
+<div class="glass-panel px-6 py-3 flex items-center space-x-3">
+<i class="fa-solid fa-robot text-blue-400"></i>
+<p class="text-sm font-medium m-0">Smart Tracking</p>
+</div>
+<div class="glass-panel px-6 py-3 flex items-center space-x-3">
+<i class="fa-solid fa-file-invoice-dollar text-purple-400"></i>
+<p class="text-sm font-medium m-0">Structured Transactions</p>
+</div>
+<div class="glass-panel px-6 py-3 flex items-center space-x-3">
+<i class="fa-solid fa-shield-halved text-teal-400"></i>
+<p class="text-sm font-medium m-0">Duplicate-Safe</p>
+</div>
+</div>
+<!-- Bottom Info -->
+<div class="absolute bottom-12 w-full left-0 px-12 flex justify-between text-xs text-gray-500 uppercase tracking-widest font-heading">
+<p class="m-0">Confidential • 2026</p>
+<p class="m-0">Project Presentation</p>
+</div>
+</div>
+</div>
+<script>
+        // Network Animation Script
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        canvas.width = 1280;
+        canvas.height = 720;
+
+        const particles = [];
+        const particleCount = 60;
+        const connectionDistance = 180;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? '#00F0FF' : '#00D2A0'; // Electric Blue or Teal
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = 0.6;
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw particles
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                // Draw connections
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < connectionDistance) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = '#2DD4BF'; // Teal
+                        ctx.lineWidth = 0.5;
+                        // Opacity based on distance
+                        ctx.globalAlpha = 1 - (distance / connectionDistance);
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
+ 

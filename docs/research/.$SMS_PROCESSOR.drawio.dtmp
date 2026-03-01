@@ -1,0 +1,91 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.5.2 Chrome/142.0.7444.265 Electron/39.6.1 Safari/537.36" version="29.5.2">
+  <diagram id="sms-processor-flow" name="SMS Processor Flow">
+    <mxGraphModel dx="255884" dy="141842" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Start" vertex="1">
+          <mxGeometry height="40" width="90" x="-241310" y="-137600" as="geometry" />
+        </mxCell>
+        <mxCell id="perm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Request SMS permission" vertex="1">
+          <mxGeometry height="60" width="180" x="-241180" y="-137610" as="geometry" />
+        </mxCell>
+        <mxCell id="perm_ok" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Permission granted?" vertex="1">
+          <mxGeometry height="60" width="140" x="-240960" y="-137610" as="geometry" />
+        </mxCell>
+        <mxCell id="denied" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Show denied state" vertex="1">
+          <mxGeometry height="50" width="160" x="-240790" y="-137630" as="geometry" />
+        </mxCell>
+        <mxCell id="query" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Query inbox SMS (count=200)" vertex="1">
+          <mxGeometry height="60" width="190" x="-240790" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="allow" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Sender in allowlist?" vertex="1">
+          <mxGeometry height="60" width="160" x="-240570" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="otp" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="OTP/Promo match?" vertex="1">
+          <mxGeometry height="60" width="150" x="-240380" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="keyword" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Has txn keyword?" vertex="1">
+          <mxGeometry height="60" width="150" x="-240200" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="amount" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Has amount regex?" vertex="1">
+          <mxGeometry height="60" width="150" x="-240020" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="fp" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Build fingerprint\n(sender|date|body)" vertex="1">
+          <mxGeometry height="60" width="190" x="-239840" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="dup" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Already processed?" vertex="1">
+          <mxGeometry height="60" width="160" x="-239620" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="candidate" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Show SMS in list" vertex="1">
+          <mxGeometry height="60" width="150" x="-239430" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="swipe" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="User swipe to process" vertex="1">
+          <mxGeometry height="60" width="170" x="-239260" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Call parse API" vertex="1">
+          <mxGeometry height="60" width="130" x="-239070" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="ok" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="200/201?" vertex="1">
+          <mxGeometry height="60" width="100" x="-238920" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="save" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Save fingerprint\nSharedPreferences" vertex="1">
+          <mxGeometry height="60" width="180" x="-238800" y="-137560" as="geometry" />
+        </mxCell>
+        <mxCell id="retry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Failure -&gt; retry allowed" vertex="1">
+          <mxGeometry height="50" width="180" x="-238800" y="-137470" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="End" vertex="1">
+          <mxGeometry height="40" width="90" x="-238590" y="-137550" as="geometry" />
+        </mxCell>
+        <mxCell id="reject" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Reject/Skip SMS" vertex="1">
+          <mxGeometry height="50" width="150" x="-240380" y="-137440" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="perm" />
+        <mxCell id="e2" edge="1" parent="1" source="perm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="perm_ok" />
+        <mxCell id="e3" edge="1" parent="1" source="perm_ok" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" target="denied" value="no" />
+        <mxCell id="e4" edge="1" parent="1" source="perm_ok" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" target="query" value="yes" />
+        <mxCell id="e5" edge="1" parent="1" source="query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="allow" />
+        <mxCell id="e6" edge="1" parent="1" source="allow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" target="reject" value="no" />
+        <mxCell id="e7" edge="1" parent="1" source="allow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" target="otp" value="yes" />
+        <mxCell id="e8" edge="1" parent="1" source="otp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" target="reject" value="yes" />
+        <mxCell id="e9" edge="1" parent="1" source="otp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" target="keyword" value="no" />
+        <mxCell id="e10" edge="1" parent="1" source="keyword" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" target="reject" value="no" />
+        <mxCell id="e11" edge="1" parent="1" source="keyword" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" target="amount" value="yes" />
+        <mxCell id="e12" edge="1" parent="1" source="amount" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" target="reject" value="no" />
+        <mxCell id="e13" edge="1" parent="1" source="amount" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" target="fp" value="yes" />
+        <mxCell id="e14" edge="1" parent="1" source="fp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="dup" />
+        <mxCell id="e15" edge="1" parent="1" source="dup" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" target="reject" value="yes" />
+        <mxCell id="e16" edge="1" parent="1" source="dup" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" target="candidate" value="no" />
+        <mxCell id="e17" edge="1" parent="1" source="candidate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="swipe" />
+        <mxCell id="e18" edge="1" parent="1" source="swipe" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="api" />
+        <mxCell id="e19" edge="1" parent="1" source="api" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ok" />
+        <mxCell id="e20" edge="1" parent="1" source="ok" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" target="save" value="yes" />
+        <mxCell id="e21" edge="1" parent="1" source="ok" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" target="retry" value="no" />
+        <mxCell id="e22" edge="1" parent="1" source="save" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="end" />
+        <mxCell id="e23" edge="1" parent="1" source="retry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="end" />
+        <mxCell id="e24" edge="1" parent="1" source="denied" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="end" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,91 @@
+@startuml
+start
+:Request SMS permission;
+if (Permission granted?) then (yes)
+  :Query inbox SMS (recent N);
+  while (Each SMS?) is (yes)
+    :Normalize sender/body;
+    if (Sender in allowlist?) then (yes)
+      if (OTP/Promo detected?) then (yes)
+        :Reject SMS;
+      else (no)
+        if (Has txn keyword?) then (yes)
+          if (Has amount pattern?) then (yes)
+            :Build fingerprint
+(sender|date|body);
+            if (Fingerprint already processed?) then (yes)
+              :Skip SMS;
+            else (no)
+              :Show in candidate list;
+              if (User processes SMS?) then (yes)
+                :Call parse API;
+                if (HTTP 200/201?) then (yes)
+                  :Persist fingerprint
+(processed_sms_fingerprints_v1);
+                  :Refresh finance data;
+                else (no)
+                  :Keep SMS retryable;
+                endif
+              endif
+            endif
+          else (no)
+            :Reject SMS;
+          endif
+        else (no)
+          :Reject SMS;
+        endif
+      endif
+    else (no)
+      :Reject SMS;
+    endif
+  endwhile (no)
+else (no)
+  :Show permission denied state;
+endif
+stop
+@enduml
+```
+
+## Sequence Diagram (PlantUML)
+```plantuml
+@startuml
+actor User
+participant "SmsListScreen" as UI
+participant "SmsPlatformMobile" as SP
+database "SharedPreferences" as PREF
+participant "SmsQuery" as INBOX
+participant "API Service" as API
+
+User -> UI: Open SMS screen
+UI -> SP: requestSmsPermission()
+SP --> UI: granted/denied
+
+alt granted
+  UI -> SP: getInboxSms()
+  SP -> PREF: load processed fingerprints
+  PREF --> SP: Set<String>
+  SP -> INBOX: querySms(inbox, count=200)
+  INBOX --> SP: List<SmsMessage>
+  SP -> SP: apply allowlist + exclude + keyword + amount + dedupe
+  SP --> UI: List<SmsEntry>
+
+  User -> UI: Swipe to process SMS
+  UI -> SP: callApi(SmsEntry)
+  SP -> PREF: check fingerprint exists?
+  alt already processed
+    SP --> UI: success (skip API)
+  else not processed
+    SP -> API: parseSMS(familyId, smsBody)
+    API --> SP: 200/201 or error
+    alt 200/201
+      SP -> PREF: save fingerprint
+      SP --> UI: success
+      UI -> UI: refresh finance data
+    else error
+      SP --> UI: failure (retry allowed)
+    end
+  end
+else denied
+  UI -> UI: Show permission status
+end
+@enduml

@@ -34,35 +34,30 @@ class _SmsListScreenState extends State<SmsListScreen> {
     }
   }
 
-  void _deleteSms(int index) {
-    print("Delete SMS at index: $index");
-  }
+  void _showResultSnackbar(SmsProcessResult result) {
+    final Color backgroundColor;
+    if (result.success && result.duplicate) {
+      backgroundColor = Colors.orange;
+    } else if (result.success) {
+      backgroundColor = Colors.green;
+    } else {
+      backgroundColor = Colors.red;
+    }
 
-  void _showSuccessSnackbar() {
-    const snackBar = SnackBar(
-      content: Text('API call successful'),
-      backgroundColor: Colors.green,
+    final snackBar = SnackBar(
+      content: Text(result.message),
+      backgroundColor: backgroundColor,
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void _showErrorSnackbar() {
-    const snackBar = SnackBar(
-      content: Text('API call failed'),
-      backgroundColor: Colors.red,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  Future<void> _callApi(String smsBody) async {
-    final ok = await callApi(smsBody);
-    if (ok) {
-      _showSuccessSnackbar();
+  Future<void> _callApi(SmsEntry sms) async {
+    final result = await callApi(sms);
+    _showResultSnackbar(result);
+    if (result.success && mounted) {
       // refresh provider so credit/debit totals update
       final financeProv = Provider.of<FinanceProvider>(context, listen: false);
       await financeProv.refreshFinanceData();
-    } else {
-      _showErrorSnackbar();
     }
   }
 
@@ -83,8 +78,8 @@ class _SmsListScreenState extends State<SmsListScreen> {
                   key: ValueKey('${message.address}_${message.date}_${message.body.hashCode}'),
                   onDismissed: (direction) async {
                     if (direction == DismissDirection.startToEnd) {
-                      if (message.body != null) {
-                        await _callApi(message.body!);
+                      if (message.body != null && message.body!.trim().isNotEmpty) {
+                        await _callApi(message);
                       }
                     }
 

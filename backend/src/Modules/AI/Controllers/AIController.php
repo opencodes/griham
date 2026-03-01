@@ -2,14 +2,15 @@
 
 namespace App\Modules\AI\Controllers;
 
+use App\Core\Database;
 use App\Modules\Finance\Models\Transaction;
 use App\Modules\Finance\Models\BankAccount;
 use App\Modules\Finance\Models\Bill;
 use App\Modules\Finance\Models\Card;
 use App\Modules\Family\Models\FamilyMember;
+use App\Modules\AI\Models\SmsIngestionLog;
 use App\Modules\AI\Services\AIService;
 use App\Core\Response;
-use Ramsey\Uuid\Uuid;
 
 class AIController
 {
@@ -18,6 +19,7 @@ class AIController
     private Bill $billModel;
     private FamilyMember $memberModel;
     private AIService $aiService;
+    private SmsIngestionLog $smsIngestionLogModel;
 
     public function __construct()
     {
@@ -26,6 +28,7 @@ class AIController
         $this->billModel = new Bill();
         $this->memberModel = new FamilyMember();
         $this->aiService = new AIService();
+        $this->smsIngestionLogModel = new SmsIngestionLog();
     }
 
     public function getFinanceInsights($currentUser, $familyId): void
@@ -85,7 +88,8 @@ class AIController
     {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if (!isset($data['sms_text'])) {
+        $smsText = isset($data['sms_text']) ? trim((string)$data['sms_text']) : '';
+        if ($smsText === '') {
             Response::error('SMS text is required', 400);
         }
 
@@ -98,16 +102,46 @@ class AIController
             Response::error('Only admins can add transactions', 403);
         }
 
+        $sender = isset($data['sender']) ? trim((string)$data['sender']) : null;
+        $smsDate = isset($data['sms_date']) ? (int)$data['sms_date'] : null;
+        $idempotencyKey = $this->buildIdempotencyKey($familyId, $data, $smsText, $sender, $smsDate);
+        $smsPreview = substr($smsText, 0, 255);
+
+        $ingestionLogId = $this->smsIngestionLogModel->tryCreateProcessing(
+            $familyId,
+            $idempotencyKey,
+            $currentUser->userId,
+            $sender,
+            $smsDate,
+            $smsPreview
+        );
+
+        if ($ingestionLogId === null) {
+            $existing = $this->smsIngestionLogModel->findByFamilyAndKey($familyId, $idempotencyKey);
+            $existingTransaction = null;
+            if ($existing && !empty($existing['transaction_id'])) {
+                $existingTransaction = $this->transactionModel->findById($existing['transaction_id']);
+            }
+
+            Response::success([
+                'transaction' => $existingTransaction,
+                'idempotency_key' => $idempotencyKey,
+                'status' => 'duplicate'
+            ], 'SMS already processed', 200);
+        }
+
         // Parse SMS using AI
-        $parsed = $this->aiService->parseSMSToTransaction($data['sms_text']);
+        $parsed = $this->aiService->parseSMSToTransaction($smsText);
 
         if (!$parsed) {
+            $this->smsIngestionLogModel->deleteById($ingestionLogId);
             Response::error('Failed to parse SMS. Please try again or add manually.', 400);
         }
 
         // Get first account for the family
         $accounts = $this->accountModel->findByFamilyId($familyId);
         if (empty($accounts)) {
+            $this->smsIngestionLogModel->deleteById($ingestionLogId);
             Response::error('No bank account found. Please create an account first.', 400);
         }
 
@@ -124,16 +158,34 @@ class AIController
         ];
 
 
-        $transactionId = $this->transactionModel->createTransaction($transactionData);
+        $db = Database::getConnection();
 
-        // Update account balance
-        $this->accountModel->updateBalance($accounts[0]['id'], $parsed['amount'], $parsed['type']);
+        try {
+            $db->beginTransaction();
+
+            $transactionId = $this->transactionModel->createTransaction($transactionData);
+
+            // Update account balance
+            $this->accountModel->updateBalance($accounts[0]['id'], (float)$parsed['amount'], $parsed['type']);
+
+            $this->smsIngestionLogModel->markCreated($ingestionLogId, $transactionId);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            $this->smsIngestionLogModel->deleteById($ingestionLogId);
+            throw $e;
+        }
 
         $transaction = $this->transactionModel->findById($transactionId);
 
         Response::success([
             'transaction' => $transaction,
-            'parsed_data' => $parsed
+            'parsed_data' => $parsed,
+            'idempotency_key' => $idempotencyKey,
+            'status' => 'created'
         ], 'Transaction created from SMS', 201);
     }
 
@@ -161,5 +213,25 @@ class AIController
         }
 
         Response::success($parsed, 'Card details extracted successfully');
+    }
+
+    private function buildIdempotencyKey(
+        string $familyId,
+        array $data,
+        string $smsText,
+        ?string $sender,
+        ?int $smsDate
+    ): string {
+        $clientFingerprint = isset($data['fingerprint']) ? trim((string)$data['fingerprint']) : '';
+        if ($clientFingerprint !== '') {
+            return hash('sha256', $familyId . '|' . $clientFingerprint);
+        }
+
+        $normalizedSender = strtoupper(preg_replace('/[^A-Z0-9]/', '', $sender ?? ''));
+        $normalizedBody = strtolower(trim(preg_replace('/\s+/', ' ', $smsText)));
+        $normalizedDate = (string)($smsDate ?? 0);
+        $fingerprint = $normalizedSender . '|' . $normalizedDate . '|' . $normalizedBody;
+
+        return hash('sha256', $familyId . '|' . $fingerprint);
     }
 }

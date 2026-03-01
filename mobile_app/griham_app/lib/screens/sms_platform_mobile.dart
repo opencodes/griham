@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:telephony/telephony.dart';
+import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'dart:convert';
 
 class SmsEntry {
@@ -13,7 +13,21 @@ class SmsEntry {
   SmsEntry({this.address, this.body, this.date});
 }
 
-final Telephony _telephony = Telephony.instance;
+class SmsProcessResult {
+  final bool success;
+  final bool duplicate;
+  final String message;
+
+  const SmsProcessResult({
+    required this.success,
+    required this.duplicate,
+    required this.message,
+  });
+}
+
+final SmsQuery _smsQuery = SmsQuery();
+const String _processedSmsKey = 'processed_sms_fingerprints_v1';
+const int _processedSmsMaxEntries = 1000;
 
 const List<String> _bankSenderAllowlist = [
   'HDFC',
@@ -82,7 +96,7 @@ bool _isLikelyFinancialSms(SmsMessage message) {
     return false;
   }
 
-  if (!_isAllowedSender(message.address)) {
+  if (!_isAllowedSender(message.sender)) {
     return false;
   }
 
@@ -101,34 +115,110 @@ bool _isLikelyFinancialSms(SmsMessage message) {
   return true;
 }
 
+String _smsFingerprint({
+  String? sender,
+  String? body,
+  int? date,
+}) {
+  final normalizedSender =
+      (sender ?? '').toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  final normalizedBody =
+      (body ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  return '$normalizedSender|${date ?? 0}|$normalizedBody';
+}
+
 Future<List<SmsEntry>> getInboxSms() async {
-  final messages = await _telephony.getInboxSms(
-    columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE],
-    sortOrder: [OrderBy(SmsColumn.DATE, sort: Sort.DESC)],
+  final prefs = await SharedPreferences.getInstance();
+  final processed = prefs.getStringList(_processedSmsKey)?.toSet() ?? <String>{};
+  final messages = await _smsQuery.querySms(
+    kinds: [SmsQueryKind.inbox],
+    count: 200,
   );
 
-  final filteredMessages = messages.where(_isLikelyFinancialSms).toList();
+  final filteredMessages = messages.where((m) {
+    if (!_isLikelyFinancialSms(m)) {
+      return false;
+    }
+    final fingerprint = _smsFingerprint(
+      sender: m.sender,
+      body: m.body,
+      date: m.date?.millisecondsSinceEpoch,
+    );
+    return !processed.contains(fingerprint);
+  }).toList();
   debugPrint(
       'SMS filter: ${filteredMessages.length}/${messages.length} messages matched financial rules');
 
   return filteredMessages
-      .map((m) => SmsEntry(address: m.address, body: m.body, date: m.date))
+      .map((m) => SmsEntry(
+            address: m.sender,
+            body: m.body,
+            date: m.date?.millisecondsSinceEpoch,
+          ))
       .toList();
 }
 
-Future<bool> callApi(String smsBody) async {
+Future<SmsProcessResult> callApi(SmsEntry sms) async {
+  final smsBody = sms.body?.trim();
+  if (smsBody == null || smsBody.isEmpty) {
+    return const SmsProcessResult(
+      success: false,
+      duplicate: false,
+      message: 'SMS body is empty',
+    );
+  }
+
   final prefs = await SharedPreferences.getInstance();
   final familyId = prefs.getString('family_id');
   if (familyId == null) {
     debugPrint('family_id not found in shared preferences');
-    return false;
+    return const SmsProcessResult(
+      success: false,
+      duplicate: false,
+      message: 'Family not selected',
+    );
   }
+
+  final fingerprint = _smsFingerprint(
+    sender: sms.address,
+    body: smsBody,
+    date: sms.date,
+  );
+  final processed = prefs.getStringList(_processedSmsKey)?.toSet() ?? <String>{};
+  if (processed.contains(fingerprint)) {
+    debugPrint('Skipping duplicate SMS processing for fingerprint: $fingerprint');
+    return const SmsProcessResult(
+      success: true,
+      duplicate: true,
+      message: 'SMS already processed',
+    );
+  }
+
   final response = await ApiService.parseSMS(familyId, smsBody);
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body)['data'] as List;
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = decoded['data'];
+    final status = data is Map<String, dynamic> ? (data['status']?.toString() ?? '') : '';
+    final isDuplicate = status.toLowerCase() == 'duplicate';
     debugPrint('Successfully parsed SMS. Parsed data: $data');
+    processed.add(fingerprint);
+    if (processed.length > _processedSmsMaxEntries) {
+      final trimmed = processed.toList().sublist(processed.length - _processedSmsMaxEntries);
+      await prefs.setStringList(_processedSmsKey, trimmed);
+    } else {
+      await prefs.setStringList(_processedSmsKey, processed.toList());
+    }
+    return SmsProcessResult(
+      success: true,
+      duplicate: isDuplicate,
+      message: isDuplicate ? 'SMS already processed' : 'Transaction created',
+    );
   } else {
     debugPrint('Failed to parse SMS: ${response.statusCode}');
+    return SmsProcessResult(
+      success: false,
+      duplicate: false,
+      message: 'API call failed (${response.statusCode})',
+    );
   }
-  return response.statusCode == 200 || response.statusCode == 201;
 }
