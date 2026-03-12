@@ -48,27 +48,27 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+          <div className="premium-panel rounded-2xl shadow-xl max-w-md w-full p-6 border border-[var(--panel-border)]">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-gray-800 dark:text-gray-100" />
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Parse SMS</h2>
+                <Sparkles className="w-6 h-6 text-[var(--app-fg)]" />
+                <h2 className="text-2xl font-bold text-[var(--app-fg)]">Parse SMS</h2>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-[var(--app-fg-muted)] hover:text-[var(--app-fg)]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+            <p className="text-sm text-[var(--app-fg-muted)] mb-4">
               Paste your bank SMS and AI will automatically extract transaction details.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">
                   SMS Text
                 </label>
                 <textarea
@@ -78,18 +78,18 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
                   required
                   rows={4}
                   disabled={isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="input-theme resize-y min-h-[100px]"
                 />
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="alert-error flex items-start gap-2">
+                  <p className="text-sm">{error}</p>
                 </div>
               )}
 
               <div className="ai-gradient-note rounded-lg p-3">
-                <p className="text-xs text-gray-800 dark:text-gray-100">
+                <p className="text-xs text-[var(--app-fg)]">
                   <strong>Tip:</strong> Works best with bank transaction SMS containing amount, date, and merchant/category info.
                 </p>
               </div>
@@ -99,7 +99,7 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 px-4 py-2 border border-[var(--input-border)] text-[var(--app-fg)] rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 >
                   Cancel
                 </button>
