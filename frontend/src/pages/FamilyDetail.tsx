@@ -118,7 +118,7 @@ export default function FamilyDetail() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -132,12 +132,12 @@ export default function FamilyDetail() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/')}
-                className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
+                className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
               </button>
@@ -159,7 +159,7 @@ export default function FamilyDetail() {
               {currentUserRole === 'admin' && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
+                  className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
                 >
                   <UserPlus className="w-5 h-5" />
                   Invite Member
@@ -167,7 +167,7 @@ export default function FamilyDetail() {
               )}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
+            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5" />
                 Family Members ({members.length})
@@ -183,7 +183,7 @@ export default function FamilyDetail() {
                     : member.user_email;
 
                   return (
-                    <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div key={member.id} className="flex items-center justify-between p-4 rounded-lg glass-black-soft border border-[var(--panel-border)]">
                       <div className="flex items-center gap-3 flex-1">
                         <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
                           {displayName?.charAt(0).toUpperCase() || 'U'}
@@ -234,7 +234,7 @@ export default function FamilyDetail() {
       {/* Invite Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+          <div className="rounded-2xl shadow-xl max-w-md w-full p-6 glass-black-surface border border-[var(--panel-border)]">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
               {editingMember ? 'Edit Family Member' : 'Invite Family Member'}
             </h2>
@@ -335,14 +335,14 @@ export default function FamilyDetail() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex-1 ai-gradient-button text-white px-4 py-2 rounded-lg disabled:opacity-50"
                 >
                   {isLoading ? 'Saving...' : editingMember ? 'Update' : 'Send Invitation'}
                 </button>
