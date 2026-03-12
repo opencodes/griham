@@ -114,7 +114,7 @@ export default function Events() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -125,7 +125,7 @@ export default function Events() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -134,7 +134,7 @@ export default function Events() {
               </div>
               <button
                 onClick={() => setShowModal(true)}
-                className="inline-flex h-11 items-center gap-2 bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 text-sm font-medium whitespace-nowrap"
+                className="inline-flex h-11 items-center gap-2 ai-gradient-button text-white px-4 rounded-lg text-sm font-medium whitespace-nowrap"
                 type="button"
               >
                 <Plus className="w-4 h-4" />
@@ -143,15 +143,15 @@ export default function Events() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Upcoming Events</p>
                 <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-2">{upcomingCount}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Recurring</p>
                 <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-2">{recurringCount}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Next Event</p>
                 <p className="text-base font-semibold text-gray-800 dark:text-gray-100 mt-2 truncate">
                   {nextEvent ? nextEvent.title : 'No upcoming events'}
@@ -159,7 +159,7 @@ export default function Events() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Event Timeline</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{sortedEvents.length} events</p>
@@ -173,7 +173,7 @@ export default function Events() {
                   return (
                     <article
                       key={event.id}
-                      className="bg-white/95 dark:bg-gray-800/95 rounded-lg border border-gray-100 dark:border-gray-700/80 px-3 py-2.5 transition hover:border-gray-200 dark:hover:border-gray-600 hover:bg-white dark:hover:bg-gray-800"
+                      className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/10 glass-black-soft"
                     >
                       <div className="flex items-start justify-between gap-2.5">
                         <div className="min-w-0 flex items-start gap-2.5">
@@ -217,7 +217,7 @@ export default function Events() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl">
+          <div className="w-full max-w-lg rounded-xl border border-[var(--panel-border)] shadow-xl glass-black-surface">
             <form onSubmit={handleAddEvent} className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Add Event</h3>
@@ -295,13 +295,13 @@ export default function Events() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                  className="px-4 py-2 rounded-lg ai-gradient-button text-white"
                 >
                   Save Event
                 </button>
