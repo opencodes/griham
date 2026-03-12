@@ -46,8 +46,8 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
           <Sparkles className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">AI SMS Parser</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Paste bank SMS to auto-add transactions</p>
+          <h2 className="text-xl font-bold text-[var(--app-fg)]">AI SMS Parser</h2>
+          <p className="text-sm text-[var(--app-fg-muted)]">Paste bank SMS to auto-add transactions</p>
         </div>
       </div>
 
@@ -60,20 +60,20 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
             required
             rows={5}
             disabled={isLoading}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-100"
+            className="input-theme py-3 resize-y min-h-[120px]"
           />
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-            <X className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="alert-error flex items-start gap-2">
+            <X className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <p className="text-sm">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-600 font-medium">{success}</p>
+          <div className="alert-success">
+            <p className="text-sm font-medium">{success}</p>
           </div>
         )}
 
@@ -97,7 +97,7 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
       </form>
 
       <div className="mt-4 p-3 ai-gradient-note rounded-lg">
-        <p className="text-xs text-gray-800 dark:text-gray-100">
+        <p className="text-xs text-[var(--app-fg)]">
           <strong>💡 Tip:</strong> Works with most bank SMS formats. AI extracts amount, date, category, and description automatically.
         </p>
       </div>
