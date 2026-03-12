@@ -94,7 +94,7 @@ export default function BankAccounts() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -105,12 +105,12 @@ export default function BankAccounts() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/finance')}
-                className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
+                className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
               </button>
@@ -121,7 +121,7 @@ export default function BankAccounts() {
               {userRole === 'admin' && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 font-medium"
+                  className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
                 >
                   <Plus className="w-5 h-5" />
                   Add Account
@@ -172,7 +172,7 @@ export default function BankAccounts() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+          <div className="rounded-2xl shadow-xl max-w-md w-full p-6 glass-black-surface border border-[var(--panel-border)]">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Add Bank Account</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -242,14 +242,14 @@ export default function BankAccounts() {
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex-1 ai-gradient-button text-white px-4 py-2 rounded-lg disabled:opacity-50"
                 >
                   {isLoading ? 'Adding...' : 'Add Account'}
                 </button>
