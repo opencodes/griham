@@ -103,7 +103,7 @@ export default function Messaging() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -114,7 +114,7 @@ export default function Messaging() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -123,7 +123,7 @@ export default function Messaging() {
               </div>
               <button
                 onClick={() => setShowModal(true)}
-                className="inline-flex h-11 items-center gap-2 bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 text-sm font-medium whitespace-nowrap"
+                className="inline-flex h-11 items-center gap-2 ai-gradient-button text-white px-4 rounded-lg text-sm font-medium whitespace-nowrap"
                 type="button"
               >
                 <Plus className="w-4 h-4" />
@@ -132,21 +132,21 @@ export default function Messaging() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Unread</p>
                 <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-2">{stats.unread}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Alerts</p>
                 <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">{stats.alerts}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Notifications</p>
                 <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">{stats.notifications}</p>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
               <div className="flex items-center gap-2 mb-4">
                 <MessageSquare className="w-4 h-4 text-indigo-500" />
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Inbox</h3>
@@ -161,7 +161,7 @@ export default function Messaging() {
                     className={`w-full text-left rounded-lg border px-3 py-2.5 transition ${
                       msg.unread
                         ? 'border-indigo-200 bg-indigo-50/50 dark:border-indigo-800 dark:bg-indigo-900/20'
-                        : 'border-gray-100 dark:border-gray-700/80 hover:bg-gray-50 dark:hover:bg-gray-700/40'
+                        : 'border-[var(--panel-border)] glass-black-soft hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2.5">
@@ -193,7 +193,7 @@ export default function Messaging() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl">
+          <div className="w-full max-w-lg rounded-xl border border-[var(--panel-border)] shadow-xl glass-black-surface">
             <form onSubmit={sendMessage} className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">New Message</h3>
@@ -236,13 +236,13 @@ export default function Messaging() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg ai-gradient-button text-white"
                 >
                   <Send className="w-4 h-4" />
                   Send
