@@ -1,39 +1,39 @@
 /**
- * Cisco brand theme – external CSS controlled by VITE_THEME=cisco
+ * Blue theme – external CSS controlled by VITE_THEME=blue
  *
  * Primary palette (~70% of executions): White, Midnight Blue
- * Accent colors (≤5%): Magenta, Orange – not for text; avoid logo on accent areas
+ * Accent colors (≤5%): Magenta, Orange – not for text
  *
- * Primary: Cisco Blue #02C8FF, Midnight Blue #07182D, Medium Blue #0A60FF, White #FFFFFF
+ * Primary: #02C8FF, Midnight Blue #07182D, Medium Blue #0A60FF, White #FFFFFF
  * Accent: Magenta #FF007F, Orange #FF9000
  */
 
 /* ---------------------------------------------------------------------------
    Raw palette (use in components or for gradients with restraint)
    --------------------------------------------------------------------------- */
-html.theme-cisco {
+html.theme-blue {
   /* Primary palette */
-  --cisco-blue: #02C8FF;
-  --cisco-blue-rgb: 2, 200, 255;
+  --blue-accent: #02C8FF;
+  --blue-accent-rgb: 2, 200, 255;
   --midnight-blue: #07182D;
   --midnight-blue-rgb: 7, 24, 45;
   --medium-blue: #0A60FF;
   --medium-blue-rgb: 10, 96, 255;
-  --cisco-white: #FFFFFF;
-  --cisco-white-rgb: 255, 255, 255;
+  --blue-white: #FFFFFF;
+  --blue-white-rgb: 255, 255, 255;
   /* Accent – use sparingly, not as text */
-  --cisco-magenta: #FF007F;
-  --cisco-orange: #FF9000;
+  --accent-magenta: #FF007F;
+  --accent-orange: #FF9000;
 }
 
 /* ---------------------------------------------------------------------------
    Light mode – anchored in White (~70%), text Midnight Blue
    --------------------------------------------------------------------------- */
-html.theme-cisco {
+html.theme-blue {
   color-scheme: light;
   --app-fg: var(--midnight-blue);
   --app-fg-muted: #3d5a80;
-  --input-bg: var(--cisco-white);
+  --input-bg: var(--blue-white);
   --input-border: rgba(7, 24, 45, 0.18);
   --input-text: var(--midnight-blue);
   --input-placeholder: #5c7a9e;
@@ -58,30 +58,30 @@ html.theme-cisco {
 }
 
 /* Primary / CTA – Medium Blue (accessible on White) */
-html.theme-cisco .input-theme:focus {
+html.theme-blue .input-theme:focus {
   border-color: var(--medium-blue);
   box-shadow: 0 0 0 2px var(--input-focus-ring);
 }
 
-html.theme-cisco .btn-secondary:hover:not(:disabled) {
+html.theme-blue .btn-secondary:hover:not(:disabled) {
   background: rgba(7, 24, 45, 0.06);
 }
 
 /* Glass / panels – light */
-html.theme-cisco .glass-black-surface,
-html.theme-cisco .premium-panel {
+html.theme-blue .glass-black-surface,
+html.theme-blue .premium-panel {
   background: rgba(255, 255, 255, 0.92);
   border-color: rgba(7, 24, 45, 0.14);
   box-shadow: var(--panel-shadow);
 }
 
-html.theme-cisco .glass-black-soft {
+html.theme-blue .glass-black-soft {
   background: rgba(255, 255, 255, 0.7);
   border-color: rgba(7, 24, 45, 0.12);
 }
 
 /* Hero / feature card – restrained gradient from palette */
-html.theme-cisco .hero-ai-card {
+html.theme-blue .hero-ai-card {
   border-color: rgba(7, 24, 45, 0.1);
   background: linear-gradient(
       135deg,
@@ -94,28 +94,28 @@ html.theme-cisco .hero-ai-card {
 }
 
 /* Primary button – Medium Blue (not accent-only) */
-html.theme-cisco .ai-gradient-button {
+html.theme-blue .ai-gradient-button {
   border-color: rgba(255, 255, 255, 0.3);
-  color: var(--cisco-white);
-  background: linear-gradient(135deg, var(--medium-blue) 0%, #084bc9 50%, var(--cisco-blue) 100%);
+  color: var(--blue-white);
+  background: linear-gradient(135deg, var(--medium-blue) 0%, #084bc9 50%, var(--blue-accent) 100%);
   box-shadow: 0 12px 28px -14px rgba(10, 96, 255, 0.45);
 }
 
-html.theme-cisco .ai-gradient-icon {
-  background: linear-gradient(135deg, var(--medium-blue) 0%, var(--cisco-blue) 100%);
+html.theme-blue .ai-gradient-icon {
+  background: linear-gradient(135deg, var(--medium-blue) 0%, var(--blue-accent) 100%);
 }
 
-html.theme-cisco .ai-gradient-note {
+html.theme-blue .ai-gradient-note {
   border-color: rgba(10, 96, 255, 0.2);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 255, 0.98) 100%);
 }
 
 /* Scrollbar */
-html.theme-cisco * {
+html.theme-blue * {
   scrollbar-color: rgba(7, 24, 45, 0.25) transparent;
 }
 
-html.theme-cisco *::-webkit-scrollbar-thumb {
+html.theme-blue *::-webkit-scrollbar-thumb {
   background: rgba(7, 24, 45, 0.25);
 }
 
@@ -123,13 +123,13 @@ html.theme-cisco *::-webkit-scrollbar-thumb {
    Dark mode – anchored in Midnight Blue (~70%), text White
    (App toggles .dark on document.documentElement via useDarkMode)
    --------------------------------------------------------------------------- */
-html.theme-cisco.dark {
+html.theme-blue.dark {
   color-scheme: dark;
-  --app-fg: var(--cisco-white);
+  --app-fg: var(--blue-white);
   --app-fg-muted: rgba(255, 255, 255, 0.7);
   --input-bg: rgba(7, 24, 45, 0.85);
   --input-border: rgba(255, 255, 255, 0.18);
-  --input-text: var(--cisco-white);
+  --input-text: var(--blue-white);
   --input-placeholder: rgba(255, 255, 255, 0.5);
   --input-focus-ring: rgba(2, 200, 255, 0.4);
   --alert-error-bg: rgba(255, 0, 127, 0.15);
@@ -151,23 +151,23 @@ html.theme-cisco.dark {
   --panel-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.6);
 }
 
-html.theme-cisco.dark .btn-secondary:hover:not(:disabled) {
+html.theme-blue.dark .btn-secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.08);
 }
 
-html.theme-cisco.dark .glass-black-surface,
-html.theme-cisco.dark .premium-panel {
+html.theme-blue.dark .glass-black-surface,
+html.theme-blue.dark .premium-panel {
   background: linear-gradient(160deg, rgba(7, 24, 45, 0.95), rgba(10, 30, 55, 0.92));
   border-color: rgba(255, 255, 255, 0.12);
   box-shadow: 0 18px 48px -28px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-html.theme-cisco.dark .glass-black-soft {
+html.theme-blue.dark .glass-black-soft {
   background: rgba(7, 24, 45, 0.7);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-html.theme-cisco.dark .hero-ai-card {
+html.theme-blue.dark .hero-ai-card {
   border-color: rgba(255, 255, 255, 0.1);
   background: linear-gradient(
       135deg,
@@ -179,26 +179,26 @@ html.theme-cisco.dark .hero-ai-card {
     radial-gradient(circle at 20% 80%, rgba(10, 96, 255, 0.08), transparent 40%);
 }
 
-html.theme-cisco.dark .ai-gradient-button {
+html.theme-blue.dark .ai-gradient-button {
   border-color: rgba(255, 255, 255, 0.25);
-  color: var(--cisco-white);
-  background: linear-gradient(135deg, var(--medium-blue) 0%, var(--cisco-blue) 100%);
+  color: var(--blue-white);
+  background: linear-gradient(135deg, var(--medium-blue) 0%, var(--blue-accent) 100%);
   box-shadow: 0 12px 28px -14px rgba(2, 200, 255, 0.35);
 }
 
-html.theme-cisco.dark .ai-gradient-icon {
-  background: linear-gradient(135deg, var(--medium-blue) 0%, var(--cisco-blue) 100%);
+html.theme-blue.dark .ai-gradient-icon {
+  background: linear-gradient(135deg, var(--medium-blue) 0%, var(--blue-accent) 100%);
 }
 
-html.theme-cisco.dark .ai-gradient-note {
+html.theme-blue.dark .ai-gradient-note {
   border-color: rgba(2, 200, 255, 0.25);
   background: linear-gradient(135deg, rgba(7, 24, 45, 0.95) 0%, rgba(15, 45, 80, 0.9) 100%);
 }
 
-html.theme-cisco.dark *::-webkit-scrollbar-thumb {
+html.theme-blue.dark *::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
 }
 
-html.theme-cisco.dark * {
+html.theme-blue.dark * {
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
