@@ -81,7 +81,7 @@ export default function Organizer() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -92,7 +92,7 @@ export default function Organizer() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -101,7 +101,7 @@ export default function Organizer() {
               </div>
               <button
                 onClick={() => setShowModal(true)}
-                className="inline-flex h-11 items-center gap-2 bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 text-sm font-medium whitespace-nowrap"
+                className="inline-flex h-11 items-center gap-2 ai-gradient-button text-white px-4 rounded-lg text-sm font-medium whitespace-nowrap"
                 type="button"
               >
                 <Plus className="w-4 h-4" />
@@ -110,22 +110,22 @@ export default function Organizer() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Pending Tasks</p>
                 <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-2">{pendingTasks}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Shopping Pending</p>
                 <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-2">{shoppingPending}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Upcoming Reminders</p>
                 <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">{reminders.length}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <CheckSquare className="w-4 h-4 text-indigo-500" />
                   <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Tasks</h3>
@@ -136,7 +136,7 @@ export default function Organizer() {
                       key={task.id}
                       type="button"
                       onClick={() => setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, done: !t.done } : t)))}
-                      className="w-full text-left rounded-lg border border-gray-100 dark:border-gray-700/80 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition"
+                      className="w-full text-left rounded-lg border border-[var(--panel-border)] px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition glass-black-soft"
                     >
                       <p className={`text-sm font-medium ${task.done ? 'text-gray-400 line-through' : 'text-gray-800 dark:text-gray-100'}`}>{task.title}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{toDate(task.dueDate)}</p>
@@ -145,14 +145,14 @@ export default function Organizer() {
                 </div>
               </section>
 
-              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <NotebookPen className="w-4 h-4 text-indigo-500" />
                   <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Notes</h3>
                 </div>
                 <div className="space-y-1.5">
                   {notes.map((note) => (
-                    <article key={note.id} className="rounded-lg border border-gray-100 dark:border-gray-700/80 px-3 py-2.5">
+                    <article key={note.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{note.title}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{note.body}</p>
                     </article>
@@ -160,7 +160,7 @@ export default function Organizer() {
                 </div>
               </section>
 
-              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <ShoppingCart className="w-4 h-4 text-indigo-500" />
                   <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Shopping List</h3>
@@ -171,7 +171,7 @@ export default function Organizer() {
                       key={item.id}
                       type="button"
                       onClick={() => setShopping((prev) => prev.map((s) => (s.id === item.id ? { ...s, checked: !s.checked } : s)))}
-                      className="w-full text-left rounded-lg border border-gray-100 dark:border-gray-700/80 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition"
+                      className="w-full text-left rounded-lg border border-[var(--panel-border)] px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition glass-black-soft"
                     >
                       <p className={`text-sm font-medium ${item.checked ? 'text-gray-400 line-through' : 'text-gray-800 dark:text-gray-100'}`}>{item.name}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{item.quantity}</p>
@@ -180,14 +180,14 @@ export default function Organizer() {
                 </div>
               </section>
 
-              <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-5">
+              <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <BellRing className="w-4 h-4 text-indigo-500" />
                   <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Reminders</h3>
                 </div>
                 <div className="space-y-1.5">
                   {reminders.map((reminder) => (
-                    <article key={reminder.id} className="rounded-lg border border-gray-100 dark:border-gray-700/80 px-3 py-2.5">
+                    <article key={reminder.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{reminder.title}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{toDateTime(reminder.dateTime)}</p>
                     </article>
@@ -201,7 +201,7 @@ export default function Organizer() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl">
+          <div className="w-full max-w-lg rounded-xl border border-[var(--panel-border)] shadow-xl glass-black-surface">
             <form onSubmit={addTask} className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Add Task</h3>
@@ -232,13 +232,13 @@ export default function Organizer() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                  className="px-4 py-2 rounded-lg ai-gradient-button text-white"
                 >
                   Save Task
                 </button>
