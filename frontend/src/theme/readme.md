@@ -1,19 +1,19 @@
-# Theme (Cisco)
+# Theme (Blue)
 
 Theme is controlled by the **environment variable** `VITE_THEME`.
 
 - **Unset or empty:** Default app theme (see `src/index.css`).
-- **`VITE_THEME=cisco`:** Cisco brand theme (`cisco.css`).
+- **`VITE_THEME=blue`:** Blue brand theme (`blue.css`).
 
-## Enabling Cisco theme
+## Enabling Blue theme
 
 Create a `.env` in the project root (or set in your environment):
 
 ```bash
-VITE_THEME=cisco
+VITE_THEME=blue
 ```
 
-Then run the app as usual (`npm run dev` / `npm run build`). The app adds the class `theme-cisco` to `<html>` and loads `cisco.css`, which overrides semantic CSS variables (e.g. `--app-fg`, `--app-bg`, `--panel-bg`) with the Cisco palette.
+Then run the app as usual (`npm run dev` / `npm run build`). The app adds the class `theme-blue` to `<html>` and loads `blue.css`, which overrides semantic CSS variables (e.g. `--app-fg`, `--app-bg`, `--panel-bg`) with the Blue palette.
 
 ## Cisco palette (reference)
 
