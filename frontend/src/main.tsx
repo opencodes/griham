@@ -4,12 +4,17 @@ import './index.css'
 import App from './App.tsx'
 import { makeServer } from './mirage/server'
 
-// Theme: when VITE_THEME=cisco, apply Cisco brand theme (see src/theme/cisco.css).
+// Theme: when VITE_THEME=blue, apply Cisco brand theme (see src/theme/blue.css).
 const theme = import.meta.env.VITE_THEME
-if (theme === 'cisco') {
-  document.documentElement.classList.add('theme-cisco')
-  import('./theme/cisco.css')
+if (theme === 'blue') {
+  document.documentElement.classList.add('theme-'+theme)
+  import('./theme/blue.css')
+} else if (theme === 'orange') {
+  document.documentElement.classList.add('theme-'+theme)
+  import('./theme/orange.css')
 }
+
+
 
 // Start Mirage mock API in development when no real API URL is set.
 // Leave VITE_API_URL unset to use the mock; set it to use a real backend.
