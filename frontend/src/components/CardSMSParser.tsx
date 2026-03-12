@@ -38,8 +38,8 @@ export default function CardSMSParser({ familyId, onParsed }: CardSMSParserProps
   return (
     <div className="hero-ai-card rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="w-5 h-5 text-gray-800 dark:text-gray-100" />
-        <h3 className="font-semibold text-gray-800 dark:text-gray-100">AI SMS Parser</h3>
+        <Sparkles className="w-5 h-5 text-[var(--app-fg)]" />
+        <h3 className="font-semibold text-[var(--app-fg)]">AI SMS Parser</h3>
       </div>
 
       <textarea
@@ -48,13 +48,13 @@ export default function CardSMSParser({ familyId, onParsed }: CardSMSParserProps
         onChange={(e) => setSmsText(e.target.value)}
         rows={3}
         disabled={isLoading}
-        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-100 text-sm mb-2"
+        className="input-theme text-sm mb-2 resize-y min-h-[80px]"
       />
 
       {error && (
-        <div className="p-2 bg-red-50 border border-red-200 rounded-lg mb-2 flex items-start gap-2">
-          <X className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-red-600">{error}</p>
+        <div className="alert-error mb-2 flex items-start gap-2">
+          <X className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <p className="text-xs">{error}</p>
         </div>
       )}
 
