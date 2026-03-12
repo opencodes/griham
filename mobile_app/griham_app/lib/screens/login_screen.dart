@@ -20,8 +20,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _emailController.text = 'admin@gmail.com';
-    _passwordController.text = 'Admin123';
+    _emailController.text = '';
+    _passwordController.text = '';
   }
 
   Future<void> _login() async {
@@ -80,15 +80,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: AppSpacing.lg),
                       Text(
                         'Griham Finance',
-                        style: Theme.of(context).textTheme.displaySmall
+                        style: Theme.of(context)
+                            .textTheme
+                            .displaySmall
                             ?.copyWith(color: AppColors.primary),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         'Manage Your Finances',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                              color: AppColors.textSecondary,
+                            ),
                       ),
                     ],
                   ),
@@ -137,7 +139,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           Expanded(
                             child: Text(
                               _errorMessage!,
-                              style: Theme.of(context).textTheme.bodySmall
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
                                   ?.copyWith(color: AppColors.danger),
                             ),
                           ),
@@ -170,6 +174,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   label: 'Sign In',
                   onPressed: _login,
                   isLoading: _isLoading,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Center(
+                  child: Text(
+                    'New account signup is available on website only.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),

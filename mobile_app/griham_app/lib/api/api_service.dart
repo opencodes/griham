@@ -47,8 +47,16 @@ class ApiService {
     return get('families');
   }
 
-  static Future<http.Response> login(String email, String password) async {
-    return post('auth/login', {'email': email, 'password': password});
+  static Future<http.Response> login(
+    String email,
+    String password, {
+    Map<String, dynamic>? device,
+  }) async {
+    final payload = <String, dynamic>{'email': email, 'password': password};
+    if (device != null && device.isNotEmpty) {
+      payload['device'] = device;
+    }
+    return post('auth/login', payload);
   }
 
   static Future<http.Response> getBankAccounts(String familyId) async {

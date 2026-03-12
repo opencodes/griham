@@ -3,16 +3,19 @@
 namespace App\Modules\Auth\Controllers;
 
 use App\Modules\User\Models\User;
+use App\Modules\User\Models\UserDevice;
 use App\Utils\JWT;
 use App\Core\Response;
 
 class AuthController
 {
     private User $userModel;
+    private UserDevice $userDeviceModel;
 
     public function __construct()
     {
         $this->userModel = new User();
+        $this->userDeviceModel = new UserDevice();
     }
 
     public function register(): void
@@ -69,6 +72,15 @@ class AuthController
 
         if (!$this->userModel->verifyPassword($data['password'], $user['password'])) {
             Response::error('Invalid credentials', 401);
+        }
+
+        // Track first and repeat logins per device; multiple devices per user are allowed.
+        if (isset($data['device']) && is_array($data['device'])) {
+            try {
+                $this->userDeviceModel->upsertLoginDevice($user['id'], $data['device']);
+            } catch (\Throwable $e) {
+                // Device tracking should not block successful login.
+            }
         }
 
         unset($user['password']);

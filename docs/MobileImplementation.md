@@ -12,8 +12,16 @@ Only the endpoints below are actively used by the current mobile flow.
 
 1. `POST /api/auth/login`
 - Purpose: user login
-- Request: `{ email, password }`
+- Request: `{ email, password, device? }`
+- Device payload (sent by mobile):
+  - `device_id`
+  - `device_name`
+  - `platform`
+  - `os_version`
 - Used by: `AuthProvider`
+- Backend behavior:
+  - Captures/updates device against logged-in user
+  - Supports multiple devices per user (`user_id + device_id` unique pair)
 
 2. `GET /api/families`
 - Purpose: fetch family list and persist selected family id
