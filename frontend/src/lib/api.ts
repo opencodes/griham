@@ -234,10 +234,119 @@ export const financeAPI = {
   },
 };
 
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export const adminAPI = {
   listUsers: async () => {
     const { data } = await api.get('/admin/users');
     return data.data;
+  },
+};
+
+export const rbacAPI = {
+  // Roles
+  listRoles: async (): Promise<Role[]> => {
+    const { data } = await api.get('/admin/roles');
+    return data.data ?? [];
+  },
+  getRole: async (id: string): Promise<Role & { permissions: Permission[]; user_ids: string[] }> => {
+    const { data } = await api.get(`/admin/roles/${id}`);
+    return data.data;
+  },
+  createRole: async (payload: { name: string; description?: string }): Promise<Role> => {
+    const { data } = await api.post('/admin/roles', payload);
+    return data.data;
+  },
+  updateRole: async (id: string, payload: { name?: string; description?: string }): Promise<Role> => {
+    const { data } = await api.put(`/admin/roles/${id}`, payload);
+    return data.data;
+  },
+  deleteRole: async (id: string): Promise<void> => {
+    await api.delete(`/admin/roles/${id}`);
+  },
+  setRolePermissions: async (roleId: string, permissionIds: string[]): Promise<void> => {
+    await api.put(`/admin/roles/${roleId}/permissions`, { permission_ids: permissionIds });
+  },
+
+  // Permissions
+  listPermissions: async (): Promise<Permission[]> => {
+    const { data } = await api.get('/admin/permissions');
+    return data.data ?? [];
+  },
+  getPermission: async (id: string): Promise<Permission & { role_ids: string[] }> => {
+    const { data } = await api.get(`/admin/permissions/${id}`);
+    return data.data;
+  },
+  createPermission: async (payload: { name: string; resource: string; action: string; description?: string }): Promise<Permission> => {
+    const { data } = await api.post('/admin/permissions', payload);
+    return data.data;
+  },
+  updatePermission: async (id: string, payload: { name?: string; resource?: string; action?: string; description?: string }): Promise<Permission> => {
+    const { data } = await api.put(`/admin/permissions/${id}`, payload);
+    return data.data;
+  },
+  deletePermission: async (id: string): Promise<void> => {
+    await api.delete(`/admin/permissions/${id}`);
+  },
+
+  // Groups
+  listGroups: async (): Promise<Group[]> => {
+    const { data } = await api.get('/admin/groups');
+    return data.data ?? [];
+  },
+  getGroup: async (id: string): Promise<Group & { user_ids: string[]; role_ids: string[] }> => {
+    const { data } = await api.get(`/admin/groups/${id}`);
+    return data.data;
+  },
+  createGroup: async (payload: { name: string; description?: string }): Promise<Group> => {
+    const { data } = await api.post('/admin/groups', payload);
+    return data.data;
+  },
+  updateGroup: async (id: string, payload: { name?: string; description?: string }): Promise<Group> => {
+    const { data } = await api.put(`/admin/groups/${id}`, payload);
+    return data.data;
+  },
+  deleteGroup: async (id: string): Promise<void> => {
+    await api.delete(`/admin/groups/${id}`);
+  },
+  setGroupMembers: async (groupId: string, userIds: string[]): Promise<void> => {
+    await api.put(`/admin/groups/${groupId}/members`, { user_ids: userIds });
+  },
+  setGroupRoles: async (groupId: string, roleIds: string[]): Promise<void> => {
+    await api.put(`/admin/groups/${groupId}/roles`, { role_ids: roleIds });
+  },
+
+  // User role assignment
+  getUserRoles: async (userId: string): Promise<Role[]> => {
+    const { data } = await api.get(`/admin/users/${userId}/roles`);
+    return data.data ?? [];
+  },
+  setUserRoles: async (userId: string, roleIds: string[]): Promise<void> => {
+    await api.put(`/admin/users/${userId}/roles`, { role_ids: roleIds });
   },
 };
 
