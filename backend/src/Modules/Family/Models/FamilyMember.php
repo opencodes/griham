@@ -3,10 +3,11 @@
 namespace App\Modules\Family\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class FamilyMember extends Model
 {
-    protected string $table = 'family_members';
+    protected string $table = TableNames::FAMILY_MEMBERS;
 
     public function addMember(array $data): string
     {
@@ -34,8 +35,8 @@ class FamilyMember extends Model
     public function findByFamilyId(string $familyId): array
     {
         $sql = "SELECT fm.*, u.email as user_email, u.full_name, u.phone as user_phone 
-                FROM family_members fm
-                LEFT JOIN users u ON fm.user_id = u.id
+                FROM " . TableNames::FAMILY_MEMBERS . " fm
+                LEFT JOIN " . TableNames::USERS . " u ON fm.user_id = u.id
                 WHERE fm.family_id = :family_id
                 ORDER BY fm.status ASC, fm.joined_at DESC";
         

@@ -3,10 +3,11 @@
 namespace App\Modules\Family\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class Family extends Model
 {
-    protected string $table = 'families';
+    protected string $table = TableNames::FAMILIES;
 
     public function createFamily(array $data): string
     {
@@ -18,8 +19,8 @@ class Family extends Model
 
     public function findByUserId(string $userId): array
     {
-        $sql = "SELECT f.* FROM families f
-                INNER JOIN family_members fm ON f.id = fm.family_id
+        $sql = "SELECT f.* FROM " . TableNames::FAMILIES . " f
+                INNER JOIN " . TableNames::FAMILY_MEMBERS . " fm ON f.id = fm.family_id
                 WHERE fm.user_id = :user_id";
         
         $stmt = $this->db->prepare($sql);

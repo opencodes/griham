@@ -54,6 +54,9 @@ class AuthController
         $user = $this->userModel->findById($userId);
         unset($user['password']);
 
+        $user['rbac_roles'] = $this->rbacService->getRolesForUser($user['id']);
+        $user['rbac_permissions'] = $this->rbacService->getPermissionsForUser($user['id']);
+
         $token = JWT::encode(['userId' => $user['id'], 'email' => $user['email']]);
 
         Response::success([
@@ -95,6 +98,8 @@ class AuthController
         }
 
         unset($user['password']);
+        $user['rbac_roles'] = $this->rbacService->getRolesForUser($user['id']);
+        $user['rbac_permissions'] = $this->rbacService->getPermissionsForUser($user['id']);
 
         $token = JWT::encode(['userId' => $user['id'], 'email' => $user['email']]);
 

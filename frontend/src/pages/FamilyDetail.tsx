@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, Household } from '@/lib/api';
+import { hasPermission } from '@/lib/permissions';
 import { ArrowLeft, UserPlus, Users, Shield, Eye, Menu, Bell, Flame, Edit2 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
@@ -32,9 +33,13 @@ export default function FamilyDetail() {
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>('viewer');
   const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [formData, setFormData] = useState({ fname: '', lname: '', phone: '', email: '', relation: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [createName, setCreateName] = useState('');
+  const [createAddress, setCreateAddress] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -42,6 +47,8 @@ export default function FamilyDetail() {
       loadMembers();
     }
   }, [id]);
+
+  const canCreateFamily = hasPermission(user, 'family', 'create');
 
   const loadHousehold = async () => {
     try {
@@ -88,6 +95,25 @@ export default function FamilyDetail() {
       console.error('Failed to save member', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateFamily = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createName.trim()) return;
+    setIsCreating(true);
+    try {
+      const created = await householdAPI.create(createName.trim(), createAddress.trim() || undefined);
+      setShowCreateModal(false);
+      setCreateName('');
+      setCreateAddress('');
+      if (created?.id) {
+        navigate(`/families/${created.id}`);
+      }
+    } catch (error) {
+      console.error('Failed to create family', error);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -140,6 +166,39 @@ export default function FamilyDetail() {
         <Header onMobileMenuToggle={handleMenuToggle} />
 
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
+          {!id && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                </button>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Family</h2>
+                  <p className="text-gray-600 dark:text-gray-300 mt-1">No family yet.</p>
+                </div>
+                {canCreateFamily && (
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
+                  >
+                    <Users className="w-5 h-5" />
+                    Create Family
+                  </button>
+                )}
+              </div>
+
+              {!canCreateFamily && (
+                <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-6">
+                  <p className="text-[var(--app-fg)]">You do not have permission to create a family.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {id && (
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <button
@@ -235,6 +294,7 @@ export default function FamilyDetail() {
               </div>
             </div>
           </div>
+          )}
         </main>
       </div>
 
@@ -352,6 +412,57 @@ export default function FamilyDetail() {
                   className="flex-1 ai-gradient-button text-white px-4 py-2 rounded-lg disabled:opacity-50"
                 >
                   {isLoading ? 'Saving...' : editingMember ? 'Update' : 'Send Invitation'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Family Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="rounded-2xl shadow-xl max-w-md w-full p-6 glass-black-surface border border-[var(--panel-border)]">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Create Family</h2>
+            <form onSubmit={handleCreateFamily} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Family Name</label>
+                <input
+                  type="text"
+                  placeholder="My Home"
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  required
+                  disabled={isCreating}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="123 Main St"
+                  value={createAddress}
+                  onChange={(e) => setCreateAddress(e.target.value)}
+                  disabled={isCreating}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  disabled={isCreating}
+                  className="flex-1 btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="flex-1 ai-gradient-button text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                >
+                  {isCreating ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </form>

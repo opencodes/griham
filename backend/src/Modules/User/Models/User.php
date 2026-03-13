@@ -3,10 +3,11 @@
 namespace App\Modules\User\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class User extends Model
 {
-    protected string $table = 'users';
+    protected string $table = TableNames::USERS;
 
     public function createUser(array $data): string
     {

@@ -113,7 +113,7 @@ export default function RootRoles() {
   const openUserRoleModal = async (u: User) => {
     try {
       const roleList = await rbacAPI.getUserRoles(u.id);
-      setUserRoleSelectedIds(roleList.map((r: Role) => r.id));
+      setUserRoleSelectedIds(roleList.slice(0, 1).map((r: Role) => r.id));
       setUserRoleModal(u);
     } catch (e) {
       setError('Failed to load user roles.');
@@ -132,9 +132,7 @@ export default function RootRoles() {
   };
 
   const toggleUserRole = (roleId: string) => {
-    setUserRoleSelectedIds((prev) =>
-      prev.includes(roleId) ? prev.filter((id) => id !== roleId) : [...prev, roleId]
-    );
+    setUserRoleSelectedIds((prev) => (prev[0] === roleId ? [] : [roleId]));
   };
 
   const togglePermForRole = (permId: string) => {
@@ -250,9 +248,8 @@ export default function RootRoles() {
                       <tr className="text-left text-[var(--app-fg-muted)]">
                         <th className="py-2 pr-4 font-medium">Name</th>
                         <th className="py-2 pr-4 font-medium">Email</th>
-                        <th className="py-2 pr-4 font-medium">System role</th>
                         <th className="py-2 pr-4 font-medium">Status</th>
-                        <th className="py-2 pr-4 font-medium">RBAC roles</th>
+                        <th className="py-2 pr-4 font-medium">RBAC role</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -260,15 +257,17 @@ export default function RootRoles() {
                         <tr key={u.id} className="border-t border-[var(--panel-border)]">
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.full_name || '—'}</td>
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.email}</td>
-                          <td className="py-2 pr-4 text-[var(--app-fg)]">{u.role}</td>
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.is_active ? 'Active' : 'Inactive'}</td>
                           <td className="py-2 pr-4">
-                            <button
-                              onClick={() => openUserRoleModal(u)}
-                              className="px-2 py-1 rounded border border-[var(--panel-border)] text-[var(--app-fg)] text-xs hover:bg-black/5"
-                            >
-                              Assign roles
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <span className="text-[var(--app-fg)]">{u.rbac_role_name || '—'}</span>
+                              <button
+                                onClick={() => openUserRoleModal(u)}
+                                className="px-2 py-1 rounded border border-[var(--panel-border)] text-[var(--app-fg)] text-xs hover:bg-black/5"
+                              >
+                                Assign role
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -349,15 +348,17 @@ export default function RootRoles() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setUserRoleModal(null)}>
           <div className="rounded-xl glass-black-surface border border-[var(--panel-border)] w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-[var(--panel-border)]">
-              <h3 className="text-lg font-semibold text-[var(--app-fg)]">Roles for: {userRoleModal.full_name || userRoleModal.email}</h3>
+              <h3 className="text-lg font-semibold text-[var(--app-fg)]">Role for: {userRoleModal.full_name || userRoleModal.email}</h3>
+              <p className="text-sm text-[var(--app-fg-muted)] mt-1">Select a single role for this user.</p>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-2">
                 {roles.map((r) => (
                   <label key={r.id} className="flex items-center gap-2 cursor-pointer">
                     <input
-                      type="checkbox"
-                      checked={userRoleSelectedIds.includes(r.id)}
+                      type="radio"
+                      name={`user-role-${userRoleModal.id}`}
+                      checked={userRoleSelectedIds[0] === r.id}
                       onChange={() => toggleUserRole(r.id)}
                       className="rounded border-[var(--panel-border)]"
                     />

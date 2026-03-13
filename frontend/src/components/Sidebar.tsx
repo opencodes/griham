@@ -1,6 +1,7 @@
 import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { canAccessModule } from '@/lib/permissions';
 
 interface SidebarProps {
   activeTab: string;
@@ -11,15 +12,15 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
-  { id: 'family', label: 'Family', icon: Users, path: '/family' },
-  { id: 'finance', label: 'Finance', icon: DollarSign, path: '/finance' },
-  { id: 'events', label: 'Events', icon: Calendar, path: '/events' },
-  { id: 'assets', label: 'Assets', icon: Package, path: '/assets' },
-  { id: 'health', label: 'Health', icon: Heart, path: '/health' },
-  { id: 'contacts', label: 'Contacts', icon: ContactRound, path: '/contacts' },
-  { id: 'organizer', label: 'Organizer', icon: ListTodo, path: '/organizer' },
-  { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
+  { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/', module: 'dashboard' },
+  { id: 'family', label: 'Family', icon: Users, path: '/family', module: 'family' },
+  { id: 'finance', label: 'Finance', icon: DollarSign, path: '/finance', module: 'finance' },
+  { id: 'events', label: 'Events', icon: Calendar, path: '/events', module: 'events' },
+  { id: 'assets', label: 'Assets', icon: Package, path: '/assets', module: 'assets' },
+  { id: 'health', label: 'Health', icon: Heart, path: '/health', module: 'health' },
+  { id: 'contacts', label: 'Contacts', icon: ContactRound, path: '/contacts', module: 'contacts' },
+  { id: 'organizer', label: 'Organizer', icon: ListTodo, path: '/organizer', module: 'organizer' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages', module: 'messages' },
 ];
 
 export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle, isCollapsed = false }: SidebarProps) {
@@ -31,7 +32,9 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle, is
     { id: 'root-roles', label: 'Roles', icon: UserCog, path: '/root/roles' },
     { id: 'root-groups', label: 'Groups', icon: UsersRound, path: '/root/groups' },
   ];
-  const items = user?.role === 'root' ? rootNavItems : navItems;
+  const items = user?.role === 'root'
+    ? rootNavItems
+    : navItems.filter((item) => item.module === 'dashboard' || canAccessModule(user, item.module));
 
   const getInitials = (name: string) => {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);

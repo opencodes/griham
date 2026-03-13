@@ -3,9 +3,10 @@
 namespace App\Modules\Finance\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class Card extends Model {
-    protected string $table = 'cards';
+    protected string $table = TableNames::CARDS;
 
     public function createCard(array $data): string {
         $data['id'] = $this->generateUUID();

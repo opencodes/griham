@@ -20,6 +20,26 @@
 			"key": "family_id",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "role_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "permission_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "group_id",
+			"value": "",
+			"type": "string"
 		}
 	],
 	"item": [
@@ -42,8 +62,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "register"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
 						}
 					}
 				},
@@ -77,8 +102,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "login"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
 						}
 					}
 				},
@@ -94,8 +124,614 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/auth/me",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "me"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin - Users",
+			"item": [
+				{
+					"name": "List Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create User With RBAC Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin2@example.com\",\n  \"password\": \"Admin123\",\n  \"full_name\": \"Admin Two\",\n  \"phone\": \"9999999999\",\n  \"rbac_role_name\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "RBAC",
+			"item": [
+				{
+					"name": "List Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Family Admin\",\n  \"description\": \"Manage families and members\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Role",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Role",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Family Manager\",\n  \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Role",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Set Role Permissions",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permission_ids\": [\"{{permission_id}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/roles/{{role_id}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"roles",
+								"{{role_id}}",
+								"permissions"
+							]
+						}
+					}
+				},
+				{
+					"name": "List Permissions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"permissions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Permission",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Family Create\",\n  \"resource\": \"family\",\n  \"action\": \"create\",\n  \"description\": \"Create family\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"permissions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Permission",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/permissions/{{permission_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"permissions",
+								"{{permission_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Permission",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Family Read\",\n  \"resource\": \"family\",\n  \"action\": \"read\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/permissions/{{permission_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"permissions",
+								"{{permission_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Permission",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/permissions/{{permission_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"permissions",
+								"{{permission_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "List Groups",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/groups",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"groups"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Group",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Finance Team\",\n  \"description\": \"Finance access group\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/groups",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"groups"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Group",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/groups/{{group_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"groups",
+								"{{group_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Group",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Finance Ops\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/groups/{{group_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"groups",
+								"{{group_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Group",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/groups/{{group_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"groups",
+								"{{group_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Set Group Members",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_ids\": [\"{{user_id}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/groups/{{group_id}}/members",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"groups",
+								"{{group_id}}",
+								"members"
+							]
+						}
+					}
+				},
+				{
+					"name": "Set Group Roles",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role_ids\": [\"{{role_id}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/groups/{{group_id}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"groups",
+								"{{group_id}}",
+								"roles"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Roles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/users/{{user_id}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"{{user_id}}",
+								"roles"
+							]
+						}
+					}
+				},
+				{
+					"name": "Set User Roles",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role_ids\": [\"{{role_id}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/users/{{user_id}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"users",
+								"{{user_id}}",
+								"roles"
+							]
 						}
 					}
 				}
@@ -138,8 +774,12 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/families",
-							"host": ["{{base_url}}"],
-							"path": ["families"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"families"
+							]
 						}
 					}
 				},
@@ -155,8 +795,12 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/families",
-							"host": ["{{base_url}}"],
-							"path": ["families"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"families"
+							]
 						}
 					}
 				},
@@ -172,8 +816,13 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/families/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["families", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"families",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -197,8 +846,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/families/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["families", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"families",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -214,8 +868,14 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/families/{{family_id}}/members",
-							"host": ["{{base_url}}"],
-							"path": ["families", "{{family_id}}", "members"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"families",
+								"{{family_id}}",
+								"members"
+							]
 						}
 					}
 				},
@@ -239,8 +899,14 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/families/{{family_id}}/members",
-							"host": ["{{base_url}}"],
-							"path": ["families", "{{family_id}}", "members"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"families",
+								"{{family_id}}",
+								"members"
+							]
 						}
 					}
 				}
@@ -269,8 +935,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/accounts",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "accounts"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"accounts"
+							]
 						}
 					}
 				},
@@ -286,8 +957,14 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/accounts/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "accounts", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"accounts",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -311,8 +988,15 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/accounts/{{family_id}}/{account_id}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "accounts", "{{family_id}}", "{account_id}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"accounts",
+								"{{family_id}}",
+								"{account_id}"
+							]
 						}
 					}
 				},
@@ -328,8 +1012,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/accounts/{{family_id}}/{account_id}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "accounts", "{{family_id}}", "{account_id}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"accounts",
+								"{{family_id}}",
+								"{account_id}"
+							]
 						}
 					}
 				}
@@ -358,8 +1049,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/transactions",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "transactions"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"transactions"
+							]
 						}
 					}
 				},
@@ -375,8 +1071,14 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/transactions/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "transactions", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"transactions",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -392,8 +1094,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/transactions/{{family_id}}/summary",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "transactions", "{{family_id}}", "summary"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"transactions",
+								"{{family_id}}",
+								"summary"
+							]
 						}
 					}
 				},
@@ -409,8 +1118,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/transactions/{{family_id}}/{transaction_id}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "transactions", "{{family_id}}", "{transaction_id}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"transactions",
+								"{{family_id}}",
+								"{transaction_id}"
+							]
 						}
 					}
 				}
@@ -439,8 +1155,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/bills",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "bills"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"bills"
+							]
 						}
 					}
 				},
@@ -456,8 +1177,14 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/bills/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "bills", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"bills",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -473,8 +1200,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/bills/{{family_id}}/upcoming",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "bills", "{{family_id}}", "upcoming"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"bills",
+								"{{family_id}}",
+								"upcoming"
+							]
 						}
 					}
 				},
@@ -498,8 +1232,15 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/bills/{{family_id}}/{bill_id}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "bills", "{{family_id}}", "{bill_id}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"bills",
+								"{{family_id}}",
+								"{bill_id}"
+							]
 						}
 					}
 				},
@@ -515,8 +1256,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/bills/{{family_id}}/{bill_id}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "bills", "{{family_id}}", "{bill_id}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"bills",
+								"{{family_id}}",
+								"{bill_id}"
+							]
 						}
 					}
 				}
@@ -545,8 +1293,13 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/cards",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "cards"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"cards"
+							]
 						}
 					}
 				},
@@ -562,8 +1315,14 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/cards/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "cards", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"cards",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -587,8 +1346,15 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/cards/{{family_id}}/{card_id}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "cards", "{{family_id}}", "{card_id}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"cards",
+								"{{family_id}}",
+								"{card_id}"
+							]
 						}
 					}
 				},
@@ -604,8 +1370,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/cards/{{family_id}}/{card_id}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "cards", "{{family_id}}", "{card_id}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"cards",
+								"{{family_id}}",
+								"{card_id}"
+							]
 						}
 					}
 				}
@@ -626,8 +1399,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/ai/insights/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "ai", "insights", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"ai",
+								"insights",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -643,8 +1423,15 @@
 						],
 						"url": {
 							"raw": "{{base_url}}/finance/ai/savings-tips/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "ai", "savings-tips", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"ai",
+								"savings-tips",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -668,8 +1455,15 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/ai/parse-sms/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "ai", "parse-sms", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"ai",
+								"parse-sms",
+								"{{family_id}}"
+							]
 						}
 					}
 				},
@@ -693,8 +1487,15 @@
 						},
 						"url": {
 							"raw": "{{base_url}}/finance/ai/parse-sms-card/{{family_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["finance", "ai", "parse-sms-card", "{{family_id}}"]
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"finance",
+								"ai",
+								"parse-sms-card",
+								"{{family_id}}"
+							]
 						}
 					}
 				}

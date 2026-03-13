@@ -3,10 +3,11 @@
 namespace App\Modules\Finance\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class Bill extends Model
 {
-    protected string $table = 'bills';
+    protected string $table = TableNames::BILLS;
 
     public function createBill(array $data): string
     {
@@ -18,7 +19,7 @@ class Bill extends Model
 
     public function findByFamilyId(string $familyId): array
     {
-        $sql = "SELECT * FROM bills 
+        $sql = "SELECT * FROM " . TableNames::BILLS . " 
                 WHERE family_id = :family_id 
                 ORDER BY due_date ASC";
         
@@ -29,7 +30,7 @@ class Bill extends Model
 
     public function findUpcoming(string $familyId, int $days = 7): array
     {
-        $sql = "SELECT * FROM bills 
+        $sql = "SELECT * FROM " . TableNames::BILLS . " 
                 WHERE family_id = :family_id 
                 AND status = 'pending'
                 AND due_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL :days DAY)

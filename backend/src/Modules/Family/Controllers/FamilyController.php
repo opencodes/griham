@@ -5,17 +5,25 @@ namespace App\Modules\Family\Controllers;
 use App\Modules\Family\Models\Family;
 use App\Modules\Family\Models\FamilyMember;
 use App\Modules\User\Models\User;
+use App\Modules\RBAC\Services\RBACService;
 use App\Core\Response;
 
 class FamilyController
 {
     private Family $familyModel;
     private FamilyMember $memberModel;
+    private RBACService $rbacService;
 
     public function __construct()
     {
         $this->familyModel = new Family();
         $this->memberModel = new FamilyMember();
+        $this->rbacService = new RBACService();
+    }
+
+    private function hasPermission(string $userId, string $resource, string $action): bool
+    {
+        return $this->rbacService->userHasPermission($userId, $resource, $action);
     }
 
     public function create($currentUser): void
@@ -24,6 +32,10 @@ class FamilyController
 
         if (!isset($data['name'])) {
             Response::error('Family name is required', 400);
+        }
+
+        if (!$this->hasPermission($currentUser->userId, 'family', 'create')) {
+            Response::error('Access denied', 403);
         }
 
         // Check if user already has a family
@@ -50,13 +62,17 @@ class FamilyController
 
     public function list($currentUser): void
     {
+        if (!$this->hasPermission($currentUser->userId, 'family', 'read')) {
+            Response::error('Access denied', 403);
+        }
         $families = $this->familyModel->findByUserId($currentUser->userId);
         Response::success($families);
     }
 
     public function get($currentUser, $id): void
     {
-        if (!$this->memberModel->isUserMember($currentUser->userId, $id)) {
+        $hasPerm = $this->hasPermission($currentUser->userId, 'family', 'read');
+        if (!$hasPerm && !$this->memberModel->isUserMember($currentUser->userId, $id)) {
             Response::error('Access denied', 403);
         }
 
@@ -80,7 +96,8 @@ class FamilyController
             'user_id' => $currentUser->userId
         ]);
 
-        if (!$member || $member['role'] !== 'admin') {
+        $hasPerm = $this->hasPermission($currentUser->userId, 'family', 'update');
+        if (!$hasPerm && (!$member || $member['role'] !== 'admin')) {
             Response::error('Only admins can update family', 403);
         }
 
@@ -91,7 +108,8 @@ class FamilyController
 
     public function listMembers($currentUser, $familyId): void
     {
-        if (!$this->memberModel->isUserMember($currentUser->userId, $familyId)) {
+        $hasPerm = $this->hasPermission($currentUser->userId, 'family.members', 'read');
+        if (!$hasPerm && !$this->memberModel->isUserMember($currentUser->userId, $familyId)) {
             Response::error('Access denied', 403);
         }
 
@@ -107,7 +125,8 @@ class FamilyController
             Response::error('Email, first name, last name, phone and relation are required', 400);
         }
 
-        if (!$this->memberModel->isUserMember($currentUser->userId, $familyId)) {
+        $hasPerm = $this->hasPermission($currentUser->userId, 'family.members', 'write');
+        if (!$hasPerm && !$this->memberModel->isUserMember($currentUser->userId, $familyId)) {
             Response::error('Access denied', 403);
         }
 
@@ -142,7 +161,8 @@ class FamilyController
             'user_id' => $currentUser->userId
         ]);
 
-        if (!$adminMember || $adminMember['role'] !== 'admin') {
+        $hasPerm = $this->hasPermission($currentUser->userId, 'family.members', 'write');
+        if (!$hasPerm && (!$adminMember || $adminMember['role'] !== 'admin')) {
             Response::error('Only admins can update members', 403);
         }
 

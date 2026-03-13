@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { householdAPI, financeAPI, Household, Transaction, Bill, Card, BankAccount } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
+import { canAccessModule, hasPermission } from '@/lib/permissions';
 import {
   Plus,
   Users,
@@ -21,6 +23,7 @@ import { Header } from '@/components/Header';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -318,14 +321,16 @@ export default function Dashboard() {
               </section>
 
               <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                  onClick={() => setActiveTab('family')}
-                  className="text-left rounded-xl p-4 hover:shadow-sm glass-black-surface border border-[var(--panel-border)] transition"
-                >
-                  <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                  <p className="mt-2 text-sm font-semibold text-[var(--app-fg)]">Family Management</p>
-                  <p className="text-xs text-[var(--app-fg-muted)]">Create families and manage members.</p>
-                </button>
+                {canAccessModule(user, 'family') && (
+                  <button
+                    onClick={() => setActiveTab('family')}
+                    className="text-left rounded-xl p-4 hover:shadow-sm glass-black-surface border border-[var(--panel-border)] transition"
+                  >
+                    <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                    <p className="mt-2 text-sm font-semibold text-[var(--app-fg)]">Family Management</p>
+                    <p className="text-xs text-[var(--app-fg-muted)]">Create families and manage members.</p>
+                  </button>
+                )}
                 <button
                   onClick={() => navigate('/finance/cards')}
                   className="text-left rounded-xl p-4 hover:shadow-sm glass-black-surface border border-[var(--panel-border)] transition"
@@ -349,14 +354,14 @@ export default function Dashboard() {
             </div>
           )}
 
-          {activeTab === 'family' && (
+          {activeTab === 'family' && canAccessModule(user, 'family') && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <div>
                   <h2 className="text-2xl font-bold text-[var(--app-fg)]">My Family</h2>
                   <p className="text-[var(--app-fg-muted)] mt-1">Manage your family</p>
                 </div>
-                {households.length === 0 && (
+                {households.length === 0 && hasPermission(user, 'family', 'create') && (
                   <button
                     onClick={() => setShowModal(true)}
                     className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"

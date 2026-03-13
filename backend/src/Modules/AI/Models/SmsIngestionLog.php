@@ -3,11 +3,12 @@
 namespace App\Modules\AI\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 use PDOException;
 
 class SmsIngestionLog extends Model
 {
-    protected string $table = 'sms_ingestion_logs';
+    protected string $table = TableNames::SMS_INGESTION_LOGS;
 
     public function findByFamilyAndKey(string $familyId, string $idempotencyKey): ?array
     {

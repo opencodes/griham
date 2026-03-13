@@ -18,6 +18,7 @@ import Messaging from './pages/Messaging';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
 import RootGroups from './pages/RootGroups';
+import { canAccessModule } from './lib/permissions';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -31,6 +32,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function PermissionRoute({ children, moduleKey }: { children: React.ReactNode; moduleKey: string }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" />;
+  if (!canAccessModule(user, moduleKey)) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
 }
 
 function AppRoutes() {
@@ -84,7 +94,9 @@ function AppRoutes() {
         path="/family"
         element={
           <ProtectedRoute>
-            <FamilyDetail />
+            <PermissionRoute moduleKey="family">
+              <FamilyDetail />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -92,7 +104,9 @@ function AppRoutes() {
         path="/households/:id"
         element={
           <ProtectedRoute>
-            <FamilyDetail />
+            <PermissionRoute moduleKey="family">
+              <FamilyDetail />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -100,7 +114,9 @@ function AppRoutes() {
         path="/finance"
         element={
           <ProtectedRoute>
-            <FinanceOverview />
+            <PermissionRoute moduleKey="finance">
+              <FinanceOverview />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -108,7 +124,9 @@ function AppRoutes() {
         path="/finance/accounts"
         element={
           <ProtectedRoute>
-            <BankAccounts />
+            <PermissionRoute moduleKey="finance">
+              <BankAccounts />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -116,7 +134,9 @@ function AppRoutes() {
         path="/finance/transactions"
         element={
           <ProtectedRoute>
-            <Transactions />
+            <PermissionRoute moduleKey="finance">
+              <Transactions />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -124,7 +144,9 @@ function AppRoutes() {
         path="/finance/bills"
         element={
           <ProtectedRoute>
-            <Bills />
+            <PermissionRoute moduleKey="finance">
+              <Bills />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -132,7 +154,9 @@ function AppRoutes() {
         path="/finance/cards"
         element={
           <ProtectedRoute>
-            <Cards />
+            <PermissionRoute moduleKey="finance">
+              <Cards />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -140,7 +164,9 @@ function AppRoutes() {
         path="/events"
         element={
           <ProtectedRoute>
-            <Events />
+            <PermissionRoute moduleKey="events">
+              <Events />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -148,7 +174,9 @@ function AppRoutes() {
         path="/assets"
         element={
           <ProtectedRoute>
-            <Assets />
+            <PermissionRoute moduleKey="assets">
+              <Assets />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -156,7 +184,9 @@ function AppRoutes() {
         path="/health"
         element={
           <ProtectedRoute>
-            <Health />
+            <PermissionRoute moduleKey="health">
+              <Health />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -164,7 +194,9 @@ function AppRoutes() {
         path="/contacts"
         element={
           <ProtectedRoute>
-            <Contacts />
+            <PermissionRoute moduleKey="contacts">
+              <Contacts />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -172,7 +204,9 @@ function AppRoutes() {
         path="/organizer"
         element={
           <ProtectedRoute>
-            <Organizer />
+            <PermissionRoute moduleKey="organizer">
+              <Organizer />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />
@@ -180,7 +214,9 @@ function AppRoutes() {
         path="/messages"
         element={
           <ProtectedRoute>
-            <Messaging />
+            <PermissionRoute moduleKey="messages">
+              <Messaging />
+            </PermissionRoute>
           </ProtectedRoute>
         }
       />

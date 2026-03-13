@@ -3,10 +3,11 @@
 namespace App\Modules\Finance\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class BankAccount extends Model
 {
-    protected string $table = 'bank_accounts';
+    protected string $table = TableNames::BANK_ACCOUNTS;
 
     public function createAccount(array $data): string
     {

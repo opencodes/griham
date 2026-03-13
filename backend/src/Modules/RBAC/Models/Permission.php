@@ -3,10 +3,11 @@
 namespace App\Modules\RBAC\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class Permission extends Model
 {
-    protected string $table = 'permissions';
+    protected string $table = TableNames::RBAC_PERMISSIONS;
 
     public function createPermission(array $data): string
     {
@@ -18,7 +19,7 @@ class Permission extends Model
 
     public function getRoleIds(string $permissionId): array
     {
-        $sql = "SELECT role_id FROM role_permissions WHERE permission_id = :permission_id";
+        $sql = "SELECT role_id FROM " . TableNames::RBAC_ROLE_PERMISSIONS . " WHERE permission_id = :permission_id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':permission_id' => $permissionId]);
         return array_column($stmt->fetchAll(\PDO::FETCH_ASSOC), 'role_id');

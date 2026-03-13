@@ -3,10 +3,11 @@
 namespace App\Modules\User\Models;
 
 use App\Core\Model;
+use App\Core\TableNames;
 
 class UserDevice extends Model
 {
-    protected string $table = 'user_devices';
+    protected string $table = TableNames::USER_DEVICES;
 
     public function upsertLoginDevice(string $userId, array $device): void
     {

@@ -371,6 +371,9 @@ export function makeServer({ environment = 'development' } = {}) {
         if (requireRoot(request)) return requireRoot(request) as Response;
         const body = JSON.parse(request.requestBody);
         const role_ids: string[] = Array.isArray(body.role_ids) ? body.role_ids : [];
+        if (role_ids.length > 1) {
+          return new Response(400, {}, { message: 'Only one role can be assigned to a user' });
+        }
         db.user_roles = db.user_roles.filter((ur) => ur.user_id !== request.params.id);
         role_ids.forEach((rid) => db.user_roles.push({ user_id: request.params.id, role_id: rid }));
         return { data: { role_ids } };

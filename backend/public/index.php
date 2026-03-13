@@ -67,6 +67,8 @@ try {
             (new AuthController())->me($currentUser);
         } elseif ($path === '/admin/users' && $method === 'GET') {
             (new UserController())->listUsers($currentUser);
+        } elseif ($path === '/admin/users' && $method === 'POST') {
+            (new UserController())->createAdmin($currentUser);
         } elseif ($path === '/admin/roles' && $method === 'GET') {
             (new RBACController())->listRoles($currentUser);
         } elseif ($path === '/admin/roles' && $method === 'POST') {

@@ -23,6 +23,10 @@ export interface User {
   full_name: string;
   role: string;
   is_active: number;
+  rbac_role_id?: string | null;
+  rbac_role_name?: string | null;
+  rbac_roles?: Role[];
+  rbac_permissions?: Permission[];
 }
 
 export interface AuthResponse {

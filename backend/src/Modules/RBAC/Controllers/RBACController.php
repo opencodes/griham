@@ -4,6 +4,7 @@ namespace App\Modules\RBAC\Controllers;
 
 use App\Core\Database;
 use App\Core\Response;
+use App\Core\TableNames;
 use App\Modules\User\Models\User;
 use App\Modules\RBAC\Models\Role;
 use App\Modules\RBAC\Models\Permission;
@@ -301,7 +302,7 @@ class RBACController
         }
         $db = Database::getConnection();
         $stmt = $db->prepare(
-            "SELECT r.id, r.name, r.description FROM roles r INNER JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = :user_id"
+            "SELECT r.id, r.name, r.description FROM " . TableNames::RBAC_ROLES . " r INNER JOIN " . TableNames::RBAC_USER_ROLES . " ur ON r.id = ur.role_id WHERE ur.user_id = :user_id"
         );
         $stmt->execute([':user_id' => $userId]);
         $roles = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -317,11 +318,14 @@ class RBACController
         }
         $data = json_decode(file_get_contents('php://input'), true) ?: [];
         $roleIds = isset($data['role_ids']) && is_array($data['role_ids']) ? array_values($data['role_ids']) : [];
+        if (count($roleIds) > 1) {
+            Response::error('Only one role can be assigned to a user', 400);
+        }
         $db = Database::getConnection();
-        $stmt = $db->prepare("DELETE FROM user_roles WHERE user_id = :user_id");
+        $stmt = $db->prepare("DELETE FROM " . TableNames::RBAC_USER_ROLES . " WHERE user_id = :user_id");
         $stmt->execute([':user_id' => $userId]);
         foreach ($roleIds as $rid) {
-            $stmt = $db->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (:user_id, :role_id)");
+            $stmt = $db->prepare("INSERT INTO " . TableNames::RBAC_USER_ROLES . " (user_id, role_id) VALUES (:user_id, :role_id)");
             $stmt->execute([':user_id' => $userId, ':role_id' => $rid]);
         }
         Response::success(['role_ids' => $roleIds]);
