@@ -1,8 +1,8 @@
 -- MySQL dump 10.13  Distrib 8.0.45, for macos15 (arm64)
 --
--- Host: 127.0.0.1    Database: griham_db
+-- Host: 192.168.1.100    Database: griham_db
 -- ------------------------------------------------------
--- Server version	8.0.45
+-- Server version	8.0.45-0ubuntu0.24.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -131,10 +131,141 @@ CREATE TABLE `family_members` (
   `joined_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_family_user` (`family_id`,`user_id`),
-  KEY `idx_user_id` (`user_id`),
   KEY `idx_family_id` (`family_id`),
+  KEY `idx_user_id` (`user_id`),
   CONSTRAINT `family_members_ibfk_1` FOREIGN KEY (`family_id`) REFERENCES `families` (`id`) ON DELETE CASCADE,
   CONSTRAINT `family_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rbac_group_roles`
+--
+
+DROP TABLE IF EXISTS `rbac_group_roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rbac_group_roles` (
+  `group_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`group_id`,`role_id`),
+  KEY `role_id` (`role_id`),
+  CONSTRAINT `rbac_group_roles_ibfk_1` FOREIGN KEY (`group_id`) REFERENCES `rbac_groups` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `rbac_group_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `rbac_roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rbac_groups`
+--
+
+DROP TABLE IF EXISTS `rbac_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rbac_groups` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rbac_permissions`
+--
+
+DROP TABLE IF EXISTS `rbac_permissions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rbac_permissions` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `resource` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `action` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `uk_resource_action` (`resource`,`action`),
+  KEY `idx_resource` (`resource`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rbac_role_permissions`
+--
+
+DROP TABLE IF EXISTS `rbac_role_permissions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rbac_role_permissions` (
+  `role_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `permission_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`role_id`,`permission_id`),
+  KEY `permission_id` (`permission_id`),
+  CONSTRAINT `rbac_role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `rbac_roles` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `rbac_role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `rbac_permissions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rbac_roles`
+--
+
+DROP TABLE IF EXISTS `rbac_roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rbac_roles` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  KEY `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rbac_user_groups`
+--
+
+DROP TABLE IF EXISTS `rbac_user_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rbac_user_groups` (
+  `user_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `group_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`group_id`),
+  KEY `group_id` (`group_id`),
+  CONSTRAINT `rbac_user_groups_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `rbac_user_groups_ibfk_2` FOREIGN KEY (`group_id`) REFERENCES `rbac_groups` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `rbac_user_roles`
+--
+
+DROP TABLE IF EXISTS `rbac_user_roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rbac_user_roles` (
+  `user_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`,`role_id`),
+  KEY `role_id` (`role_id`),
+  CONSTRAINT `rbac_user_roles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `rbac_user_roles_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `rbac_roles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -209,6 +340,32 @@ CREATE TABLE `transactions` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `user_devices`
+--
+
+DROP TABLE IF EXISTS `user_devices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_devices` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `device_id` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `device_name` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `platform` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `os_version` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `app_version` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `last_login_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_user_device` (`user_id`,`device_id`),
+  KEY `idx_user_devices_user_id` (`user_id`),
+  KEY `idx_user_devices_platform` (`platform`),
+  CONSTRAINT `user_devices_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `users`
 --
 
@@ -240,4 +397,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-02 19:07:59
+-- Dump completed on 2026-03-13 19:42:43
