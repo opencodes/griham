@@ -108,3 +108,39 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📧 Contact
 
 Project Link: [https://github.com/yourusername/griham](https://github.com/yourusername/griham)
+
+
+
+Summary of changes:
+
+## Mirage updates
+
+### 1. **Three fixed dummy users** (any password works in Mirage)
+
+| Email | Name        | System role | Purpose |
+|-------|-------------|------------|--------|
+| **root@griham.local**  | Root User   | `root`  | Root admin: sees Permissions, Roles, Groups and can manage RBAC. |
+| **admin@griham.local** | Admin User  | `admin` | Main app + household/finance; has RBAC role “Finance Manager”. |
+| **user@griham.local**  | Normal User | `user`  | Main app; has RBAC role “Viewer”. |
+
+Mirage does not validate passwords; you can use e.g. **password123** for all three.
+
+### 2. **Seed data**
+
+- **Users:** Root, Admin, and Normal User with fixed IDs so RBAC assignments are stable.
+- **Household:** One household owned by the admin user (accounts, transactions, bills, cards) so admin and normal user can test family/finance.
+- **RBAC:**
+  - **Roles:** “Finance Manager”, “Viewer”.
+  - **Permissions:** `finance.accounts.read`, `finance.accounts.write`, `finance.bills.manage`.
+  - **Role → permissions:** Finance Manager has all three; Viewer has read only.
+  - **User → roles:** Admin has Finance Manager; Normal User has Viewer.
+  - **Group:** “Finance Team” with admin as member and Finance Manager as group role.
+
+### 3. **How to test**
+
+1. Run the app with Mirage (no `VITE_API_URL` or point to Mirage).
+2. **Root:** Log in as **root@griham.local** / password123 → you should see the root sidebar (Permissions, Roles, Groups) and full RBAC UI.
+3. **Admin:** Log in as **admin@griham.local** / password123 → main app (Dashboard, Family, Finance, etc.) and in `/auth/me` the user has `rbac_roles: [{ name: 'Finance Manager', ... }]`.
+4. **Normal user:** Log in as **user@griham.local** / password123 → main app with `rbac_roles: [{ name: 'Viewer', ... }]`.
+
+Comments in `server.ts` above the seed users list these three accounts and that any password (e.g. password123) can be used for testing.
