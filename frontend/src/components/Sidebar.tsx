@@ -1,4 +1,4 @@
-import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield } from 'lucide-react';
+import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -28,7 +28,8 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle, is
   const location = useLocation();
   const rootNavItems = [
     { id: 'root-permissions', label: 'Permissions', icon: Shield, path: '/root/permissions' },
-    { id: 'root-roles', label: 'Roles', icon: Users, path: '/root/roles' },
+    { id: 'root-roles', label: 'Roles', icon: UserCog, path: '/root/roles' },
+    { id: 'root-groups', label: 'Groups', icon: UsersRound, path: '/root/groups' },
   ];
   const items = user?.role === 'root' ? rootNavItems : navItems;
 
