@@ -382,6 +382,11 @@ export function makeServer({ environment = 'development' } = {}) {
       // ----- Families -----
       this.get('/families', () => ({ data: db.households }));
 
+      this.get('/families/me', () => {
+        const h = db.households[0];
+        return { data: h ?? null };
+      });
+
       this.get('/families/:id', (_schema, request) => {
         const h = db.households.find((x) => x.id === request.params.id);
         if (!h) return new Response(404, {}, { message: 'Not found' });

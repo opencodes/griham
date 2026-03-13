@@ -113,6 +113,8 @@ try {
             (new FamilyController())->create($currentUser);
         } elseif ($path === '/families' && $method === 'GET') {
             (new FamilyController())->list($currentUser);
+        } elseif ($path === '/families/me' && $method === 'GET') {
+            (new FamilyController())->getCurrent($currentUser);
         } elseif (preg_match('/^\/families\/([a-f0-9-]+)$/', $path, $matches) && $method === 'GET') {
             (new FamilyController())->get($currentUser, $matches[1]);
         } elseif (preg_match('/^\/families\/([a-f0-9-]+)$/', $path, $matches) && $method === 'PUT') {

@@ -69,6 +69,20 @@ class FamilyController
         Response::success($families);
     }
 
+    public function getCurrent($currentUser): void
+    {
+        $families = $this->familyModel->findByUserId($currentUser->userId);
+        if (empty($families)) {
+            Response::success(null);
+        }
+
+        $family = $families[0];
+        $members = $this->memberModel->findByFamilyId($family['id']);
+        $family['members'] = $members;
+
+        Response::success($family);
+    }
+
     public function get($currentUser, $id): void
     {
         $hasPerm = $this->hasPermission($currentUser->userId, 'family', 'read');

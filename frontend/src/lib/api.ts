@@ -132,6 +132,11 @@ export const householdAPI = {
     return data.data;
   },
 
+  getCurrent: async () => {
+    const { data } = await api.get('/families/me');
+    return data.data;
+  },
+
   get: async (id: string) => {
     const { data } = await api.get(`/families/${id}`);
     return data.data;

@@ -30,6 +30,7 @@ export default function FamilyDetail() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [household, setHousehold] = useState<Household | null>(null);
+  const [familyId, setFamilyId] = useState<string>(id ?? '');
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>('viewer');
   const [showModal, setShowModal] = useState(false);
@@ -42,37 +43,56 @@ export default function FamilyDetail() {
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      loadHousehold();
-      loadMembers();
-    }
+    loadHousehold();
   }, [id]);
+
+  useEffect(() => {
+    if (id) setFamilyId(id);
+  }, [id]);
+
+  useEffect(() => {
+    if (familyId) {
+      loadMembers(familyId);
+    } else {
+      setMembers([]);
+      setCurrentUserRole('viewer');
+    }
+  }, [familyId]);
 
   const canCreateFamily = hasPermission(user, 'family', 'create');
 
   const loadHousehold = async () => {
     try {
-      const data = await householdAPI.get(id!);
-      setHousehold(data);
+      if (id) {
+        const data = await householdAPI.get(id);
+        setHousehold(data);
+        setFamilyId(id);
+        return;
+      }
+
+      const data = await householdAPI.getCurrent();
+      setHousehold(data ?? null);
+      setFamilyId(data?.id ?? '');
     } catch (error) {
       console.error('Failed to load household', error);
     }
   };
 
-  const loadMembers = async () => {
+  const loadMembers = async (targetFamilyId: string) => {
     try {
-      const data = await householdAPI.listMembers(id!);
+      const data = await householdAPI.listMembers(targetFamilyId);
       setMembers(data);
       const currentMember = data.find((m: Member) => m.user_id === user?.id);
-      if (currentMember) setCurrentUserRole(currentMember.role);
+      setCurrentUserRole(currentMember?.role ?? 'viewer');
     } catch (error) {
       console.error('Failed to load members', error);
     }
   };
 
   const updateAddress = async (address: string) => {
+    if (!familyId) return;
     try {
-      await householdAPI.updateAddress(id!, address);
+      await householdAPI.updateAddress(familyId, address);
     } catch (error) {
       console.error('Failed to update address', error);
     }
@@ -80,17 +100,18 @@ export default function FamilyDetail() {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!familyId) return;
     setIsLoading(true);
     try {
       if (editingMember) {
-        await householdAPI.updateMember(id!, editingMember.id, formData);
+        await householdAPI.updateMember(familyId, editingMember.id, formData);
       } else {
-        await householdAPI.addMember(id!, formData);
+        await householdAPI.addMember(familyId, formData);
       }
       setShowModal(false);
       setEditingMember(null);
       setFormData({ fname: '', lname: '', phone: '', email: '', relation: '' });
-      loadMembers();
+      loadMembers(familyId);
     } catch (error) {
       console.error('Failed to save member', error);
     } finally {
@@ -166,7 +187,7 @@ export default function FamilyDetail() {
         <Header onMobileMenuToggle={handleMenuToggle} />
 
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
-          {!id && (
+          {!familyId && (
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <button
@@ -198,102 +219,102 @@ export default function FamilyDetail() {
             </div>
           )}
 
-          {id && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/')}
-                className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
-              </button>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Family</h2>
-                {currentUserRole === 'admin' ? (
-                  <input
-                    type="text"
-                    value={household?.address || ''}
-                    onChange={(e) => setHousehold(household ? { ...household, address: e.target.value } : null)}
-                    onBlur={() => household && updateAddress(household.address || '')}
-                    placeholder="Enter address"
-                    className="text-gray-600 dark:text-gray-300 mt-1 border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-indigo-500 focus:outline-none px-1 -ml-1 w-full dark:bg-transparent"
-                  />
-                ) : (
-                  <p className="text-gray-600 dark:text-gray-300 mt-1">{household?.address || 'No address'}</p>
+          {familyId && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                </button>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Family</h2>
+                  {currentUserRole === 'admin' ? (
+                    <input
+                      type="text"
+                      value={household?.address || ''}
+                      onChange={(e) => setHousehold(household ? { ...household, address: e.target.value } : null)}
+                      onBlur={() => household && updateAddress(household.address || '')}
+                      placeholder="Enter address"
+                      className="text-gray-600 dark:text-gray-300 mt-1 border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-indigo-500 focus:outline-none px-1 -ml-1 w-full dark:bg-transparent"
+                    />
+                  ) : (
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">{household?.address || 'No address'}</p>
+                  )}
+                </div>
+                {currentUserRole === 'admin' && (
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    Invite Member
+                  </button>
                 )}
               </div>
-              {currentUserRole === 'admin' && (
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
-                >
-                  <UserPlus className="w-5 h-5" />
-                  Invite Member
-                </button>
-              )}
-            </div>
 
-            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-6">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Family Members ({members.length})
-              </h3>
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-6">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Family Members ({members.length})
+                </h3>
 
-              <div className="space-y-3">
-                {members.map((member) => {
-                  const displayName = member.status === 'pending'
-                    ? member.invitation_email
-                    : member.full_name;
-                  const displayEmail = member.status === 'pending'
-                    ? 'Invitation sent'
-                    : member.user_email;
+                <div className="space-y-3">
+                  {members.map((member) => {
+                    const displayName = member.status === 'pending'
+                      ? member.invitation_email
+                      : member.full_name;
+                    const displayEmail = member.status === 'pending'
+                      ? 'Invitation sent'
+                      : member.user_email;
 
-                  return (
-                    <div key={member.id} className="flex items-center justify-between p-4 rounded-lg glass-black-soft border border-[var(--panel-border)]">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                          {displayName?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800 dark:text-gray-100">{displayName}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {displayEmail}
-                            {member.user_phone && (
-                              <span> • {member.user_phone}</span>
+                    return (
+                      <div key={member.id} className="flex items-center justify-between p-4 rounded-lg glass-black-soft border border-[var(--panel-border)]">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                            {displayName?.charAt(0).toUpperCase() || 'U'}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800 dark:text-gray-100">{displayName}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {displayEmail}
+                              {member.user_phone && (
+                                <span> • {member.user_phone}</span>
+                              )}
+                            </p>
+                            {member.relation && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                                {member.relation}
+                              </span>
                             )}
-                          </p>
-                          {member.relation && (
-                            <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                              {member.relation}
-                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {member.status === 'active' && getRoleIcon(member.role)}
+                          {getRoleBadge(member.role, member.status)}
+                          {currentUserRole === 'admin' && member.role !== 'admin' && (
+                            <button
+                              onClick={() => handleEdit(member)}
+                              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        {member.status === 'active' && getRoleIcon(member.role)}
-                        {getRoleBadge(member.role, member.status)}
-                        {currentUserRole === 'admin' && member.role !== 'admin' && (
-                          <button
-                            onClick={() => handleEdit(member)}
-                            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-                {members.length === 0 && (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Users className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-                    <p>No members yet</p>
-                  </div>
-                )}
+                  {members.length === 0 && (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Users className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                      <p>No members yet</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
           )}
         </main>
       </div>
