@@ -27,6 +27,7 @@ export default function FamilyDetail() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('family');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [household, setHousehold] = useState<Household | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>('viewer');
@@ -117,6 +118,11 @@ export default function FamilyDetail() {
     return <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">Viewer</span>;
   };
 
+  const handleMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
@@ -127,10 +133,11 @@ export default function FamilyDetail() {
         }}
         mobileOpen={mobileMenuOpen}
         onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+        isCollapsed={sidebarCollapsed}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+        <Header onMobileMenuToggle={handleMenuToggle} />
 
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">

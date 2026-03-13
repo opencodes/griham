@@ -234,4 +234,11 @@ export const financeAPI = {
   },
 };
 
+export const adminAPI = {
+  listUsers: async () => {
+    const { data } = await api.get('/admin/users');
+    return data.data;
+  },
+};
+
 export default api;

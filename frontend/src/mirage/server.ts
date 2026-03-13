@@ -22,8 +22,31 @@ function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function issueToken(userId: string) {
+  return `mock-jwt:${userId}:${uid()}`;
+}
+
+function getUserFromRequest(request: { requestHeaders: Record<string, string | undefined> }) {
+  const auth = request.requestHeaders.Authorization;
+  if (!auth || !auth.startsWith('Bearer ')) return null;
+  const token = auth.slice(7);
+  if (!token.startsWith('mock-jwt:')) return null;
+  const parts = token.split(':');
+  if (parts.length < 2) return null;
+  const userId = parts[1];
+  return db.users.find((u) => u.id === userId) ?? null;
+}
+
 function seed() {
   const now = new Date().toISOString();
+  const rootId = uid();
+  db.users.push({
+    id: rootId,
+    email: 'root@griham.local',
+    full_name: 'Root User',
+    role: 'root',
+    is_active: 1,
+  });
   const userId = uid();
   db.users.push({
     id: userId,
@@ -117,7 +140,7 @@ export function makeServer({ environment = 'development' } = {}) {
           is_active: 1,
         };
         db.users.push(user);
-        const token = `mock-jwt-${uid()}`;
+        const token = issueToken(user.id);
         return { success: true, message: 'Registered', data: { user, token } };
       });
 
@@ -129,20 +152,22 @@ export function makeServer({ environment = 'development' } = {}) {
           user = { id: uid(), email, full_name: email.split('@')[0], role: 'member', is_active: 1 };
           db.users.push(user);
         }
-        const token = `mock-jwt-${uid()}`;
+        const token = issueToken(user.id);
         return { success: true, message: 'Logged in', data: { user, token } };
       });
 
       this.get('/auth/me', (_schema, request) => {
-        const auth = request.requestHeaders.Authorization;
-        if (!auth || !auth.startsWith('Bearer ')) {
-          return new Response(401, {}, { message: 'Unauthorized' });
-        }
-        const token = auth.slice(7);
-        const userId = token.startsWith('mock-jwt-') ? db.users[0]?.id : null;
-        const user = userId ? db.users.find((u) => u.id === userId) ?? db.users[0] : db.users[0];
+        const user = getUserFromRequest(request);
         if (!user) return new Response(401, {}, { message: 'Unauthorized' });
         return { data: user };
+      });
+
+      this.get('/admin/users', (_schema, request) => {
+        const user = getUserFromRequest(request);
+        if (!user || user.role !== 'root') {
+          return new Response(403, {}, { message: 'Forbidden' });
+        }
+        return { data: db.users };
       });
 
       // ----- Families -----

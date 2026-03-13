@@ -12,6 +12,7 @@ use App\Modules\Finance\Controllers\TransactionController;
 use App\Modules\Finance\Controllers\BillController;
 use App\Modules\Finance\Controllers\CardController;
 use App\Modules\AI\Controllers\AIController;
+use App\Modules\User\Controllers\UserController;
 
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
@@ -63,6 +64,8 @@ try {
 
         if ($path === '/auth/me' && $method === 'GET') {
             (new AuthController())->me($currentUser);
+        } elseif ($path === '/admin/users' && $method === 'GET') {
+            (new UserController())->listUsers($currentUser);
         } elseif ($path === '/families' && $method === 'POST') {
             (new FamilyController())->create($currentUser);
         } elseif ($path === '/families' && $method === 'GET') {

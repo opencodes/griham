@@ -13,6 +13,7 @@ export default function Bills() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('finance');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [familyId, setFamilyId] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('viewer');
   const [bills, setBills] = useState<Bill[]>([]);
@@ -115,6 +116,11 @@ export default function Bills() {
     return diffDays >= 0 && diffDays <= 7;
   };
 
+  const handleMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
@@ -122,10 +128,11 @@ export default function Bills() {
         onTabChange={setActiveTab}
         mobileOpen={mobileMenuOpen}
         onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+        isCollapsed={sidebarCollapsed}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+        <Header onMobileMenuToggle={handleMenuToggle} />
 
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">

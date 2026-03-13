@@ -27,6 +27,11 @@ class User extends Model
 
     public function verifyPassword(string $password, string $hash): bool
     {
+        // Legacy/seeded SHA-256 hex hashes (e.g., from SQL SHA2)
+        if (strlen($hash) === 64 && ctype_xdigit($hash)) {
+            return hash('sha256', $password) === strtolower($hash);
+        }
+
         return password_verify($password, $hash);
     }
 

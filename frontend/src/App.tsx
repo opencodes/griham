@@ -15,6 +15,8 @@ import Health from './pages/Health';
 import Contacts from './pages/Contacts';
 import Organizer from './pages/Organizer';
 import Messaging from './pages/Messaging';
+import RootPermissions from './pages/RootPermissions';
+import RootRoles from './pages/RootRoles';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -31,7 +33,32 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+
+  if (isAuthenticated && user?.role === 'root') {
+    return (
+      <Routes>
+        <Route path="/login" element={<Navigate to="/root/permissions" />} />
+        <Route
+          path="/root/permissions"
+          element={
+            <ProtectedRoute>
+              <RootPermissions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/root/roles"
+          element={
+            <ProtectedRoute>
+              <RootRoles />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/root/permissions" />} />
+      </Routes>
+    );
+  }
 
   return (
     <Routes>
@@ -45,7 +72,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/families/:id"
+        path="/family"
         element={
           <ProtectedRoute>
             <FamilyDetail />

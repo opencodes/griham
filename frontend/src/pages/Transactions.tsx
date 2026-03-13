@@ -59,6 +59,7 @@ export default function TransactionsPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('finance');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const [familyId, setFamilyId] = useState('');
   const [userRole, setUserRole] = useState('viewer');
@@ -81,6 +82,11 @@ export default function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [sortBy, setSortBy] = useState<SortBy>('newest');
+
+  const handleMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
 
   useEffect(() => {
     loadFamily();
@@ -267,10 +273,11 @@ export default function TransactionsPage() {
         onTabChange={setActiveTab}
         mobileOpen={mobileMenuOpen}
         onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+        isCollapsed={sidebarCollapsed}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
+        <Header onMobileMenuToggle={handleMenuToggle} />
 
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">

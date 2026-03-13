@@ -39,9 +39,11 @@ class AuthController
             Response::error('Email already registered', 409);
         }
 
+        $passwordHash = hash('sha256', $data['password']);
+
         $userId = $this->userModel->createUser([
             'email' => $data['email'],
-            'password' => $data['password'],
+            'password' => $passwordHash,
             'full_name' => $data['full_name'],
             'role' => 'user'
         ]);
@@ -70,7 +72,13 @@ class AuthController
             Response::error('Invalid credentials', 401);
         }
 
-        if (!$this->userModel->verifyPassword($data['password'], $user['password'])) {
+        $rawPassword = $data['password'];
+        $sha2Password = hash('sha256', $rawPassword);
+
+        $isValid = $this->userModel->verifyPassword($rawPassword, $user['password'])
+            || $this->userModel->verifyPassword($sha2Password, $user['password']);
+
+        if (!$isValid) {
             Response::error('Invalid credentials', 401);
         }
 
