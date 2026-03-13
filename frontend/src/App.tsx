@@ -17,6 +17,7 @@ import Organizer from './pages/Organizer';
 import Messaging from './pages/Messaging';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
+import RootGroups from './pages/RootGroups';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -52,6 +53,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <RootRoles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/root/groups"
+          element={
+            <ProtectedRoute>
+              <RootGroups />
             </ProtectedRoute>
           }
         />
