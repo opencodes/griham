@@ -13,6 +13,7 @@ use App\Modules\Finance\Controllers\BillController;
 use App\Modules\Finance\Controllers\CardController;
 use App\Modules\AI\Controllers\AIController;
 use App\Modules\User\Controllers\UserController;
+use App\Modules\RBAC\Controllers\RBACController;
 
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
@@ -66,6 +67,46 @@ try {
             (new AuthController())->me($currentUser);
         } elseif ($path === '/admin/users' && $method === 'GET') {
             (new UserController())->listUsers($currentUser);
+        } elseif ($path === '/admin/roles' && $method === 'GET') {
+            (new RBACController())->listRoles($currentUser);
+        } elseif ($path === '/admin/roles' && $method === 'POST') {
+            (new RBACController())->createRole($currentUser);
+        } elseif (preg_match('/^\/admin\/roles\/([a-f0-9-]+)$/', $path, $m) && $method === 'GET') {
+            (new RBACController())->getRole($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/roles\/([a-f0-9-]+)$/', $path, $m) && $method === 'PUT') {
+            (new RBACController())->updateRole($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/roles\/([a-f0-9-]+)$/', $path, $m) && $method === 'DELETE') {
+            (new RBACController())->deleteRole($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/roles\/([a-f0-9-]+)\/permissions$/', $path, $m) && $method === 'PUT') {
+            (new RBACController())->setRolePermissions($currentUser, $m[1]);
+        } elseif ($path === '/admin/permissions' && $method === 'GET') {
+            (new RBACController())->listPermissions($currentUser);
+        } elseif ($path === '/admin/permissions' && $method === 'POST') {
+            (new RBACController())->createPermission($currentUser);
+        } elseif (preg_match('/^\/admin\/permissions\/([a-f0-9-]+)$/', $path, $m) && $method === 'GET') {
+            (new RBACController())->getPermission($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/permissions\/([a-f0-9-]+)$/', $path, $m) && $method === 'PUT') {
+            (new RBACController())->updatePermission($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/permissions\/([a-f0-9-]+)$/', $path, $m) && $method === 'DELETE') {
+            (new RBACController())->deletePermission($currentUser, $m[1]);
+        } elseif ($path === '/admin/groups' && $method === 'GET') {
+            (new RBACController())->listGroups($currentUser);
+        } elseif ($path === '/admin/groups' && $method === 'POST') {
+            (new RBACController())->createGroup($currentUser);
+        } elseif (preg_match('/^\/admin\/groups\/([a-f0-9-]+)$/', $path, $m) && $method === 'GET') {
+            (new RBACController())->getGroup($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/groups\/([a-f0-9-]+)$/', $path, $m) && $method === 'PUT') {
+            (new RBACController())->updateGroup($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/groups\/([a-f0-9-]+)$/', $path, $m) && $method === 'DELETE') {
+            (new RBACController())->deleteGroup($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/groups\/([a-f0-9-]+)\/members$/', $path, $m) && $method === 'PUT') {
+            (new RBACController())->setGroupMembers($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/groups\/([a-f0-9-]+)\/roles$/', $path, $m) && $method === 'PUT') {
+            (new RBACController())->setGroupRoles($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/users\/([a-f0-9-]+)\/roles$/', $path, $m) && $method === 'GET') {
+            (new RBACController())->getUserRoles($currentUser, $m[1]);
+        } elseif (preg_match('/^\/admin\/users\/([a-f0-9-]+)\/roles$/', $path, $m) && $method === 'PUT') {
+            (new RBACController())->setUserRoles($currentUser, $m[1]);
         } elseif ($path === '/families' && $method === 'POST') {
             (new FamilyController())->create($currentUser);
         } elseif ($path === '/families' && $method === 'GET') {
