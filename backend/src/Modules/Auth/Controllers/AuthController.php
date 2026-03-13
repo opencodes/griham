@@ -4,6 +4,7 @@ namespace App\Modules\Auth\Controllers;
 
 use App\Modules\User\Models\User;
 use App\Modules\User\Models\UserDevice;
+use App\Modules\RBAC\Services\RBACService;
 use App\Utils\JWT;
 use App\Core\Response;
 
@@ -11,11 +12,13 @@ class AuthController
 {
     private User $userModel;
     private UserDevice $userDeviceModel;
+    private RBACService $rbacService;
 
     public function __construct()
     {
         $this->userModel = new User();
         $this->userDeviceModel = new UserDevice();
+        $this->rbacService = new RBACService();
     }
 
     public function register(): void
@@ -109,6 +112,8 @@ class AuthController
         }
 
         unset($user['password']);
+        $user['rbac_roles'] = $this->rbacService->getRolesForUser($user['id']);
+        $user['rbac_permissions'] = $this->rbacService->getPermissionsForUser($user['id']);
         Response::success($user);
     }
 }
