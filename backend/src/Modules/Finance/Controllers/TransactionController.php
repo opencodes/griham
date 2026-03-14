@@ -5,6 +5,7 @@ namespace App\Modules\Finance\Controllers;
 use App\Modules\Finance\Models\Transaction;
 use App\Modules\Finance\Models\BankAccount;
 use App\Modules\Family\Models\FamilyMember;
+use App\Modules\RBAC\Services\RBACService;
 use App\Core\Response;
 
 class TransactionController
@@ -12,32 +13,43 @@ class TransactionController
     private Transaction $transactionModel;
     private BankAccount $accountModel;
     private FamilyMember $memberModel;
+    private RBACService $rbacService;
 
     public function __construct()
     {
         $this->transactionModel = new Transaction();
         $this->accountModel = new BankAccount();
         $this->memberModel = new FamilyMember();
+        $this->rbacService = new RBACService();
     }
 
     public function create($currentUser): void
     {
+        error_log('Creating transaction for user: ' . $currentUser->userId); // Debug log
         $data = json_decode(file_get_contents('php://input'), true);
-
+        error_log('Received data: ' . json_encode($data)); // Debug log
         if (
             !isset($data['family_id']) || !isset($data['account_id']) || !isset($data['type']) ||
             !isset($data['category']) || !isset($data['amount']) || !isset($data['transaction_date'])
         ) {
             Response::error('Required fields are missing', 400);
         }
-
+        error_log('Creating transaction with data: ' . json_encode($data)); // Debug log
         $member = $this->memberModel->findOne([
             'family_id' => $data['family_id'],
             'user_id' => $currentUser->userId
         ]);
+        error_log('Member found: ' . json_encode($member)); // Debug log
+        if (!$member) {
+            error_log('Access denied for user: ' . $currentUser->userId); // Debug log
+            Response::error('Access denied', 403);
+        }
 
-        if (!$member || $member['role'] !== 'admin') {
-            Response::error('Only admins can create transactions', 403);
+        $hasFinanceWrite = $this->rbacService->userHasPermission($currentUser->userId, 'finance', 'write');
+
+        if ($member['role'] !== 'admin' && !$hasFinanceWrite) {
+            error_log('Access denied for user: ' . $currentUser->userId); // Debug log
+            Response::error('Only admins or finance writers can create transactions', 403);
         }
 
         $data['created_by'] = $currentUser->userId;

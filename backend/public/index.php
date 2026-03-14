@@ -15,6 +15,28 @@ use App\Modules\AI\Controllers\AIController;
 use App\Modules\User\Controllers\UserController;
 use App\Modules\RBAC\Controllers\RBACController;
 
+ini_set('display_errors', '1');
+ini_set('log_errors', '1');
+ini_set('error_log', 'php://stderr');
+error_reporting(E_ALL);
+
+set_error_handler(function ($severity, $message, $file, $line) {
+    error_log(sprintf('PHP error [%s] %s in %s:%d', $severity, $message, $file, $line));
+    return false; // let PHP handle as well
+});
+
+set_exception_handler(function (Throwable $e) {
+    error_log(sprintf('Uncaught exception %s: %s in %s:%d', get_class($e), $e->getMessage(), $e->getFile(), $e->getLine()));
+    error_log($e->getTraceAsString());
+});
+
+register_shutdown_function(function () {
+    $err = error_get_last();
+    if ($err) {
+        error_log(sprintf('Shutdown error [%s] %s in %s:%d', $err['type'], $err['message'], $err['file'], $err['line']));
+    }
+});
+
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
@@ -54,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $method = $_SERVER['REQUEST_METHOD'];
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $path = str_replace('/api', '', $path);
-
+error_log("Incoming request: $method $path"); // Debug log
 try {
     if ($path === '/auth/register' && $method === 'POST') {
         (new AuthController())->register();

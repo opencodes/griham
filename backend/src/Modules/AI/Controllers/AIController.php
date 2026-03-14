@@ -10,6 +10,7 @@ use App\Modules\Finance\Models\Card;
 use App\Modules\Family\Models\FamilyMember;
 use App\Modules\AI\Models\SmsIngestionLog;
 use App\Modules\AI\Services\AIService;
+use App\Modules\RBAC\Services\RBACService;
 use App\Core\Response;
 
 class AIController
@@ -20,6 +21,7 @@ class AIController
     private FamilyMember $memberModel;
     private AIService $aiService;
     private SmsIngestionLog $smsIngestionLogModel;
+    private RBACService $rbacService;
 
     public function __construct()
     {
@@ -29,6 +31,7 @@ class AIController
         $this->memberModel = new FamilyMember();
         $this->aiService = new AIService();
         $this->smsIngestionLogModel = new SmsIngestionLog();
+        $this->rbacService = new RBACService();
     }
 
     public function getFinanceInsights($currentUser, $familyId): void
@@ -88,7 +91,7 @@ class AIController
     {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $smsText = isset($data['sms_text']) ? trim((string)$data['sms_text']) : '';
+        $smsText = isset($data['sms_text']) ? trim((string) $data['sms_text']) : '';
         if ($smsText === '') {
             Response::error('SMS text is required', 400);
         }
@@ -97,13 +100,19 @@ class AIController
             'family_id' => $familyId,
             'user_id' => $currentUser->userId
         ]);
+        error_log($member ? 'Member found: ' . $member['id'] : 'No member found'); // Debug log
+        if (!$member) {
+            Response::error('Access denied', 403);
+        }
 
-        if (!$member || $member['role'] !== 'admin') {
+        $hasFinanceWrite = $this->rbacService->userHasPermission($currentUser->userId, 'finance', 'write');
+
+        if ($member['role'] !== 'admin' && !$hasFinanceWrite) {
             Response::error('Only admins can add transactions', 403);
         }
 
-        $sender = isset($data['sender']) ? trim((string)$data['sender']) : null;
-        $smsDate = isset($data['sms_date']) ? (int)$data['sms_date'] : null;
+        $sender = isset($data['sender']) ? trim((string) $data['sender']) : null;
+        $smsDate = isset($data['sms_date']) ? (int) $data['sms_date'] : null;
         $idempotencyKey = $this->buildIdempotencyKey($familyId, $data, $smsText, $sender, $smsDate);
         $smsPreview = substr($smsText, 0, 255);
 
@@ -166,7 +175,7 @@ class AIController
             $transactionId = $this->transactionModel->createTransaction($transactionData);
 
             // Update account balance
-            $this->accountModel->updateBalance($accounts[0]['id'], (float)$parsed['amount'], $parsed['type']);
+            $this->accountModel->updateBalance($accounts[0]['id'], (float) $parsed['amount'], $parsed['type']);
 
             $this->smsIngestionLogModel->markCreated($ingestionLogId, $transactionId);
 
@@ -222,14 +231,14 @@ class AIController
         ?string $sender,
         ?int $smsDate
     ): string {
-        $clientFingerprint = isset($data['fingerprint']) ? trim((string)$data['fingerprint']) : '';
+        $clientFingerprint = isset($data['fingerprint']) ? trim((string) $data['fingerprint']) : '';
         if ($clientFingerprint !== '') {
             return hash('sha256', $familyId . '|' . $clientFingerprint);
         }
 
         $normalizedSender = strtoupper(preg_replace('/[^A-Z0-9]/', '', $sender ?? ''));
         $normalizedBody = strtolower(trim(preg_replace('/\s+/', ' ', $smsText)));
-        $normalizedDate = (string)($smsDate ?? 0);
+        $normalizedDate = (string) ($smsDate ?? 0);
         $fingerprint = $normalizedSender . '|' . $normalizedDate . '|' . $normalizedBody;
 
         return hash('sha256', $familyId . '|' . $fingerprint);
