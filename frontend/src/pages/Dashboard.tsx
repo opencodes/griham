@@ -41,6 +41,8 @@ export default function Dashboard() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
   const [summary, setSummary] = useState({ total_income: 0, total_expense: 0, balance: 0 });
+  const [aiInsights, setAiInsights] = useState<string | null>(null);
+  const [aiInsightsLoading, setAiInsightsLoading] = useState(false);
 
   const month = financeMonth?.month;
 
@@ -65,17 +67,21 @@ export default function Dashboard() {
         setBills([]);
         setCards([]);
         setSummary({ total_income: 0, total_expense: 0, balance: 0 });
+        setAiInsights(null);
         return;
       }
 
       const familyId = data[0].id;
-      const [members, accountData, transactionData, billData, cardData, summaryData] = await Promise.all([
+      setAiInsightsLoading(true);
+      setAiInsights(null);
+      const [members, accountData, transactionData, billData, cardData, summaryData, insightsResult] = await Promise.all([
         householdAPI.listMembers(familyId).catch(() => []),
         financeAPI.listAccounts(familyId).catch(() => []),
         financeAPI.listTransactions(familyId, month ? { month } : undefined).catch(() => []),
         financeAPI.listBills(familyId).catch(() => []),
         financeAPI.listCards(familyId).catch(() => []),
         financeAPI.getSummary(familyId, month).catch(() => ({ total_income: 0, total_expense: 0, balance: 0 })),
+        financeAPI.getInsights(familyId, month ?? undefined).catch(() => ({ insights: null, ai_available: false })),
       ]);
 
       setMembersCount(Array.isArray(members) ? members.length : 0);
@@ -84,6 +90,8 @@ export default function Dashboard() {
       setBills(billData);
       setCards(cardData);
       setSummary(summaryData);
+      setAiInsights(insightsResult?.insights ?? null);
+      setAiInsightsLoading(false);
     } catch (error) {
       console.error('Failed to load dashboard data', error);
     } finally {
@@ -218,7 +226,7 @@ export default function Dashboard() {
             <div className="space-y-6">
               <section className="relative overflow-hidden rounded-2xl hero-ai-card p-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full premium-panel text-xs font-medium text-[var(--app-fg)] border border-[var(--panel-border)]">
                       <Sparkles className="w-3.5 h-3.5" />
                       AI Command Center
@@ -226,13 +234,23 @@ export default function Dashboard() {
                     <h2 className="mt-3 text-2xl md:text-3xl font-bold text-[var(--app-fg)]">
                       Household Overview
                     </h2>
-                    <p className="mt-1 text-sm text-[var(--app-fg-muted)]">
-                      AI-enhanced summary of family, finance and key module signals in one place.
-                    </p>
+                    {aiInsightsLoading && (
+                      <p className="mt-1 text-sm text-[var(--app-fg-muted)]">Loading AI summary…</p>
+                    )}
+                    {!aiInsightsLoading && aiInsights && (
+                      <p className="mt-2 text-sm text-[var(--app-fg)] leading-relaxed">
+                        {aiInsights}
+                      </p>
+                    )}
+                    {!aiInsightsLoading && !aiInsights && (
+                      <p className="mt-1 text-sm text-[var(--app-fg-muted)]">
+                        AI-enhanced summary of family, finance and key module signals in one place.
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={() => navigate('/finance')}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg ai-gradient-button text-white text-sm font-medium"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg ai-gradient-button text-white text-sm font-medium shrink-0"
                   >
                     Open Finance Center
                     <ArrowUpRight className="w-4 h-4" />
@@ -318,6 +336,12 @@ export default function Dashboard() {
                     ) : (
                       <div className="rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 p-2.5">
                         <p className="text-xs text-emerald-700 dark:text-emerald-300">No major operational risks detected.</p>
+                      </div>
+                    )}
+                    {!aiInsightsLoading && aiInsights && (
+                      <div className="flex items-start gap-2 rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/20 p-2.5">
+                        <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
+                        <p className="text-xs text-indigo-800 dark:text-indigo-200">AI summary and recommendations are in the Household Overview above.</p>
                       </div>
                     )}
                   </div>
