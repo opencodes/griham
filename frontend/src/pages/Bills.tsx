@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, Bill } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { Plus, Trash2, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
 
 const BILL_CATEGORIES = ['Electricity', 'Water', 'Gas', 'Internet', 'Phone', 'Rent', 'Insurance', 'Subscription', 'Pocket Money', 'Other'];
 
@@ -19,6 +19,7 @@ export default function Bills() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestCategoryLoading, setSuggestCategoryLoading] = useState(false);
   const [formData, setFormData] = useState({
     bill_name: '',
     category: '',
@@ -58,6 +59,22 @@ export default function Bills() {
       setBills(data);
     } catch (error) {
       console.error('Failed to load bills', error);
+    }
+  };
+
+  const handleSuggestCategory = async () => {
+    const name = (formData.bill_name || '').trim();
+    if (!name || !familyId) return;
+    try {
+      setSuggestCategoryLoading(true);
+      const result = await financeAPI.suggestBillCategory(familyId, { bill_name: name });
+      if (result?.category) {
+        setFormData((prev) => ({ ...prev, category: result.category }));
+      }
+    } catch {
+      // Ignore; user can select manually
+    } finally {
+      setSuggestCategoryLoading(false);
     }
   };
 
@@ -252,17 +269,29 @@ export default function Bills() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                >
-                  <option value="">Select category</option>
-                  {BILL_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    required
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  >
+                    <option value="">Select category</option>
+                    {BILL_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleSuggestCategory}
+                    disabled={suggestCategoryLoading || !formData.bill_name?.trim()}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-50 disabled:pointer-events-none"
+                    title="Suggest category from bill name"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {suggestCategoryLoading ? '…' : 'Suggest'}
+                  </button>
+                </div>
               </div>
 
               <div>
