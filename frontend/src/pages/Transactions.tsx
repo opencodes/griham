@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { financeAPI, householdAPI, Transaction, BankAccount } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
+import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
+import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
 import SMSParser from '@/components/SMSParser';
-import { Search, ArrowDownUp, TrendingUp, TrendingDown, RotateCcw, Plus } from 'lucide-react';
+import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus } from 'lucide-react';
 
 type TypeFilter = 'all' | 'income' | 'expense';
 type SortBy = 'newest' | 'oldest' | 'amount_high' | 'amount_low';
@@ -56,7 +59,9 @@ const getCategoryIcon = (category?: string) => {
 };
 
 export default function TransactionsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { month } = useFinanceMonth();
   const [activeTab, setActiveTab] = useState('finance');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -95,9 +100,14 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (familyId) {
       loadAccounts();
-      loadTransactions();
     }
   }, [familyId]);
+
+  useEffect(() => {
+    if (familyId) {
+      loadTransactions();
+    }
+  }, [familyId, month, typeFilter, categoryFilter]);
 
   const loadFamily = async () => {
     try {
@@ -125,7 +135,10 @@ export default function TransactionsPage() {
     try {
       setLoading(true);
       setError('');
-      const data = await financeAPI.listTransactions(familyId);
+      const filters: { month?: string; type?: string; category?: string } = { month };
+      if (typeFilter !== 'all') filters.type = typeFilter;
+      if (categoryFilter !== 'all') filters.category = categoryFilter;
+      const data = await financeAPI.listTransactions(familyId, filters);
       setTransactions(data);
     } catch (err) {
       console.error('Failed to load transactions', err);
@@ -282,11 +295,21 @@ export default function TransactionsPage() {
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Transactions</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {filteredTransactions.length} of {transactions.length} records shown
-                </p>
+              <div className="flex flex-wrap items-center gap-4">
+                <button
+                  onClick={() => navigate('/finance')}
+                  className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface shrink-0"
+                  aria-label="Back to Finance"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                </button>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Transactions</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {filteredTransactions.length} of {transactions.length} records shown
+                  </p>
+                </div>
+                <FinanceMonthFilter />
               </div>
 
               <div className="flex items-center justify-end gap-2 flex-wrap md:flex-nowrap">
