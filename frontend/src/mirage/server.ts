@@ -51,6 +51,16 @@ function getUserFromRequest(request: { requestHeaders: Record<string, string | u
   return db.users.find((u) => u.id === userId) ?? null;
 }
 
+/** Enrich user with rbac_roles and rbac_permissions so login/register return same shape as /auth/me. */
+function enrichUserWithRbac(user: (typeof db.users)[number]) {
+  const rbacRoles = db.user_roles.filter((ur) => ur.user_id === user.id).map((ur) => db.roles.find((r) => r.id === ur.role_id)).filter(Boolean) as typeof db.roles;
+  const roleIds = rbacRoles.map((r) => r.id);
+  const permIds = new Set<string>();
+  db.role_permissions.filter((rp) => roleIds.includes(rp.role_id)).forEach((rp) => permIds.add(rp.permission_id));
+  const rbacPermissions = db.permissions.filter((p) => permIds.has(p.id));
+  return { ...user, rbac_roles: rbacRoles, rbac_permissions: rbacPermissions };
+}
+
 function seed() {
   const now = new Date().toISOString();
 
@@ -126,29 +136,75 @@ function seed() {
     created_at: now,
   });
 
-  // ----- RBAC seed: roles, permissions, and assignments (for root admin UI testing)
+  // ----- RBAC seed: roles and permissions aligned with real API (admin = full access)
+  const roleAdminId = uid();
   const roleFinanceId = uid();
   const roleViewerId = uid();
   db.roles.push(
+    { id: roleAdminId, name: 'admin', description: 'Full access to all modules', created_at: now, updated_at: now },
     { id: roleFinanceId, name: 'Finance Manager', description: 'Can manage accounts and transactions', created_at: now, updated_at: now },
     { id: roleViewerId, name: 'Viewer', description: 'Read-only access to finance', created_at: now, updated_at: now },
   );
-  const permReadId = uid();
-  const permWriteId = uid();
-  const permBillsId = uid();
-  db.permissions.push(
-    { id: permReadId, name: 'finance.accounts.read', resource: 'finance.accounts', action: 'read', description: 'View accounts', created_at: now, updated_at: now },
-    { id: permWriteId, name: 'finance.accounts.write', resource: 'finance.accounts', action: 'write', description: 'Create/edit accounts', created_at: now, updated_at: now },
-    { id: permBillsId, name: 'finance.bills.manage', resource: 'finance.bills', action: 'manage', description: 'Manage bills', created_at: now, updated_at: now },
-  );
-  db.role_permissions.push(
-    { role_id: roleFinanceId, permission_id: permReadId },
-    { role_id: roleFinanceId, permission_id: permWriteId },
-    { role_id: roleFinanceId, permission_id: permBillsId },
-    { role_id: roleViewerId, permission_id: permReadId },
-  );
-  // Assign "Finance Manager" to admin user so /auth/me returns rbac_roles for admin
-  db.user_roles.push({ user_id: SEED_IDS.admin, role_id: roleFinanceId });
+
+  // Full permission set matching real API (admin role gets all of these)
+  const allPerms = [
+    { name: 'family.read', resource: 'family', action: 'read' },
+    { name: 'family.create', resource: 'family', action: 'create' },
+    { name: 'family.update', resource: 'family', action: 'update' },
+    { name: 'family.write', resource: 'family', action: 'write' },
+    { name: 'family.members.read', resource: 'family.members', action: 'read' },
+    { name: 'family.members.write', resource: 'family.members', action: 'write' },
+    { name: 'finance.accounts.read', resource: 'finance.accounts', action: 'read' },
+    { name: 'finance.accounts.write', resource: 'finance.accounts', action: 'write' },
+    { name: 'finance.transactions.read', resource: 'finance.transactions', action: 'read' },
+    { name: 'finance.transactions.write', resource: 'finance.transactions', action: 'write' },
+    { name: 'finance.transactions.delete', resource: 'finance.transactions', action: 'delete' },
+    { name: 'finance.bills.read', resource: 'finance.bills', action: 'read' },
+    { name: 'finance.bills.write', resource: 'finance.bills', action: 'write' },
+    { name: 'finance.bills.delete', resource: 'finance.bills', action: 'delete' },
+    { name: 'finance.cards.read', resource: 'finance.cards', action: 'read' },
+    { name: 'finance.cards.write', resource: 'finance.cards', action: 'write' },
+    { name: 'finance.cards.delete', resource: 'finance.cards', action: 'delete' },
+    { name: 'finance.ai.read', resource: 'finance.ai', action: 'read' },
+    { name: 'finance.ai.write', resource: 'finance.ai', action: 'write' },
+    { name: 'events.read', resource: 'events', action: 'read' },
+    { name: 'events.write', resource: 'events', action: 'write' },
+    { name: 'assets.read', resource: 'assets', action: 'read' },
+    { name: 'assets.write', resource: 'assets', action: 'write' },
+    { name: 'health.read', resource: 'health', action: 'read' },
+    { name: 'health.write', resource: 'health', action: 'write' },
+    { name: 'contacts.read', resource: 'contacts', action: 'read' },
+    { name: 'contacts.write', resource: 'contacts', action: 'write' },
+    { name: 'organizer.read', resource: 'organizer', action: 'read' },
+    { name: 'organizer.write', resource: 'organizer', action: 'write' },
+    { name: 'messages.read', resource: 'messages', action: 'read' },
+    { name: 'messages.write', resource: 'messages', action: 'write' },
+  ];
+  const permIds: string[] = [];
+  allPerms.forEach((p) => {
+    const id = uid();
+    permIds.push(id);
+    db.permissions.push({ id, name: p.name, resource: p.resource, action: p.action, created_at: now, updated_at: now });
+  });
+
+  // Admin role: all permissions
+  permIds.forEach((pid) => db.role_permissions.push({ role_id: roleAdminId, permission_id: pid }));
+  // Finance Manager: finance + family.members
+  const financeAccountRead = db.permissions.find((p) => p.name === 'finance.accounts.read')?.id;
+  const financeAccountWrite = db.permissions.find((p) => p.name === 'finance.accounts.write')?.id;
+  const financeBillsRead = db.permissions.find((p) => p.name === 'finance.bills.read')?.id;
+  const financeBillsWrite = db.permissions.find((p) => p.name === 'finance.bills.write')?.id;
+  const familyMembersRead = db.permissions.find((p) => p.name === 'family.members.read')?.id;
+  const familyMembersWrite = db.permissions.find((p) => p.name === 'family.members.write')?.id;
+  [financeAccountRead, financeAccountWrite, financeBillsRead, financeBillsWrite, familyMembersRead, familyMembersWrite].filter(Boolean).forEach((pid) => {
+    db.role_permissions.push({ role_id: roleFinanceId, permission_id: pid! });
+  });
+  // Viewer: read-only
+  const readPermIds = db.permissions.filter((p) => p.action === 'read').map((p) => p.id);
+  readPermIds.forEach((pid) => db.role_permissions.push({ role_id: roleViewerId, permission_id: pid }));
+
+  // Assign "admin" RBAC role to admin user so /auth/me returns full rbac_permissions
+  db.user_roles.push({ user_id: SEED_IDS.admin, role_id: roleAdminId });
   // Assign "Viewer" to normal user
   db.user_roles.push({ user_id: SEED_IDS.user, role_id: roleViewerId });
 
@@ -183,7 +239,7 @@ export function makeServer({ environment = 'development' } = {}) {
         };
         db.users.push(user);
         const token = issueToken(user.id);
-        return { success: true, message: 'Registered', data: { user, token } };
+        return { success: true, message: 'Registered', data: { user: enrichUserWithRbac(user), token } };
       });
 
       this.post('/auth/login', (_schema, request) => {
@@ -195,7 +251,7 @@ export function makeServer({ environment = 'development' } = {}) {
           db.users.push(user);
         }
         const token = issueToken(user.id);
-        return { success: true, message: 'Logged in', data: { user, token } };
+        return { success: true, message: 'Logged in', data: { user: enrichUserWithRbac(user), token } };
       });
 
       this.post('/auth/reset-password', (_schema, request) => {
@@ -541,11 +597,28 @@ export function makeServer({ environment = 'development' } = {}) {
         const q = request.queryParams;
         if (q?.type) list = list.filter((t) => t.type === q.type);
         if (q?.category) list = list.filter((t) => t.category === q.category);
+        if (q?.month) {
+          const [y, m] = (q.month as string).split('-').map(Number);
+          const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+          const end = new Date(y, m, 0).toISOString().slice(0, 10);
+          list = list.filter((t) => t.transaction_date >= start && t.transaction_date <= end);
+        }
+        list = [...list].sort((a, b) => {
+          const d = (b.transaction_date || '').localeCompare(a.transaction_date || '');
+          return d !== 0 ? d : 0;
+        });
         return { data: list };
       });
 
       this.get('/finance/transactions/:familyId/summary', (_schema, request) => {
-        const list = db.transactions.filter((t) => t.family_id === request.params.familyId);
+        let list = db.transactions.filter((t) => t.family_id === request.params.familyId);
+        const q = request.queryParams;
+        if (q?.month) {
+          const [y, m] = (q.month as string).split('-').map(Number);
+          const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+          const end = new Date(y, m, 0).toISOString().slice(0, 10);
+          list = list.filter((t) => t.transaction_date >= start && t.transaction_date <= end);
+        }
         const total_income = list.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
         const total_expense = list.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
         return { data: { total_income, total_expense, balance: total_income - total_expense } };
