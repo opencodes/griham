@@ -100,14 +100,15 @@ class AIController
             'family_id' => $familyId,
             'user_id' => $currentUser->userId
         ]);
-        error_log($member ? 'Member found: ' . $member['id'] : 'No member found'); // Debug log
         if (!$member) {
             Response::error('Access denied', 403);
         }
 
-        $hasFinanceWrite = $this->rbacService->userHasPermission($currentUser->userId, 'finance', 'write');
+        
 
-        if ($member['role'] !== 'admin' && !$hasFinanceWrite) {
+        $hasFinanceWrite = $this->rbacService->userHasPermission($currentUser->userId, 'finance.transactions', 'write');
+
+        if (!$hasFinanceWrite) {
             Response::error('Only admins can add transactions', 403);
         }
 
@@ -149,6 +150,7 @@ class AIController
 
         // Get first account for the family
         $accounts = $this->accountModel->findByFamilyId($familyId);
+        error_log(json_encode($accounts)); // Debug log
         if (empty($accounts)) {
             $this->smsIngestionLogModel->deleteById($ingestionLogId);
             Response::error('No bank account found. Please create an account first.', 400);

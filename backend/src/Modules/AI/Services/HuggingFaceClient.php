@@ -50,8 +50,6 @@ class HuggingFaceClient
             'max_tokens' => $maxTokens,
         ];
 
-        error_log(json_encode($payload));
-
         $ch = curl_init(self::ROUTER_URL);
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
