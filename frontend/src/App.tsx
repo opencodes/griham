@@ -17,6 +17,7 @@ import Health from './pages/Health';
 import Contacts from './pages/Contacts';
 import Organizer from './pages/Organizer';
 import Messaging from './pages/Messaging';
+import Assistant from './pages/Assistant';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
 import RootGroups from './pages/RootGroups';
@@ -220,6 +221,14 @@ function AppRoutes() {
             <PermissionRoute moduleKey="messages">
               <Messaging />
             </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/assistant"
+        element={
+          <ProtectedRoute>
+            <Assistant />
           </ProtectedRoute>
         }
       />
