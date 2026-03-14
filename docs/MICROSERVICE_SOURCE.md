@@ -1,6 +1,8 @@
 # Griham Microservice – Full Source (Markdown)
 
-Single-file snapshot of the entire microservice source. Layout: Clean Architecture (config, domain, infrastructure).
+Single-file snapshot of the microservice source. **Current layout:** `config/`, `src/app.ts`, `src/server.ts`, `src/db/` (connection + schemas), `src/modules/` (auth, families, finance, admin), `src/shared/` (middleware, response), `src/scripts/` (e.g. seed-rbac), `src/lib/` (e.g. huggingface).
+
+**Families behaviour:** On create family, the creator is added as a default member with role `admin`. Admins (and the creator) can invite members and update non-admin members; admin members cannot be edited.
 
 ---
 
@@ -17,7 +19,7 @@ Single-file snapshot of the entire microservice source. Layout: Clean Architectu
     "build": "tsc",
     "start": "node dist/src/server.js",
     "dev": "tsx watch src/server.ts",
-    "seed": "tsx src/infrastructure/persistence/mongodb/seed.ts"
+    "seed:rbac": "tsx src/scripts/seed-rbac.ts"
   },
   "engines": {
     "node": ">=18"
@@ -114,11 +116,83 @@ export type Config = typeof config;
 
 ---
 
-## `src/domain/response.ts`
+## `src/server.ts`
 
 ```typescript
 /**
- * Domain: standard API response shapes (success/error).
+ * Griham microservice entry point.
+ * Build: npm run build  →  Start: npm start
+ * Dev:   npm run dev     (tsx watch)
+ */
+import { config } from '../config/index.js';
+import { connectMongo } from './db/connection.js';
+import app from './app.js';
+
+async function main(): Promise<void> {
+  await connectMongo();
+  app.listen(config.port, () => {
+    console.log(`Griham API listening on port ${config.port}`);
+  });
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
+```
+
+---
+
+## `src/db/connection.ts`
+
+```typescript
+import mongoose from 'mongoose';
+import { config } from '../../config/index.js';
+
+export async function connectMongo(): Promise<void> {
+  await mongoose.connect(config.mongodbUri);
+}
+
+export function getConnection(): mongoose.Connection {
+  return mongoose.connection;
+}
+```
+
+---
+
+## `src/app.ts`
+
+```typescript
+import express, { Express } from 'express';
+import cors from 'cors';
+import { config } from '../config/index.js';
+import { responseMiddleware } from './shared/middleware/response.js';
+import { authRoutes } from './modules/auth/routes.js';
+import { financeRoutes } from './modules/finance/routes.js';
+import { adminRoutes } from './modules/admin/routes.js';
+import { familiesRoutes } from './modules/families/routes.js';
+
+const app: Express = express();
+
+app.use(cors({ origin: config.corsOrigin, credentials: true }));
+app.use(express.json());
+app.use(responseMiddleware);
+
+app.use('/api', authRoutes);
+app.use('/api', familiesRoutes);
+app.use('/api/finance', financeRoutes);
+app.use('/api/admin', adminRoutes);
+
+export default app;
+```
+
+---
+
+## `src/shared/response.ts`
+
+```typescript
+/**
+ * Standard API response shapes (success/error).
  */
 export interface SuccessResponse<T = unknown> {
   success: true;
@@ -145,77 +219,11 @@ export function error(message: string, status = 400, errors: unknown = null): Er
 
 ---
 
-## `src/server.ts`
-
-```typescript
-/**
- * Griham microservice entry point.
- * Build: npm run build  →  Start: npm start
- * Dev:   npm run dev     (tsx watch)
- */
-import { config } from '../config/index.js';
-import { connectMongo } from './infrastructure/persistence/mongodb/connection.js';
-
-async function main(): Promise<void> {
-  await connectMongo();
-  const app = (await import('./infrastructure/http/app.js')).default;
-  app.listen(config.port, () => {
-    console.log(`Griham API listening on port ${config.port}`);
-  });
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
-```
-
----
-
-## `src/infrastructure/persistence/mongodb/connection.ts`
-
-```typescript
-import mongoose from 'mongoose';
-import { config } from '../../../../config/index.js';
-
-export async function connectMongo(): Promise<void> {
-  await mongoose.connect(config.mongodbUri);
-}
-
-export function getConnection(): mongoose.Connection {
-  return mongoose.connection;
-}
-```
-
----
-
-## `src/infrastructure/http/app.ts`
-
-```typescript
-import express, { Express } from 'express';
-import cors from 'cors';
-import { config } from '../../../config/index.js';
-import { authRoutes } from './routes/auth.js';
-import { responseMiddleware } from './middleware/response.js';
-
-const app: Express = express();
-
-app.use(cors({ origin: config.corsOrigin, credentials: true }));
-app.use(express.json());
-app.use(responseMiddleware);
-
-app.use('/api', authRoutes);
-
-export default app;
-```
-
----
-
-## `src/infrastructure/http/middleware/response.ts`
+## `src/shared/middleware/response.ts`
 
 ```typescript
 import type { Request, Response, NextFunction } from 'express';
-import { success, error, type SuccessResponse, type ErrorResponse } from '../../../domain/response.js';
+import { success, error, type SuccessResponse, type ErrorResponse } from '../response.js';
 
 export function responseMiddleware(_req: Request, res: Response, next: NextFunction): void {
   res.success = (data: unknown = null, message = 'Success', status = 200) => {
@@ -241,12 +249,12 @@ declare global {
 
 ---
 
-## `src/infrastructure/http/middleware/auth.ts`
+## `src/shared/middleware/auth.ts`
 
 ```typescript
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { config } from '../../../../config/index.js';
+import { config } from '../../../config/index.js';
 
 export interface AuthPayload {
   userId: string;
@@ -272,7 +280,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
 
 ---
 
-## `src/infrastructure/http/routes/auth.ts`
+## `src/modules/auth/routes.ts`
 
 ```typescript
 import { Router } from 'express';
@@ -288,19 +296,19 @@ authRoutes.get('/auth/me', authMiddleware, authController.me);
 
 ---
 
-## `src/infrastructure/http/controllers/auth.ts`
+## `src/modules/auth/controller.ts`
 
 ```typescript
 import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { config } from '../../../../config/index.js';
-import { UserModel } from '../../persistence/mongodb/schemas/User.js';
-import { UserRoleModel } from '../../persistence/mongodb/schemas/UserRole.js';
-import { RoleModel } from '../../persistence/mongodb/schemas/Role.js';
-import { PermissionModel } from '../../persistence/mongodb/schemas/Permission.js';
-import { RolePermissionModel } from '../../persistence/mongodb/schemas/RolePermission.js';
+import { config } from '../../../config/index.js';
+import { UserModel } from '../../db/schemas/User.js';
+import { UserRoleModel } from '../../db/schemas/UserRole.js';
+import { RoleModel } from '../../db/schemas/Role.js';
+import { PermissionModel } from '../../db/schemas/Permission.js';
+import { RolePermissionModel } from '../../db/schemas/RolePermission.js';
 
 const SALT_ROUNDS = 10;
 
@@ -408,7 +416,45 @@ export const authController = {
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/User.ts`
+## `src/modules/families/routes.ts`
+
+```typescript
+import { Router } from 'express';
+import { authMiddleware } from '../../shared/middleware/auth.js';
+import { familiesController } from './controller.js';
+
+export const familiesRoutes = Router();
+
+familiesRoutes.use(authMiddleware);
+
+familiesRoutes.post('/families', familiesController.create);
+familiesRoutes.get('/families', familiesController.list);
+familiesRoutes.get('/families/me', familiesController.getCurrent);
+familiesRoutes.get('/families/:id', familiesController.get);
+familiesRoutes.put('/families/:id', familiesController.updateAddress);
+familiesRoutes.get('/families/:id/members', familiesController.listMembers);
+familiesRoutes.post('/families/:id/members', familiesController.addMember);
+familiesRoutes.put('/families/:householdId/members/:memberId', familiesController.updateMember);
+
+// Backend alias: /households/* -> same as /families/*
+familiesRoutes.get('/households/:id', familiesController.get);
+familiesRoutes.put('/households/:id', familiesController.updateAddress);
+familiesRoutes.get('/households/:id/members', familiesController.listMembers);
+familiesRoutes.post('/households/:id/members', familiesController.addMember);
+```
+
+**Families controller (`src/modules/families/controller.ts`) summary:**
+
+- **create:** Creates family with `created_by: userId`, then adds the creator as a default member with `role: 'admin'` (aligned with PHP backend).
+- **list / getCurrent / get:** Access for creator or members; getCurrent returns family where user is creator or member.
+- **updateAddress:** Allowed only for family creator.
+- **listMembers:** Allowed for creator or any family member.
+- **addMember (invite):** Allowed for creator or any family member with `role: 'admin'`; creates a pending member with `invitation_email`, `invitation_sent_at`.
+- **updateMember:** Allowed for creator or admin members; returns 403 when editing a member with `role: 'admin'`.
+
+---
+
+## `src/db/schemas/User.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -445,7 +491,7 @@ export const UserModel: Model<IUserDoc> = mongoose.model<IUserDoc>('User', userS
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/Family.ts`
+## `src/db/schemas/Family.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -474,7 +520,7 @@ export const FamilyModel: Model<IFamilyDoc> = mongoose.model<IFamilyDoc>('Family
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/FamilyMember.ts`
+## `src/db/schemas/FamilyMember.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -520,7 +566,7 @@ export const FamilyMemberModel: Model<IFamilyMemberDoc> = mongoose.model<IFamily
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/BankAccount.ts`
+## `src/db/schemas/BankAccount.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -562,7 +608,7 @@ export const BankAccountModel: Model<IBankAccountDoc> = mongoose.model<IBankAcco
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/Transaction.ts`
+## `src/db/schemas/Transaction.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -616,7 +662,7 @@ export const TransactionModel: Model<ITransactionDoc> = mongoose.model<ITransact
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/Bill.ts`
+## `src/db/schemas/Bill.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -659,7 +705,7 @@ export const BillModel: Model<IBillDoc> = mongoose.model<IBillDoc>('Bill', billS
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/Card.ts`
+## `src/db/schemas/Card.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -700,7 +746,7 @@ export const CardModel: Model<ICardDoc> = mongoose.model<ICardDoc>('Card', cardS
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/Role.ts`
+## `src/db/schemas/Role.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -727,7 +773,7 @@ export const RoleModel: Model<IRoleDoc> = mongoose.model<IRoleDoc>('Role', roleS
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/Permission.ts`
+## `src/db/schemas/Permission.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -763,7 +809,7 @@ export const PermissionModel: Model<IPermissionDoc> = mongoose.model<IPermission
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/Group.ts`
+## `src/db/schemas/Group.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -790,7 +836,7 @@ export const GroupModel: Model<IGroupDoc> = mongoose.model<IGroupDoc>('Group', g
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/UserRole.ts`
+## `src/db/schemas/UserRole.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -819,7 +865,7 @@ export const UserRoleModel: Model<IUserRoleDoc> = mongoose.model<IUserRoleDoc>(
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/RolePermission.ts`
+## `src/db/schemas/RolePermission.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -848,7 +894,7 @@ export const RolePermissionModel: Model<IRolePermissionDoc> = mongoose.model<IRo
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/UserGroup.ts`
+## `src/db/schemas/UserGroup.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -877,7 +923,7 @@ export const UserGroupModel: Model<IUserGroupDoc> = mongoose.model<IUserGroupDoc
 
 ---
 
-## `src/infrastructure/persistence/mongodb/schemas/GroupRole.ts`
+## `src/db/schemas/GroupRole.ts`
 
 ```typescript
 import mongoose, { Schema, Model } from 'mongoose';
@@ -906,4 +952,4 @@ export const GroupRoleModel: Model<IGroupRoleDoc> = mongoose.model<IGroupRoleDoc
 
 ---
 
-*Generated from `microservice/` source. Excludes `node_modules` and `dist`.*
+*Generated from `microservice/` source. Paths and layout match current codebase (`src/db/`, `src/modules/`, `src/shared/`). Excludes `node_modules` and `dist`.*
