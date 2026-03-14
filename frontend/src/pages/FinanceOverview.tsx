@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { householdAPI, financeAPI, BankAccount, Transaction, Bill } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
+import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
+import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
 import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard } from 'lucide-react';
 
 const getCategoryIcon = (category?: string) => {
@@ -31,6 +33,7 @@ const formatAmount = (value: number) => {
 
 export default function FinanceOverview() {
   const navigate = useNavigate();
+  const { month } = useFinanceMonth();
   const [activeTab, setActiveTab] = useState('finance');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -47,11 +50,16 @@ export default function FinanceOverview() {
   useEffect(() => {
     if (familyId) {
       loadAccounts();
-      loadTransactions();
       loadUpcomingBills();
-      loadSummary();
     }
   }, [familyId]);
+
+  useEffect(() => {
+    if (familyId) {
+      loadTransactions();
+      loadSummary();
+    }
+  }, [familyId, month]);
 
   const loadFamily = async () => {
     try {
@@ -75,7 +83,7 @@ export default function FinanceOverview() {
 
   const loadTransactions = async () => {
     try {
-      const data = await financeAPI.listTransactions(familyId);
+      const data = await financeAPI.listTransactions(familyId, { month });
       setTransactions(data.slice(0, 5));
     } catch (error) {
       console.error('Failed to load transactions', error);
@@ -93,7 +101,7 @@ export default function FinanceOverview() {
 
   const loadSummary = async () => {
     try {
-      const data = await financeAPI.getSummary(familyId);
+      const data = await financeAPI.getSummary(familyId, month);
       setSummary(data);
     } catch (error) {
       console.error('Failed to load summary', error);
@@ -122,8 +130,9 @@ export default function FinanceOverview() {
 
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-2xl font-bold text-[var(--app-fg)]">Finance Overview</h2>
+              <FinanceMonthFilter />
             </div>
 
             {/* Summary Cards */}
