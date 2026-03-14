@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { DarkModeProvider } from './hooks/useDarkMode';
+import { FinanceMonthProvider } from './contexts/FinanceMonthContext';
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
@@ -231,9 +232,11 @@ function App() {
     <HashRouter>
       <DarkModeProvider>
         <AuthProvider>
-          <div className="premium-shell">
-            <AppRoutes />
-          </div>
+          <FinanceMonthProvider>
+            <div className="premium-shell">
+              <AppRoutes />
+            </div>
+          </FinanceMonthProvider>
         </AuthProvider>
       </DarkModeProvider>
     </HashRouter>
