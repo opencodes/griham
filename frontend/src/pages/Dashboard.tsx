@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { householdAPI, financeAPI, Household, Transaction, Bill, Card, BankAccount } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useFinanceMonthOptional } from '@/contexts/FinanceMonthContext';
 import { canAccessModule, hasPermission } from '@/lib/permissions';
 import {
   Plus,
@@ -24,6 +25,7 @@ import { Header } from '@/components/Header';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const financeMonth = useFinanceMonthOptional();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -40,9 +42,11 @@ export default function Dashboard() {
   const [cards, setCards] = useState<Card[]>([]);
   const [summary, setSummary] = useState({ total_income: 0, total_expense: 0, balance: 0 });
 
+  const month = financeMonth?.month;
+
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [month]);
 
   useEffect(() => {
     if (activeTab === 'finance') navigate('/finance');
@@ -68,10 +72,10 @@ export default function Dashboard() {
       const [members, accountData, transactionData, billData, cardData, summaryData] = await Promise.all([
         householdAPI.listMembers(familyId).catch(() => []),
         financeAPI.listAccounts(familyId).catch(() => []),
-        financeAPI.listTransactions(familyId).catch(() => []),
+        financeAPI.listTransactions(familyId, month ? { month } : undefined).catch(() => []),
         financeAPI.listBills(familyId).catch(() => []),
         financeAPI.listCards(familyId).catch(() => []),
-        financeAPI.getSummary(familyId).catch(() => ({ total_income: 0, total_expense: 0, balance: 0 })),
+        financeAPI.getSummary(familyId, month).catch(() => ({ total_income: 0, total_expense: 0, balance: 0 })),
       ]);
 
       setMembersCount(Array.isArray(members) ? members.length : 0);
