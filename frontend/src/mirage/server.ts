@@ -198,6 +198,22 @@ export function makeServer({ environment = 'development' } = {}) {
         return { success: true, message: 'Logged in', data: { user, token } };
       });
 
+      this.post('/auth/reset-password', (_schema, request) => {
+        const body = JSON.parse(request.requestBody || '{}');
+        const { email, new_password } = body;
+        if (!email || !new_password) {
+          return new Response(400, {}, { message: 'Email and new password are required' });
+        }
+        if (String(new_password).length < 6) {
+          return new Response(400, {}, { message: 'New password must be at least 6 characters' });
+        }
+        const user = db.users.find((u) => u.email === email);
+        if (!user) {
+          return new Response(404, {}, { message: 'User not found' });
+        }
+        return { data: null, message: 'Password reset successfully' };
+      });
+
       this.get('/auth/me', (_schema, request) => {
         const user = getUserFromRequest(request);
         if (!user) return new Response(401, {}, { message: 'Unauthorized' });
@@ -209,12 +225,40 @@ export function makeServer({ environment = 'development' } = {}) {
         return { data: { ...user, rbac_roles: rbacRoles, rbac_permissions: rbacPermissions } };
       });
 
+      this.put('/auth/change-password', (_schema, request) => {
+        const user = getUserFromRequest(request);
+        if (!user) return new Response(401, {}, { message: 'Unauthorized' });
+        const body = JSON.parse(request.requestBody || '{}');
+        if (!body.current_password || !body.new_password) {
+          return new Response(400, {}, { message: 'Current password and new password are required' });
+        }
+        if (String(body.new_password).length < 6) {
+          return new Response(400, {}, { message: 'New password must be at least 6 characters' });
+        }
+        return { data: null, message: 'Password updated successfully' };
+      });
+
       this.get('/admin/users', (_schema, request) => {
         const user = getUserFromRequest(request);
         if (!user || user.role !== 'root') {
           return new Response(403, {}, { message: 'Forbidden' });
         }
         return { data: db.users };
+      });
+
+      this.put('/admin/users/:id/reset-password', (_schema, request) => {
+        const user = getUserFromRequest(request);
+        if (!user || user.role !== 'root') {
+          return new Response(403, {}, { message: 'Forbidden' });
+        }
+        const body = JSON.parse(request.requestBody || '{}');
+        if (!body.new_password) {
+          return new Response(400, {}, { message: 'New password is required' });
+        }
+        if (String(body.new_password).length < 6) {
+          return new Response(400, {}, { message: 'New password must be at least 6 characters' });
+        }
+        return { data: null, message: 'Password reset successfully' };
       });
 
       // ----- RBAC (root only) -----

@@ -121,4 +121,60 @@ class AuthController
         $user['rbac_permissions'] = $this->rbacService->getPermissionsForUser($user['id']);
         Response::success($user);
     }
+
+    public function changePassword($currentUser): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $currentPassword = (string) ($data['current_password'] ?? '');
+        $newPassword = (string) ($data['new_password'] ?? '');
+
+        if ($currentPassword === '' || $newPassword === '') {
+            Response::error('Current password and new password are required', 400);
+        }
+
+        if (strlen($newPassword) < 6) {
+            Response::error('New password must be at least 6 characters', 400);
+        }
+
+        $user = $this->userModel->findById($currentUser->userId);
+        if (!$user) {
+            Response::error('User not found', 404);
+        }
+
+        $isValid = $this->userModel->verifyPassword($currentPassword, $user['password'])
+            || $this->userModel->verifyPassword(hash('sha256', $currentPassword), $user['password']);
+        if (!$isValid) {
+            Response::error('Current password is incorrect', 401);
+        }
+
+        $this->userModel->updatePassword($user['id'], $newPassword);
+        Response::success(null, 'Password updated successfully');
+    }
+
+    public function resetPassword(): void
+    {
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $email = trim((string) ($data['email'] ?? ''));
+        $newPassword = (string) ($data['new_password'] ?? '');
+
+        if ($email === '' || $newPassword === '') {
+            Response::error('Email and new password are required', 400);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Response::error('Invalid email format', 400);
+        }
+
+        if (strlen($newPassword) < 6) {
+            Response::error('New password must be at least 6 characters', 400);
+        }
+
+        $user = $this->userModel->findByEmail($email);
+        if (!$user) {
+            Response::error('User not found', 404);
+        }
+
+        $this->userModel->updatePassword($user['id'], $newPassword);
+        Response::success(null, 'Password reset successfully');
+    }
 }

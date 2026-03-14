@@ -36,6 +36,15 @@ class User extends Model
         return password_verify($password, $hash);
     }
 
+    public function updatePassword(string $userId, string $newPassword): bool
+    {
+        $hash = password_hash($newPassword, PASSWORD_BCRYPT);
+        return $this->update($userId, [
+            'password' => $hash,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
     private function generateUUID(): string
     {
         return sprintf(

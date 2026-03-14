@@ -24,13 +24,16 @@ class HuggingFaceClient
     public function generate(string $prompt, int $maxTokens = 400): ?string
     {
         if (!$this->isAvailable()) {
+            error_log("Unable to generate text. Hugging Face token not set.");
             return null;
         }
 
         $text = $this->chatCompletions($prompt, $maxTokens);
         if ($text !== null) {
+            error_log("Chat Completions Error");
             return $text;
         }
+
 
         return $this->textGeneration($prompt, $maxTokens);
     }
@@ -46,6 +49,8 @@ class HuggingFaceClient
             'top_p' => 0.9,
             'max_tokens' => $maxTokens,
         ];
+
+        error_log(json_encode($payload));
 
         $ch = curl_init(self::ROUTER_URL);
         curl_setopt_array($ch, [
@@ -74,7 +79,7 @@ class HuggingFaceClient
 
     private function textGeneration(string $prompt, int $maxTokens): ?string
     {
-        $url = sprintf(self::INFERENCE_URL, $this->model);
+        $url = sprintf(self::ROUTER_URL, $this->model);
         $payload = [
             'inputs' => $prompt,
             'parameters' => [
@@ -82,7 +87,6 @@ class HuggingFaceClient
                 'return_full_text' => false,
             ],
         ];
-
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -99,6 +103,7 @@ class HuggingFaceClient
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         if ($code !== 200 || $body === false) {
+            error_log("Text Generation Error");
             return null;
         }
 

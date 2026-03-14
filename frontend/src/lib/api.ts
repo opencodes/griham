@@ -119,6 +119,14 @@ export const authAPI = {
     const { data } = await api.get('/auth/me');
     return data.data;
   },
+  changePassword: async (current_password: string, new_password: string) => {
+    const { data } = await api.put('/auth/change-password', { current_password, new_password });
+    return data.data;
+  },
+  resetPassword: async (email: string, new_password: string) => {
+    const { data } = await api.post('/auth/reset-password', { email, new_password });
+    return data.data;
+  },
 };
 
 export const householdAPI = {
@@ -273,6 +281,9 @@ export const adminAPI = {
   listUsers: async () => {
     const { data } = await api.get('/admin/users');
     return data.data;
+  },
+  resetUserPassword: async (userId: string, newPassword: string): Promise<void> => {
+    await api.put(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
   },
 };
 

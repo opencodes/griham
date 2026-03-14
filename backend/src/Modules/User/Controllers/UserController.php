@@ -118,4 +118,26 @@ class UserController
 
         Response::success($user, 'User created with RBAC role', 201);
     }
+
+    public function resetPassword($currentUser, string $userId): void
+    {
+        $this->requireRoot($currentUser);
+
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
+        $newPassword = (string) ($data['new_password'] ?? '');
+        if ($newPassword === '') {
+            Response::error('New password is required', 400);
+        }
+        if (strlen($newPassword) < 6) {
+            Response::error('New password must be at least 6 characters', 400);
+        }
+
+        $user = $this->userModel->findById($userId);
+        if (!$user) {
+            Response::error('User not found', 404);
+        }
+
+        $this->userModel->updatePassword($userId, $newPassword);
+        Response::success(null, 'Password reset successfully');
+    }
 }

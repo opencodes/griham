@@ -57,6 +57,7 @@ class AIService
     public function parseSMSToTransaction(string $smsText): ?array
     {
         if (!$this->client->isAvailable()) {
+            error_log("Unable to generate text. Hugging Face token not set.");
             return null;
         }
 
@@ -64,12 +65,14 @@ class AIService
         $response = $this->client->generate($prompt, 700);
 
         if (!$response) {
+            error_log("Error getting response");
             return null;
         }
 
         // Extract JSON from response
         $json = $this->extractJSON($response);
         if (!$json) {
+            error_log("Error extracting JSON from response");
             return null;
         }
 
@@ -77,10 +80,10 @@ class AIService
         $required = ['type', 'amount', 'category', 'description', 'date', 'transaction_status'];
         foreach ($required as $field) {
             if (!array_key_exists($field, $json)) {
+                error_log("Error: $field not found in response");
                 return null;
             }
         }
-
         return $json;
     }
 

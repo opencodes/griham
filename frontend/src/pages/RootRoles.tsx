@@ -39,6 +39,12 @@ export default function RootRoles() {
   const [permModalSelectedIds, setPermModalSelectedIds] = useState<string[]>([]);
   const [userRoleModal, setUserRoleModal] = useState<User | null>(null);
   const [userRoleSelectedIds, setUserRoleSelectedIds] = useState<string[]>([]);
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+  const [resetPasswordValue, setResetPasswordValue] = useState('');
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState('');
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState('');
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState('');
   const groupedPermissions = groupPermissionsByResource(permissions);
 
   const load = async () => {
@@ -145,6 +151,35 @@ export default function RootRoles() {
       load();
     } catch (e) {
       setError((e as Error).message || 'Failed to update user roles.');
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser) return;
+    setResetPasswordError('');
+    setResetPasswordSuccess('');
+    if (!resetPasswordValue) {
+      setResetPasswordError('New password is required.');
+      return;
+    }
+    if (resetPasswordValue.length < 6) {
+      setResetPasswordError('New password must be at least 6 characters.');
+      return;
+    }
+    if (resetPasswordValue !== resetPasswordConfirm) {
+      setResetPasswordError('Passwords do not match.');
+      return;
+    }
+    setResetPasswordLoading(true);
+    try {
+      await adminAPI.resetUserPassword(resetPasswordUser.id, resetPasswordValue);
+      setResetPasswordSuccess('Password reset successfully.');
+      setResetPasswordValue('');
+      setResetPasswordConfirm('');
+    } catch (e: any) {
+      setResetPasswordError(e?.response?.data?.message || 'Failed to reset password.');
+    } finally {
+      setResetPasswordLoading(false);
     }
   };
 
@@ -276,13 +311,19 @@ export default function RootRoles() {
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.email}</td>
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.is_active ? 'Active' : 'Inactive'}</td>
                           <td className="py-2 pr-4">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-wrap">
                               <span className="text-[var(--app-fg)]">{u.rbac_role_name || '—'}</span>
                               <button
                                 onClick={() => openUserRoleModal(u)}
                                 className="px-2 py-1 rounded border border-[var(--panel-border)] text-[var(--app-fg)] text-xs hover:bg-black/5"
                               >
                                 Assign role
+                              </button>
+                              <button
+                                onClick={() => { setResetPasswordUser(u); setResetPasswordError(''); setResetPasswordSuccess(''); }}
+                                className="px-2 py-1 rounded border border-[var(--panel-border)] text-[var(--app-fg)] text-xs hover:bg-black/5"
+                              >
+                                Reset password
                               </button>
                             </div>
                           </td>
@@ -393,6 +434,41 @@ export default function RootRoles() {
             <div className="p-6 border-t border-[var(--panel-border)] flex justify-end gap-2">
               <button onClick={() => setUserRoleModal(null)} className="px-4 py-2 rounded-lg border border-[var(--panel-border)] text-[var(--app-fg)]">Cancel</button>
               <button onClick={saveUserRoles} className="px-4 py-2 rounded-lg bg-indigo-600 text-white">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset password modal */}
+      {resetPasswordUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setResetPasswordUser(null)}>
+          <div className="rounded-xl glass-black-surface border border-[var(--panel-border)] w-full max-w-md p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-[var(--app-fg)] mb-4">
+              Reset password for: {resetPasswordUser.full_name || resetPasswordUser.email}
+            </h3>
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-[var(--app-fg)]">New Password</label>
+              <input
+                type="password"
+                value={resetPasswordValue}
+                onChange={(e) => setResetPasswordValue(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--panel-border)] bg-[var(--app-bg)] text-[var(--app-fg)]"
+              />
+              <label className="block text-sm font-medium text-[var(--app-fg)]">Confirm New Password</label>
+              <input
+                type="password"
+                value={resetPasswordConfirm}
+                onChange={(e) => setResetPasswordConfirm(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-[var(--panel-border)] bg-[var(--app-bg)] text-[var(--app-fg)]"
+              />
+              {resetPasswordError && <p className="text-sm text-red-500">{resetPasswordError}</p>}
+              {resetPasswordSuccess && <p className="text-sm text-emerald-500">{resetPasswordSuccess}</p>}
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setResetPasswordUser(null)} className="px-4 py-2 rounded-lg border border-[var(--panel-border)] text-[var(--app-fg)]">Close</button>
+              <button onClick={handleResetPassword} className="px-4 py-2 rounded-lg bg-indigo-600 text-white" disabled={resetPasswordLoading}>
+                {resetPasswordLoading ? 'Saving...' : 'Reset'}
+              </button>
             </div>
           </div>
         </div>

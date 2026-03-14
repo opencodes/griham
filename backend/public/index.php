@@ -60,15 +60,21 @@ try {
         (new AuthController())->register();
     } elseif ($path === '/auth/login' && $method === 'POST') {
         (new AuthController())->login();
+    } elseif ($path === '/auth/reset-password' && $method === 'POST') {
+        (new AuthController())->resetPassword();
     } else {
         $currentUser = AuthMiddleware::handle();
 
         if ($path === '/auth/me' && $method === 'GET') {
             (new AuthController())->me($currentUser);
+        } elseif ($path === '/auth/change-password' && $method === 'PUT') {
+            (new AuthController())->changePassword($currentUser);
         } elseif ($path === '/admin/users' && $method === 'GET') {
             (new UserController())->listUsers($currentUser);
         } elseif ($path === '/admin/users' && $method === 'POST') {
             (new UserController())->createAdmin($currentUser);
+        } elseif (preg_match('/^\/admin\/users\/([a-f0-9-]+)\/reset-password$/', $path, $m) && $method === 'PUT') {
+            (new UserController())->resetPassword($currentUser, $m[1]);
         } elseif ($path === '/admin/roles' && $method === 'GET') {
             (new RBACController())->listRoles($currentUser);
         } elseif ($path === '/admin/roles' && $method === 'POST') {

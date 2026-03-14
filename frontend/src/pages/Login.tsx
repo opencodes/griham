@@ -118,6 +118,18 @@ export default function Login() {
             </button>
           </form>
 
+          {isLogin && (
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => navigate('/reset-password')}
+                className="text-sm text-[var(--app-fg-muted)] hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
+
           <div className="mt-6 text-center">
             <button
               type="button"
