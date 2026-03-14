@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, Bill } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { Menu, Bell, Flame, Plus, Trash2, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 
 const BILL_CATEGORIES = ['Electricity', 'Water', 'Gas', 'Internet', 'Phone', 'Rent', 'Insurance', 'Subscription', 'Pocket Money', 'Other'];
 

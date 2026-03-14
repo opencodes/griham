@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, Household } from '@/lib/api';
 import { hasPermission } from '@/lib/permissions';
-import { ArrowLeft, UserPlus, Users, Shield, Eye, Menu, Bell, Flame, Edit2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Users, Shield, Eye, Edit2 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 

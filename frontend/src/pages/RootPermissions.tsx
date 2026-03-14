@@ -6,6 +6,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { rbacAPI, type Permission, type Role } from '@/lib/api';
 import { Shield, Plus, Pencil, Trash2, KeyRound } from 'lucide-react';
 
+function groupPermissionsByResource(perms: Permission[]) {
+  const map = new Map<string, Permission[]>();
+  perms.forEach((perm) => {
+    const key = perm.resource || 'other';
+    const list = map.get(key) ?? [];
+    list.push(perm);
+    map.set(key, list);
+  });
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([resource, items]) => ({
+      resource,
+      items: items.sort((a, b) => a.name.localeCompare(b.name)),
+    }));
+}
+
 export default function RootPermissions() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('root-permissions');
@@ -19,6 +35,7 @@ export default function RootPermissions() {
   const [editingPermission, setEditingPermission] = useState<Permission | null>(null);
   const [form, setForm] = useState({ name: '', resource: '', action: '', description: '' });
   const [rolePermModal, setRolePermModal] = useState<{ role: Role; permissionIds: string[] } | null>(null);
+  const groupedPermissions = groupPermissionsByResource(permissions);
 
   const load = async () => {
     try {
@@ -308,18 +325,23 @@ export default function RootPermissions() {
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <p className="text-sm text-[var(--app-fg-muted)] mb-3">Select permissions to assign to this role.</p>
-              <div className="space-y-2">
-                {permissions.map((p) => (
-                  <label key={p.id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rolePermModal.permissionIds.includes(p.id)}
-                      onChange={() => togglePermissionForRole(p.id)}
-                      className="rounded border-[var(--panel-border)]"
-                    />
-                    <span className="text-sm text-[var(--app-fg)]">{p.name}</span>
-                    <span className="text-xs text-[var(--app-fg-muted)]">({p.resource}:{p.action})</span>
-                  </label>
+              <div className="space-y-4">
+                {groupedPermissions.map((group) => (
+                  <div key={group.resource} className="space-y-2">
+                    <p className="text-xs uppercase tracking-wide text-[var(--app-fg-muted)]">{group.resource}</p>
+                    {group.items.map((p) => (
+                      <label key={p.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={rolePermModal.permissionIds.includes(p.id)}
+                          onChange={() => togglePermissionForRole(p.id)}
+                          className="rounded border-[var(--panel-border)]"
+                        />
+                        <span className="text-sm text-[var(--app-fg)]">{p.name}</span>
+                        <span className="text-xs text-[var(--app-fg-muted)]">({p.resource}:{p.action})</span>
+                      </label>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>

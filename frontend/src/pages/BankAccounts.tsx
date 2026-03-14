@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, BankAccount } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { Menu, Bell, Flame, Plus, Trash2, ArrowLeft, Wallet } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Wallet } from 'lucide-react';
 
 const ACCOUNT_TYPES = ['savings', 'current', 'credit'];
 

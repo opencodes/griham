@@ -36,7 +36,8 @@ interface Prescription {
   prescribedBy: string;
 }
 
-const toDate = (value: string) => {
+const toDate = (value?: string) => {
+  if (!value) return 'N/A';
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 };

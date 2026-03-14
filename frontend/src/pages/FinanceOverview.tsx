@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, BankAccount, Transaction, Bill } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import AIWidget from '@/components/AIWidget';
-import { Menu, Bell, Flame, Wallet, TrendingUp, TrendingDown, AlertCircle, Plus, CreditCard, Moon, Sun } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard } from 'lucide-react';
 
 const getCategoryIcon = (category?: string) => {
   const value = (category || '').toLowerCase();
@@ -32,7 +30,6 @@ const formatAmount = (value: number) => {
 };
 
 export default function FinanceOverview() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('finance');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -143,7 +140,7 @@ export default function FinanceOverview() {
                 <div className="flex items-center justify-between mb-2">
                   <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">₹{parseFloat(summary.total_income || 0).toFixed(2)}</h3>
+                <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">₹{Number(summary.total_income || 0).toFixed(2)}</h3>
                 <p className="text-sm text-[var(--app-fg-muted)]">Income (This Month)</p>
               </div>
 
@@ -151,7 +148,7 @@ export default function FinanceOverview() {
                 <div className="flex items-center justify-between mb-2">
                   <TrendingDown className="w-8 h-8 text-red-600 dark:text-red-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">₹{parseFloat(summary.total_expense || 0).toFixed(2)}</h3>
+                <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">₹{Number(summary.total_expense || 0).toFixed(2)}</h3>
                 <p className="text-sm text-[var(--app-fg-muted)]">Expenses (This Month)</p>
               </div>
 

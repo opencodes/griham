@@ -43,8 +43,8 @@ class ApiService {
     return http.post(url, headers: headers, body: jsonEncode(data));
   }
 
-  static Future<http.Response> getFamilies() async {
-    return get('families');
+  static Future<http.Response> getCurrentFamily() async {
+    return get('families/me');
   }
 
   static Future<http.Response> login(

@@ -5,7 +5,17 @@ import { householdAPI, financeAPI, Card } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import CardSMSParser from '@/components/CardSMSParser';
-import { Menu, Bell, Flame, CreditCard, Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react';
+import { CreditCard, Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react';
+
+type CardFormState = {
+  card_type: 'credit' | 'debit';
+  bank_name: string;
+  card_name: string;
+  last_four_digits: string;
+  card_limit: string;
+  billing_date: string;
+  status: 'active' | 'inactive' | 'blocked';
+};
 
 export default function Cards() {
   const { user } = useAuth();
@@ -20,7 +30,7 @@ export default function Cards() {
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CardFormState>({
     card_type: 'credit',
     bank_name: '',
     card_name: '',
@@ -68,10 +78,10 @@ export default function Cards() {
     setIsLoading(true);
 
     try {
-      const cardData = {
+      const cardData: Partial<Card> = {
         ...formData,
-        card_limit: formData.card_limit ? parseFloat(formData.card_limit) : null,
-        billing_date: formData.billing_date ? parseInt(formData.billing_date) : null
+        card_limit: formData.card_limit ? parseFloat(formData.card_limit) : undefined,
+        billing_date: formData.billing_date ? parseInt(formData.billing_date) : undefined
       };
 
       if (editingCard) {
@@ -258,12 +268,14 @@ export default function Cards() {
               <CardSMSParser
                 familyId={familyId}
                 onParsed={(data) => {
+                  const parsed = data as Partial<Card>;
+                  const parsedCardType = parsed.card_type === 'debit' ? 'debit' : 'credit';
                   setFormData({
-                    card_type: data.card_type || 'credit',
-                    bank_name: data.bank_name || '',
-                    card_name: data.card_name || '',
-                    last_four_digits: data.last_four_digits || '',
-                    card_limit: data.card_limit?.toString() || '',
+                    card_type: parsedCardType,
+                    bank_name: parsed.bank_name || '',
+                    card_name: parsed.card_name || '',
+                    last_four_digits: parsed.last_four_digits || '',
+                    card_limit: parsed.card_limit?.toString() || '',
                     billing_date: '',
                     status: 'active'
                   });
@@ -278,7 +290,7 @@ export default function Cards() {
                 <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Type</label>
                 <select
                   value={formData.card_type}
-                  onChange={(e) => setFormData({ ...formData, card_type: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, card_type: e.target.value === 'debit' ? 'debit' : 'credit' })}
                   required
                   className="input-theme"
                 >
@@ -356,7 +368,7 @@ export default function Cards() {
                 <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Status</label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as CardFormState['status'] })}
                   required
                   className="input-theme"
                 >

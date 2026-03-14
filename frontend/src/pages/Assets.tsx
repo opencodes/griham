@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { Package, Plus, ShieldCheck, FileClock, Car, Home, Laptop, FileText } from 'lucide-react';
+import { Plus, ShieldCheck, Car, Home, Laptop, FileText } from 'lucide-react';
 
 type AssetType = 'Property' | 'Vehicle' | 'Gadget' | 'Document';
 

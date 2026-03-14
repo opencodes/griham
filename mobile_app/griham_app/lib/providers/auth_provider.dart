@@ -78,12 +78,12 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _fetchAndSaveFamilyId() async {
     try {
-      final response = await ApiService.getFamilies();
+      final response = await ApiService.getCurrentFamily();
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        final families = responseData['data'] as List;
-        if (families.isNotEmpty) {
-          final familyId = families[0]['id'];
+        final family = responseData['data'];
+        if (family != null && family is Map && family['id'] != null) {
+          final familyId = family['id'];
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('family_id', familyId);
         }
