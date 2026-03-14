@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
 import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
-import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard, Sparkles } from 'lucide-react';
 
 const getCategoryIcon = (category?: string) => {
   const value = (category || '').toLowerCase();
@@ -42,6 +42,8 @@ export default function FinanceOverview() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
   const [summary, setSummary] = useState({ total_income: 0, total_expense: 0, balance: 0 });
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
 
   useEffect(() => {
     loadFamily();
@@ -59,6 +61,19 @@ export default function FinanceOverview() {
       loadTransactions();
       loadSummary();
     }
+  }, [familyId, month]);
+
+  useEffect(() => {
+    if (!familyId) return;
+    let cancelled = false;
+    setAiSummaryLoading(true);
+    setAiSummary(null);
+    financeAPI.getInsights(familyId, month).then((res) => {
+      if (!cancelled && res?.insights) setAiSummary(res.insights);
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setAiSummaryLoading(false);
+    });
+    return () => { cancelled = true; };
   }, [familyId, month]);
 
   const loadFamily = async () => {
@@ -134,6 +149,22 @@ export default function FinanceOverview() {
               <h2 className="text-2xl font-bold text-[var(--app-fg)]">Finance Overview</h2>
               <FinanceMonthFilter />
             </div>
+
+            {/* AI narrative summary */}
+            {(aiSummaryLoading || aiSummary) && (
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">AI summary</h3>
+                </div>
+                {aiSummaryLoading && (
+                  <p className="text-sm text-[var(--app-fg-muted)]">Loading summary…</p>
+                )}
+                {!aiSummaryLoading && aiSummary && (
+                  <p className="text-sm text-[var(--app-fg)] leading-relaxed">{aiSummary}</p>
+                )}
+              </div>
+            )}
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
