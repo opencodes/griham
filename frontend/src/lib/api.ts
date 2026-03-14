@@ -249,6 +249,38 @@ export const financeAPI = {
     const { data } = await api.delete(`/finance/cards/${familyId}/${cardId}`);
     return data.data;
   },
+
+  // AI insights (for Dashboard and Finance Overview)
+  getInsights: async (familyId: string, month?: string) => {
+    const params = month ? `?month=${month}` : '';
+    const { data } = await api.get<{
+      data: { total_balance: number; total_income: number; total_expense: number; savings_rate: number; upcoming_bills: number };
+      insights: string | null;
+      ai_available: boolean;
+    }>(`/finance/ai/insights/${familyId}${params}`);
+    return data.data;
+  },
+  getSavingsTips: async (familyId: string) => {
+    const { data } = await api.get<{ tips: string[] | null; ai_available: boolean }>(`/finance/ai/savings-tips/${familyId}`);
+    return data.data;
+  },
+  suggestCategory: async (
+    familyId: string,
+    payload: { description: string; amount?: number; type?: string }
+  ) => {
+    const { data } = await api.post<{ category: string; type?: string }>(
+      `/finance/ai/suggest-category/${familyId}`,
+      payload
+    );
+    return data.data;
+  },
+  suggestBillCategory: async (familyId: string, payload: { bill_name: string }) => {
+    const { data } = await api.post<{ category: string }>(
+      `/finance/ai/suggest-bill-category/${familyId}`,
+      payload
+    );
+    return data.data;
+  },
 };
 
 export interface Role {
