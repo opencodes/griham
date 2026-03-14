@@ -109,8 +109,28 @@ function seed() {
     currency: 'INR',
   });
   db.transactions.push(
-    { id: uid(), family_id: familyId, account_id: accId, type: 'income', category: 'Salary', amount: 95000, transaction_date: now, created_by: SEED_IDS.admin, created_by_name: 'Admin User' },
-    { id: uid(), family_id: familyId, account_id: accId, type: 'expense', category: 'Utilities', amount: 3500, description: 'Electricity', transaction_date: now, created_by: SEED_IDS.admin, created_by_name: 'Admin User' },
+    {
+      id: uid(),
+      family_id: familyId,
+      account_id: accId,
+      type: 'income',
+      category: 'Salary',
+      amount: 95000,
+      transaction_date: now,
+      created_by: SEED_IDS.admin,
+      created_by_name: 'Admin User'
+    },
+    {
+      id: uid(),
+      family_id: familyId,
+      account_id: accId,
+      type: 'expense',
+      category: 'Utilities',
+      amount: 3500, description: 'Electricity',
+      transaction_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10) as string,
+      created_by: SEED_IDS.admin,
+      created_by_name: 'Admin User'
+    },
   );
   db.bills.push({
     id: uid(),
@@ -728,6 +748,90 @@ export function makeServer({ environment = 'development' } = {}) {
         if (i === -1) return new Response(404, {}, { message: 'Not found' });
         db.cards.splice(i, 1);
         return { data: { ok: true } };
+      });
+
+      // ----- Finance: AI insights (mock for Dashboard) -----
+      this.get('/finance/ai/insights/:familyId', (_schema, request) => {
+        const familyId = request.params.familyId;
+        const accounts = db.accounts.filter((a) => a.family_id === familyId);
+        const totalBalance = accounts.reduce((s, a) => s + Number(a.balance || 0), 0);
+        let transactions = db.transactions.filter((t) => t.family_id === familyId);
+        const q = request.queryParams;
+        const monthStr = (q?.month as string) || new Date().toISOString().slice(0, 7);
+        const [y, m] = monthStr.split('-').map(Number);
+        const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+        const end = new Date(y, m, 0).toISOString().slice(0, 10);
+        transactions = transactions.filter((t) => t.transaction_date >= start && t.transaction_date <= end);
+        const total_income = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+        const total_expense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        const savingsRate = total_income > 0 ? ((total_income - total_expense) / total_income) * 100 : 0;
+        const upcomingBills = db.bills.filter((b) => b.family_id === familyId && b.status === 'pending').length;
+        const data = {
+          total_balance: totalBalance,
+          total_income,
+          total_expense,
+          savings_rate: Math.round(savingsRate * 100) / 100,
+          upcoming_bills: upcomingBills,
+        };
+        const insights =
+          'Financial health looks stable. Key observations: Total balance and monthly flow are tracked. Consider keeping savings rate above 20%. Recommendations: Review upcoming bills, and add more transactions for better insights.';
+        return { data: { data, insights, ai_available: true } };
+      });
+
+      this.get('/finance/ai/savings-tips/:familyId', () => {
+        const tips = [
+          'Track small daily expenses to find easy cuts.',
+          'Set a monthly cap for discretionary spending.',
+          'Review subscriptions and cancel unused ones.',
+        ];
+        return { data: { tips, ai_available: true } };
+      });
+
+      this.post('/finance/ai/suggest-category/:familyId', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const desc = ((body.description ?? '') as string).toLowerCase();
+        const amount = Number(body.amount);
+        const categories: Array<{ keywords: string[]; category: string; type: 'income' | 'expense' }> = [
+          { keywords: ['salary', 'pay', 'credited', 'income', 'deposit'], category: 'Salary', type: 'income' },
+          { keywords: ['amazon', 'flipkart', 'shopping', 'mall'], category: 'Shopping', type: 'expense' },
+          { keywords: ['swiggy', 'zomato', 'food', 'restaurant', 'cafe', 'coffee', 'dining'], category: 'Food', type: 'expense' },
+          { keywords: ['petrol', 'fuel', 'uber', 'ola', 'transport', 'travel'], category: 'Transport', type: 'expense' },
+          { keywords: ['electricity', 'water', 'gas', 'broadband', 'internet', 'utility'], category: 'Utilities', type: 'expense' },
+          { keywords: ['netflix', 'spotify', 'subscription', 'ott'], category: 'Subscription', type: 'expense' },
+          { keywords: ['medical', 'hospital', 'pharmacy', 'doctor', 'health'], category: 'Healthcare', type: 'expense' },
+          { keywords: ['emi', 'loan', 'repayment'], category: 'EMI/Loan', type: 'expense' },
+          { keywords: ['rent', 'housing'], category: 'Rent', type: 'expense' },
+          { keywords: ['grocery', 'vegetables', 'supermarket'], category: 'Groceries', type: 'expense' },
+          { keywords: ['entertainment', 'movie', 'game'], category: 'Entertainment', type: 'expense' },
+        ];
+        for (const { keywords, category, type } of categories) {
+          if (keywords.some((k) => desc.includes(k))) {
+            return { data: { category, type } };
+          }
+        }
+        return { data: { category: 'Other', type: 'expense' } };
+      });
+
+      this.post('/finance/ai/suggest-bill-category/:familyId', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const name = ((body.bill_name ?? '') as string).toLowerCase();
+        const billCategories: Array<{ keywords: string[]; category: string }> = [
+          { keywords: ['electric', 'power', 'discom'], category: 'Electricity' },
+          { keywords: ['water', 'municipal'], category: 'Water' },
+          { keywords: ['gas', 'lpg', 'cylinder'], category: 'Gas' },
+          { keywords: ['internet', 'broadband', 'wifi', 'airtel', 'jio', 'bsnl', 'act'], category: 'Internet' },
+          { keywords: ['phone', 'mobile', 'postpaid', 'prepaid', 'vodafone'], category: 'Phone' },
+          { keywords: ['rent', 'house', 'lease'], category: 'Rent' },
+          { keywords: ['insurance', 'policy'], category: 'Insurance' },
+          { keywords: ['netflix', 'spotify', 'subscription', 'ott', 'streaming'], category: 'Subscription' },
+          { keywords: ['pocket', 'allowance'], category: 'Pocket Money' },
+        ];
+        for (const { keywords, category } of billCategories) {
+          if (keywords.some((k) => name.includes(k))) {
+            return { data: { category } };
+          }
+        }
+        return { data: { category: 'Other' } };
       });
     },
   });
