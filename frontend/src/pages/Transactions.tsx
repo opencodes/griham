@@ -7,7 +7,7 @@ import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
 import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
 import SMSParser from '@/components/SMSParser';
-import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus } from 'lucide-react';
+import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus, Sparkles } from 'lucide-react';
 
 type TypeFilter = 'all' | 'income' | 'expense';
 type SortBy = 'newest' | 'oldest' | 'amount_high' | 'amount_low';
@@ -74,6 +74,7 @@ export default function TransactionsPage() {
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [suggestCategoryLoading, setSuggestCategoryLoading] = useState(false);
   const [formData, setFormData] = useState({
     account_id: '',
     type: 'expense',
@@ -157,6 +158,28 @@ export default function TransactionsPage() {
       }
     } catch (err) {
       console.error('Failed to load accounts', err);
+    }
+  };
+
+  const handleSuggestCategory = async () => {
+    const text = (formData.description || '').trim();
+    if (!text || !familyId) return;
+    try {
+      setSuggestCategoryLoading(true);
+      const result = await financeAPI.suggestCategory(familyId, {
+        description: text,
+        amount: formData.amount ? Number(formData.amount) : undefined,
+        type: formData.type,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        category: result.category || prev.category,
+        ...(result.type ? { type: result.type } : {}),
+      }));
+    } catch {
+      // Ignore; user can enter category manually
+    } finally {
+      setSuggestCategoryLoading(false);
     }
   };
 
@@ -545,13 +568,25 @@ export default function TransactionsPage() {
                   <option value="expense">Expense</option>
                 </select>
 
-                <input
-                  value={formData.category}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                  placeholder="Category"
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                />
+                <div className="w-full flex gap-2">
+                  <input
+                    value={formData.category}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                    placeholder="Category"
+                    className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSuggestCategory}
+                    disabled={suggestCategoryLoading || !formData.description?.trim()}
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-50 disabled:pointer-events-none"
+                    title="Suggest category from description"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {suggestCategoryLoading ? '…' : 'Suggest'}
+                  </button>
+                </div>
 
                 <input
                   type="number"
