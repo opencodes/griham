@@ -19,7 +19,11 @@ function toId<T extends { _id: string }>(doc: T) {
 export const adminController = {
   async listUsers(_req: Request, res: Response): Promise<void> {
     const users = await UserModel.find().select('-password').lean({ virtuals: true });
-    const data = users.map((u) => toId({ ...u, _id: u._id } as { _id: string;[k: string]: unknown }));
+    const roles = await RoleModel.find().lean({ virtuals: true });
+    const rbackUserRoles = await UserRoleModel.find().lean({ virtuals: true });
+    const roleMap = roles.reduce((acc, role) => ({ ...acc, [role._id]: role }), {} as Record<string, typeof roles[0]>);
+    const userRoleMap = rbackUserRoles.reduce((acc, ur) => ({ ...acc, [ur.user_id]: ur.role_id }), {} as Record<string, string>);
+    const data = users.map((u) => toId({ ...u, _id: u._id, rbac_role: roleMap[userRoleMap[u._id] || ''] || {} } as { _id: string;[k: string]: unknown }));
     res.success(data);
   },
 
@@ -50,7 +54,7 @@ export const adminController = {
       return;
     }
     let role = body.rbac_role_id
-      ? await RoleModel.findById(body.rbac_role_id).lean()
+      ? await RoleModel.findById(body.rbac_role_id).lean({ virtuals: true })
       : await RoleModel.findOne({ name: body.rbac_role_name || 'Admin' }).lean({ virtuals: true });
     if (!role) {
       res.fail('RBAC role not found or not specified', 400);

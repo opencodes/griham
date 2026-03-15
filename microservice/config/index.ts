@@ -10,6 +10,7 @@ export const config = {
   jwtExpirySeconds: Number(process.env.JWT_EXPIRY_SECONDS) || 86400,
   corsOrigin: process.env.CORS_ORIGIN || '*',
   huggingFaceApiKey: process.env.HUGGING_FACE_API_KEY || '',
+  testPassword: process.env.TEST_PASS || 'member123'
 } as const;
 
 export type Config = typeof config;

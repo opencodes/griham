@@ -27,6 +27,7 @@ export interface User {
   rbac_role_name?: string | null;
   rbac_roles?: Role[];
   rbac_permissions?: Permission[];
+  rbac_role:any
 }
 
 export interface AuthResponse {

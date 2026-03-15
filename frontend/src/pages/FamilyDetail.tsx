@@ -44,7 +44,7 @@ export default function FamilyDetail() {
 
   useEffect(() => {
     loadHousehold();
-  }, [id]);
+  }, []);
 
   useEffect(() => {
     if (id) setFamilyId(id);
@@ -128,9 +128,6 @@ export default function FamilyDetail() {
       setShowCreateModal(false);
       setCreateName('');
       setCreateAddress('');
-      if (created?.id) {
-        navigate(`/families/${created.id}`);
-      }
     } catch (error) {
       console.error('Failed to create family', error);
     } finally {
@@ -276,9 +273,9 @@ export default function FamilyDetail() {
                             {displayName?.charAt(0).toUpperCase() || 'U'}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-gray-800 dark:text-gray-100">{displayName}</p>
+                            <p className="font-medium text-gray-800 dark:text-gray-100">{member.full_name}</p>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {displayEmail}
+                              {member.invitation_email}
                               {member.user_phone && (
                                 <span> • {member.user_phone}</span>
                               )}

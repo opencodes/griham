@@ -2,6 +2,10 @@ import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { FamilyModel } from '../../db/schemas/Family.js';
 import { FamilyMemberModel } from '../../db/schemas/FamilyMember.js';
+import { IUserDoc, UserModel } from '../../db/schemas/User.js';
+import bcrypt from 'bcryptjs';
+import { config } from '../../../config/index.js';
+const SALT_ROUNDS = 10;
 
 function getAuthUserId(req: Request): string | null {
   const auth = (req as Request & { auth?: { userId: string } }).auth;
@@ -91,7 +95,7 @@ export const familiesController = {
 
     const member = await FamilyMemberModel.findOne({ user_id: userId }).lean({ virtuals: true });
     const family = member
-      ? await FamilyModel.findById(member.family_id).lean()
+      ? await FamilyModel.findById(member.family_id).lean({ virtuals: true })
       : await FamilyModel.findOne({ created_by: userId }).lean({ virtuals: true });
 
     if (!family) {
@@ -167,7 +171,20 @@ export const familiesController = {
     }
 
     const members = await FamilyMemberModel.find({ family_id: familyId }).lean({ virtuals: true });
-    res.success(members);
+    const users = await UserModel.find({ _id: { $in: members.map((m) => m.user_id) } }).lean({ virtuals: true });
+    const memberMap = members.reduce((acc, m) => ({ ...acc, [m.user_id]: m }), {});
+    const userMap:any = users.reduce((acc, u) => ({ ...acc, [u._id]: u }), {});
+   
+    const membersWithUser:any = members.map((m) => {
+      const user: IUserDoc = userMap[m.user_id];
+      return {
+        ...m,
+        "full_name":   user?.full_name ?? 'Unknown',
+        "user_phone": user?.phone ?? null,
+      }
+    });
+
+    res.success(membersWithUser);
   },
 
   async addMember(req: Request, res: Response): Promise<void> {
@@ -195,16 +212,19 @@ export const familiesController = {
       user_id?: string;
       role?: string;
       relation?: string | null;
-      invitation_email?: string | null;
+      email?: string | null;
+      fname?: string| null;
+      lname?: string| null;
+      phone?:string| null;
     };
 
-    if (!body.user_id && !body.invitation_email) {
+    if (!body.user_id && !body.email) {
       res.fail('user_id or invitation_email is required', 400);
       return;
     }
 
     const memberUserId = body.user_id ?? uuidv4();
-    const status = body.invitation_email ? 'pending' : 'active';
+    const status = body.email ? 'pending' : 'active';
 
     const existing = await FamilyMemberModel.findOne({
       family_id: familyId,
@@ -222,12 +242,21 @@ export const familiesController = {
       role: body.role ?? 'member',
       relation: body.relation ?? null,
       status,
-      invitation_email: body.invitation_email ?? null,
-      invitation_sent_at: body.invitation_email ? new Date() : null,
+      invitation_email: body.email ?? null,
+      invitation_sent_at: body.email ? new Date() : null,
       joined_at: status === 'active' ? new Date() : new Date(0),
     });
-
-    res.success(member, 'Member invited', 201);
+    const hashed = await bcrypt.hash(config.testPassword, SALT_ROUNDS);
+    const user = await UserModel.create({
+      _id: memberUserId,
+      email: body.email ?? null,
+      full_name: (body.fname ?? '') + ' ' + (body.lname ?? 'Unknown'),
+      phone: body.phone,
+      is_active:1,
+      role:'user',
+      password: hashed
+    });
+    res.success({...member, user}, 'Member invited', 201);
   },
 
   async updateMember(req: Request, res: Response): Promise<void> {

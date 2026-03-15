@@ -302,6 +302,7 @@ export default function RootRoles() {
                         <th className="py-2 pr-4 font-medium">Email</th>
                         <th className="py-2 pr-4 font-medium">Status</th>
                         <th className="py-2 pr-4 font-medium">RBAC role</th>
+                        <th className="py-2 pr-4 font-medium">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -310,9 +311,9 @@ export default function RootRoles() {
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.full_name || '—'}</td>
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.email}</td>
                           <td className="py-2 pr-4 text-[var(--app-fg)]">{u.is_active ? 'Active' : 'Inactive'}</td>
+                          <td className="py-2 pr-4 text-[var(--app-fg)]">{u?.rbac_role?.name || 'root'}</td>
                           <td className="py-2 pr-4">
                             <div className="flex items-center gap-3 flex-wrap">
-                              <span className="text-[var(--app-fg)]">{u.rbac_role_name || '—'}</span>
                               <button
                                 onClick={() => openUserRoleModal(u)}
                                 className="px-2 py-1 rounded border border-[var(--panel-border)] text-[var(--app-fg)] text-xs hover:bg-black/5"
