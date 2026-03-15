@@ -1,7 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface IFamilyDoc {
   _id: string;
+  id?: string;
   name: string;
   address: string | null;
   created_by: string;
@@ -19,4 +21,9 @@ const familySchema = new Schema<IFamilyDoc>(
   { timestamps: true, id: false }
 );
 
+familySchema.virtual('id').get(function () {
+  return this._id;
+});
+
+familySchema.plugin(mongooseLeanVirtuals);
 export const FamilyModel: Model<IFamilyDoc> = mongoose.model<IFamilyDoc>('Family', familySchema);

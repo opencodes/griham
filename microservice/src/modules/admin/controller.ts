@@ -18,7 +18,7 @@ function toId<T extends { _id: string }>(doc: T) {
 
 export const adminController = {
   async listUsers(_req: Request, res: Response): Promise<void> {
-    const users = await UserModel.find().select('-password').lean();
+    const users = await UserModel.find().select('-password').lean({ virtuals: true });
     const data = users.map((u) => toId({ ...u, _id: u._id } as { _id: string;[k: string]: unknown }));
     res.success(data);
   },
@@ -51,7 +51,7 @@ export const adminController = {
     }
     let role = body.rbac_role_id
       ? await RoleModel.findById(body.rbac_role_id).lean()
-      : await RoleModel.findOne({ name: body.rbac_role_name || 'Admin' }).lean();
+      : await RoleModel.findOne({ name: body.rbac_role_name || 'Admin' }).lean({ virtuals: true });
     if (!role) {
       res.fail('RBAC role not found or not specified', 400);
       return;
@@ -68,7 +68,7 @@ export const adminController = {
       is_active: 1,
     });
     await UserRoleModel.create({ user_id: id, role_id: role._id });
-    const user = await UserModel.findById(id).select('-password').lean();
+    const user = await UserModel.findById(id).select('-password').lean({ virtuals: true });
     if (!user) {
       res.fail('Failed to create user', 500);
       return;
@@ -97,9 +97,9 @@ export const adminController = {
 
   async getUserRoles(req: Request, res: Response): Promise<void> {
     const userId = req.params.id;
-    const links = await UserRoleModel.find({ user_id: userId }).lean();
+    const links = await UserRoleModel.find({ user_id: userId }).lean({ virtuals: true });
     const roleIds = links.map((l) => l.role_id);
-    const roles = await RoleModel.find({ _id: { $in: roleIds } }).lean();
+    const roles = await RoleModel.find({ _id: { $in: roleIds } }).lean({ virtuals: true });
     const data = roles.map((r) => toId(r));
     res.success(data);
   },
@@ -114,7 +114,7 @@ export const adminController = {
       return;
     }
     if (roleIds.length > 0) {
-      const existingRoles = await RoleModel.find({ _id: { $in: roleIds } }).lean();
+      const existingRoles = await RoleModel.find({ _id: { $in: roleIds } }).lean({ virtuals: true });
       if (existingRoles.length !== roleIds.length) {
         res.fail('One or more role_ids are invalid', 400);
         return;
@@ -129,19 +129,19 @@ export const adminController = {
 
   // Roles
   async listRoles(_req: Request, res: Response): Promise<void> {
-    const roles = await RoleModel.find().lean();
+    const roles = await RoleModel.find().lean({ virtuals: true });
     res.success(roles.map((r) => toId(r)));
   },
 
   async getRole(req: Request, res: Response): Promise<void> {
-    const role = await RoleModel.findById(req.params.id).lean();
+    const role = await RoleModel.findById(req.params.id).lean({ virtuals: true });
     if (!role) {
       res.fail('Role not found', 404);
       return;
     }
-    const permLinks = await RolePermissionModel.find({ role_id: role._id }).lean();
-    const permissions = await PermissionModel.find({ _id: { $in: permLinks.map((p) => p.permission_id) } }).lean();
-    const userLinks = await UserRoleModel.find({ role_id: role._id }).lean();
+    const permLinks = await RolePermissionModel.find({ role_id: role._id }).lean({ virtuals: true });
+    const permissions = await PermissionModel.find({ _id: { $in: permLinks.map((p) => p.permission_id) } }).lean({ virtuals: true });
+    const userLinks = await UserRoleModel.find({ role_id: role._id }).lean({ virtuals: true });
     res.success({ ...toId(role), permissions: permissions.map((p) => toId(p)), user_ids: userLinks.map((u) => u.user_id) });
   },
 
@@ -159,7 +159,7 @@ export const adminController = {
     }
     const id = `role-${uuidv4().slice(0, 8)}`;
     await RoleModel.create({ _id: id, name: name.trim(), description: body?.description ?? null });
-    const role = await RoleModel.findById(id).lean();
+    const role = await RoleModel.findById(id).lean({ virtuals: true });
     res.success(role ? toId(role) : null, 'Created', 201);
   },
 
@@ -198,7 +198,7 @@ export const adminController = {
       return;
     }
     if (permissionIds.length > 0) {
-      const existingPerms = await PermissionModel.find({ _id: { $in: permissionIds } }).lean();
+      const existingPerms = await PermissionModel.find({ _id: { $in: permissionIds } }).lean({ virtuals: true });
       if (existingPerms.length !== permissionIds.length) {
         res.fail('One or more permission_ids are invalid', 400);
         return;
@@ -213,17 +213,17 @@ export const adminController = {
 
   // Permissions
   async listPermissions(_req: Request, res: Response): Promise<void> {
-    const permissions = await PermissionModel.find().lean();
+    const permissions = await PermissionModel.find().lean({ virtuals: true });
     res.success(permissions.map((p) => toId(p)));
   },
 
   async getPermission(req: Request, res: Response): Promise<void> {
-    const perm = await PermissionModel.findById(req.params.id).lean();
+    const perm = await PermissionModel.findById(req.params.id).lean({ virtuals: true });
     if (!perm) {
       res.fail('Permission not found', 404);
       return;
     }
-    const roleLinks = await RolePermissionModel.find({ permission_id: perm._id }).lean();
+    const roleLinks = await RolePermissionModel.find({ permission_id: perm._id }).lean({ virtuals: true });
     res.success({ ...toId(perm), role_ids: roleLinks.map((r) => r.role_id) });
   },
 
@@ -254,7 +254,7 @@ export const adminController = {
       action: action.trim(),
       description: body?.description ?? null,
     });
-    const perm = await PermissionModel.findById(id).lean();
+    const perm = await PermissionModel.findById(id).lean({ virtuals: true });
     res.success(perm ? toId(perm) : null, 'Created', 201);
   },
 
@@ -285,18 +285,18 @@ export const adminController = {
 
   // Groups
   async listGroups(_req: Request, res: Response): Promise<void> {
-    const groups = await GroupModel.find().lean();
+    const groups = await GroupModel.find().lean({ virtuals: true });
     res.success(groups.map((g) => toId(g)));
   },
 
   async getGroup(req: Request, res: Response): Promise<void> {
-    const group = await GroupModel.findById(req.params.id).lean();
+    const group = await GroupModel.findById(req.params.id).lean({ virtuals: true });
     if (!group) {
       res.fail('Group not found', 404);
       return;
     }
-    const userLinks = await UserGroupModel.find({ group_id: group._id }).lean();
-    const roleLinks = await GroupRoleModel.find({ group_id: group._id }).lean();
+    const userLinks = await UserGroupModel.find({ group_id: group._id }).lean({ virtuals: true });
+    const roleLinks = await GroupRoleModel.find({ group_id: group._id }).lean({ virtuals: true });
     res.success({
       ...toId(group),
       user_ids: userLinks.map((u) => u.user_id),
@@ -313,7 +313,7 @@ export const adminController = {
     }
     const id = `group-${uuidv4().slice(0, 8)}`;
     await GroupModel.create({ _id: id, name: name.trim(), description: body?.description ?? null });
-    const group = await GroupModel.findById(id).lean();
+    const group = await GroupModel.findById(id).lean({ virtuals: true });
     res.success(group ? toId(group) : null, 'Created', 201);
   },
 
@@ -351,7 +351,7 @@ export const adminController = {
       return;
     }
     if (userIds.length > 0) {
-      const existingUsers = await UserModel.find({ _id: { $in: userIds } }).lean();
+      const existingUsers = await UserModel.find({ _id: { $in: userIds } }).lean({ virtuals: true });
       if (existingUsers.length !== userIds.length) {
         res.fail('One or more user_ids are invalid', 400);
         return;
@@ -374,7 +374,7 @@ export const adminController = {
       return;
     }
     if (roleIds.length > 0) {
-      const existingRoles = await RoleModel.find({ _id: { $in: roleIds } }).lean();
+      const existingRoles = await RoleModel.find({ _id: { $in: roleIds } }).lean({ virtuals: true });
       if (existingRoles.length !== roleIds.length) {
         res.fail('One or more role_ids are invalid', 400);
         return;

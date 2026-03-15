@@ -9,12 +9,12 @@ function getAuthUserId(req: Request): string | null {
 }
 
 async function isFamilyCreator(familyId: string, userId: string): Promise<boolean> {
-  const family = await FamilyModel.findById(familyId).lean();
+  const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
   return Boolean(family && family.created_by === userId);
 }
 
 async function getMemberRole(familyId: string, userId: string): Promise<string | null> {
-  const member = await FamilyMemberModel.findOne({ family_id: familyId, user_id: userId }).lean();
+  const member = await FamilyMemberModel.findOne({ family_id: familyId, user_id: userId }).lean({ virtuals: true });
   return member?.role ?? null;
 }
 
@@ -22,7 +22,7 @@ async function canAccessFamily(familyId: string, userId: string): Promise<boolea
   if (await isFamilyCreator(familyId, userId)) {
     return true;
   }
-  const member = await FamilyMemberModel.findOne({ family_id: familyId, user_id: userId }).lean();
+  const member = await FamilyMemberModel.findOne({ family_id: familyId, user_id: userId }).lean({ virtuals: true });
   return Boolean(member);
 }
 
@@ -59,7 +59,7 @@ export const familiesController = {
       joined_at: new Date(),
     });
 
-    const family = await FamilyModel.findById(familyId).lean();
+    const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
     res.success(family, 'Family created', 201);
   },
 
@@ -72,12 +72,12 @@ export const familiesController = {
 
     const memberFamilies = await FamilyMemberModel.find({ user_id: userId })
       .select('family_id')
-      .lean();
+      .lean({ virtuals: true });
     const familyIds = memberFamilies.map((m) => m.family_id);
 
     const families = await FamilyModel.find({
       $or: [{ created_by: userId }, { _id: { $in: familyIds } }],
-    }).lean();
+    }).lean({ virtuals: true });
 
     res.success(families);
   },
@@ -89,10 +89,10 @@ export const familiesController = {
       return;
     }
 
-    const member = await FamilyMemberModel.findOne({ user_id: userId }).lean();
+    const member = await FamilyMemberModel.findOne({ user_id: userId }).lean({ virtuals: true });
     const family = member
       ? await FamilyModel.findById(member.family_id).lean()
-      : await FamilyModel.findOne({ created_by: userId }).lean();
+      : await FamilyModel.findOne({ created_by: userId }).lean({ virtuals: true });
 
     if (!family) {
       res.fail('Family not found', 404);
@@ -115,7 +115,7 @@ export const familiesController = {
       return;
     }
 
-    const family = await FamilyModel.findById(familyId).lean();
+    const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
     if (!family) {
       res.fail('Family not found', 404);
       return;
@@ -132,7 +132,7 @@ export const familiesController = {
     }
 
     const familyId = req.params.id;
-    const family = await FamilyModel.findById(familyId).lean();
+    const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
     if (!family) {
       res.fail('Family not found', 404);
       return;
@@ -148,7 +148,7 @@ export const familiesController = {
       familyId,
       { address: body.address ?? null },
       { new: true }
-    ).lean();
+    ).lean({ virtuals: true });
 
     res.success(updated);
   },
@@ -166,7 +166,7 @@ export const familiesController = {
       return;
     }
 
-    const members = await FamilyMemberModel.find({ family_id: familyId }).lean();
+    const members = await FamilyMemberModel.find({ family_id: familyId }).lean({ virtuals: true });
     res.success(members);
   },
 
@@ -178,7 +178,7 @@ export const familiesController = {
     }
 
     const familyId = req.params.id;
-    const family = await FamilyModel.findById(familyId).lean();
+    const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
     if (!family) {
       res.fail('Family not found', 404);
       return;
@@ -209,7 +209,7 @@ export const familiesController = {
     const existing = await FamilyMemberModel.findOne({
       family_id: familyId,
       user_id: memberUserId,
-    }).lean();
+    }).lean({ virtuals: true });
     if (existing) {
       res.fail('Member already exists', 409);
       return;
@@ -240,7 +240,7 @@ export const familiesController = {
     const familyId = req.params.householdId;
     const memberId = req.params.memberId;
 
-    const family = await FamilyModel.findById(familyId).lean();
+    const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
     if (!family) {
       res.fail('Family not found', 404);
       return;
@@ -253,7 +253,7 @@ export const familiesController = {
       return;
     }
 
-    const target = await FamilyMemberModel.findById(memberId).lean();
+    const target = await FamilyMemberModel.findById(memberId).lean({ virtuals: true });
     if (!target) {
       res.fail('Member not found', 404);
       return;
@@ -273,7 +273,7 @@ export const familiesController = {
         status: body.status ?? target.status,
       },
       { new: true }
-    ).lean();
+    ).lean({ virtuals: true });
 
     res.success(updated);
   },

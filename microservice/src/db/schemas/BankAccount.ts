@@ -1,7 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface IBankAccountDoc {
   _id: string;
+  id?: string;
   family_id: string;
   account_name: string;
   account_number: string | null;
@@ -28,6 +30,13 @@ const bankAccountSchema = new Schema<IBankAccountDoc>(
 );
 
 bankAccountSchema.index({ family_id: 1 });
+
+
+bankAccountSchema.virtual('id').get(function () {
+  return this._id;
+});
+
+bankAccountSchema.plugin(mongooseLeanVirtuals);
 
 export const BankAccountModel: Model<IBankAccountDoc> = mongoose.model<IBankAccountDoc>(
   'BankAccount',

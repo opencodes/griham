@@ -20,12 +20,12 @@ function signToken(userId: string, email: string): string {
 }
 
 async function getRbacForUser(userId: string): Promise<{ roles: unknown[]; permissions: unknown[] }> {
-  const userRoles = await UserRoleModel.find({ user_id: userId }).lean();
+  const userRoles = await UserRoleModel.find({ user_id: userId }).lean({ virtuals: true });
   const roleIds = userRoles.map((ur) => ur.role_id);
-  const roles = await RoleModel.find({ _id: { $in: roleIds } }).lean();
-  const permLinks = await RolePermissionModel.find({ role_id: { $in: roleIds } }).lean();
+  const roles = await RoleModel.find({ _id: { $in: roleIds } }).lean({ virtuals: true });
+  const permLinks = await RolePermissionModel.find({ role_id: { $in: roleIds } }).lean({ virtuals: true });
   const permIds = [...new Set(permLinks.map((p) => p.permission_id))];
-  const permissions = await PermissionModel.find({ _id: { $in: permIds } }).lean();
+  const permissions = await PermissionModel.find({ _id: { $in: permIds } }).lean({ virtuals: true });
   return { roles, permissions };
 }
 
@@ -55,7 +55,7 @@ export const authController = {
       role: 'user',
       is_active: 1,
     });
-    const user = await UserModel.findById(id).lean();
+    const user = await UserModel.findById(id).lean({ virtuals: true });
     if (!user) {
       res.fail('Failed to create user', 500);
       return;
@@ -76,7 +76,7 @@ export const authController = {
       res.fail('Email and password are required', 400);
       return;
     }
-    const user = await UserModel.findOne({ email: body.email }).lean();
+    const user = await UserModel.findOne({ email: body.email }).lean({ virtuals: true });
     if (!user) {
       res.fail('Invalid credentials', 401);
       return;
@@ -101,7 +101,7 @@ export const authController = {
       res.fail('Unauthorized', 401);
       return;
     }
-    const user = await UserModel.findById(auth.userId).lean();
+    const user = await UserModel.findById(auth.userId).lean({ virtuals: true });
     if (!user) {
       res.fail('User not found', 404);
       return;

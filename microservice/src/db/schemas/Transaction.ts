@@ -1,7 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface ITransactionDoc {
   _id: string;
+  id?: string;
   family_id: string;
   account_id: string;
   type: 'income' | 'expense';
@@ -40,6 +42,13 @@ const transactionSchema = new Schema<ITransactionDoc>(
 transactionSchema.index({ family_id: 1 });
 transactionSchema.index({ transaction_date: 1 });
 transactionSchema.index({ type: 1 });
+
+
+transactionSchema.virtual('id').get(function () {
+  return this._id;
+});
+
+transactionSchema.plugin(mongooseLeanVirtuals);
 
 export const TransactionModel: Model<ITransactionDoc> = mongoose.model<ITransactionDoc>(
   'Transaction',

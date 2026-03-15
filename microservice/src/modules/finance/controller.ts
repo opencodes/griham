@@ -13,7 +13,7 @@ export const financeController = {
       res.fail('family_id is required', 400);
       return;
     }
-    const accounts = await BankAccountModel.find({ family_id: familyId }).lean();
+    const accounts = await BankAccountModel.find({ family_id: familyId }).lean({ virtuals: true });
     res.success(accounts);
   },
 
@@ -23,7 +23,7 @@ export const financeController = {
       res.fail('family_id is required', 400);
       return;
     }
-    const transactions = await TransactionModel.find({ family_id: familyId }).lean();
+    const transactions = await TransactionModel.find({ family_id: familyId }).lean({ virtuals: true });
     res.success(transactions);
   },
 };

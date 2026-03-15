@@ -1,7 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface IPermissionDoc {
   _id: string;
+  id?: string;
   name: string;
   resource: string;
   action: string;
@@ -22,6 +24,12 @@ const permissionSchema = new Schema<IPermissionDoc>(
 );
 
 permissionSchema.index({ resource: 1, action: 1 }, { unique: true });
+
+permissionSchema.virtual('id').get(function () {
+  return this._id;
+});
+
+permissionSchema.plugin(mongooseLeanVirtuals);
 
 export const PermissionModel: Model<IPermissionDoc> = mongoose.model<IPermissionDoc>(
   'Permission',

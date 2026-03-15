@@ -1,7 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface IGroupDoc {
   _id: string;
+  id?: string;
   name: string;
   description: string | null;
   created_at?: Date;
@@ -16,5 +18,11 @@ const groupSchema = new Schema<IGroupDoc>(
   },
   { timestamps: true, id: false }
 );
+
+groupSchema.virtual('id').get(function () {
+  return this._id;
+});
+
+groupSchema.plugin(mongooseLeanVirtuals);
 
 export const GroupModel: Model<IGroupDoc> = mongoose.model<IGroupDoc>('Group', groupSchema);

@@ -1,7 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface IBillDoc {
   _id: string;
+  id?: string;
   family_id: string;
   bill_name: string;
   category: string;
@@ -32,5 +34,11 @@ const billSchema = new Schema<IBillDoc>(
 billSchema.index({ family_id: 1 });
 billSchema.index({ due_date: 1 });
 billSchema.index({ status: 1 });
+
+billSchema.virtual('id').get(function () {
+  return this._id;
+});
+
+billSchema.plugin(mongooseLeanVirtuals);
 
 export const BillModel: Model<IBillDoc> = mongoose.model<IBillDoc>('Bill', billSchema);

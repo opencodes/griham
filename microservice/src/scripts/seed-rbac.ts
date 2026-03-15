@@ -20,7 +20,7 @@ const permissions = [
 ];
 
 async function upsertRole(name: string, description: string | null): Promise<string> {
-  const existing = await RoleModel.findOne({ name }).lean();
+  const existing = await RoleModel.findOne({ name }).lean({ virtuals: true });
   if (existing) {
     return existing._id;
   }
@@ -31,7 +31,7 @@ async function upsertRole(name: string, description: string | null): Promise<str
 
 async function upsertPermission(resource: string, action: string): Promise<string> {
   const name = `${resource}:${action}`;
-  const existing = await PermissionModel.findOne({ name }).lean();
+  const existing = await PermissionModel.findOne({ name }).lean({ virtuals: true });
   if (existing) {
     return existing._id;
   }
@@ -47,7 +47,7 @@ async function upsertPermission(resource: string, action: string): Promise<strin
 }
 
 async function linkRolePermission(roleId: string, permissionId: string): Promise<void> {
-  const existing = await RolePermissionModel.findOne({ role_id: roleId, permission_id: permissionId }).lean();
+  const existing = await RolePermissionModel.findOne({ role_id: roleId, permission_id: permissionId }).lean({ virtuals: true });
   if (existing) {
     return;
   }

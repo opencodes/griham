@@ -1,7 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface ICardDoc {
   _id: string;
+  id?: string;
   family_id: string;
   card_type: 'credit' | 'debit';
   bank_name: string;
@@ -30,5 +32,11 @@ const cardSchema = new Schema<ICardDoc>(
 );
 
 cardSchema.index({ family_id: 1 });
+
+cardSchema.virtual('id').get(function () {
+  return this._id;
+});
+
+cardSchema.plugin(mongooseLeanVirtuals);
 
 export const CardModel: Model<ICardDoc> = mongoose.model<ICardDoc>('Card', cardSchema);

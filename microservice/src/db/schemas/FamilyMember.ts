@@ -1,7 +1,9 @@
-import mongoose, { Schema, Model } from 'mongoose';
+import mongoose, { Schema, Model, plugin } from 'mongoose';
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface IFamilyMemberDoc {
   _id: string;
+  id?: string;
   family_id: string;
   user_id: string;
   role: string;
@@ -32,7 +34,11 @@ const familyMemberSchema = new Schema<IFamilyMemberDoc>(
 familyMemberSchema.index({ family_id: 1, user_id: 1 }, { unique: true });
 familyMemberSchema.index({ family_id: 1 });
 familyMemberSchema.index({ user_id: 1 });
+familyMemberSchema.virtual('id').get(function () {
+  return this._id;
+});
 
+familyMemberSchema.plugin(mongooseLeanVirtuals);
 export const FamilyMemberModel: Model<IFamilyMemberDoc> = mongoose.model<IFamilyMemberDoc>(
   'FamilyMember',
   familyMemberSchema

@@ -8,7 +8,7 @@ export async function requireRoot(req: AuthRequest, res: Response, next: NextFun
         res.fail('Unauthorized', 401);
         return;
     }
-    const user = await UserModel.findById(req.auth.userId).lean();
+    const user = await UserModel.findById(req.auth.userId).lean({ virtuals: true });
     if (!user || user.role !== 'root') {
         res.fail('Forbidden', 403);
         return;
