@@ -30,6 +30,87 @@ export default function Cards() {
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const bankGradientMap: Record<string, string> = {
+    hdfc: 'bg-gradient-to-br from-blue-600 to-indigo-700',
+    icici: 'bg-gradient-to-br from-orange-500 to-rose-700',
+    sbi: 'bg-gradient-to-br from-sky-600 to-cyan-500',
+    axis: 'bg-gradient-to-br from-red-600 to-rose-700',
+    kotak: 'bg-gradient-to-br from-emerald-600 to-teal-700',
+    yes: 'bg-gradient-to-br from-lime-600 to-green-700',
+    pnb: 'bg-gradient-to-br from-amber-500 to-orange-700',
+    indusind: 'bg-gradient-to-br from-purple-600 to-fuchsia-700',
+    baroda: 'bg-gradient-to-br from-red-600 to-orange-600',
+    canara: 'bg-gradient-to-br from-blue-500 to-sky-700',
+    idfc: 'bg-gradient-to-br from-rose-600 to-pink-700',
+    federal: 'bg-gradient-to-br from-slate-600 to-zinc-700',
+    rbl: 'bg-gradient-to-br from-fuchsia-600 to-purple-700',
+    hsbc: 'bg-gradient-to-br from-red-600 to-pink-700',
+    citi: 'bg-gradient-to-br from-sky-600 to-blue-700',
+    amex: 'bg-gradient-to-br from-emerald-600 to-green-700'
+  };
+
+  const cardGradients = [
+    'bg-gradient-to-br from-blue-600 to-cyan-700',
+    'bg-gradient-to-br from-emerald-600 to-teal-700',
+    'bg-gradient-to-br from-amber-500 to-orange-700',
+    'bg-gradient-to-br from-rose-600 to-pink-700',
+    'bg-gradient-to-br from-indigo-600 to-sky-700',
+    'bg-gradient-to-br from-lime-600 to-green-700',
+    'bg-gradient-to-br from-fuchsia-600 to-purple-700',
+    'bg-gradient-to-br from-slate-600 to-zinc-700'
+  ];
+
+  const normalizeBankName = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/bank/g, '')
+      .replace(/[^a-z0-9]/g, '');
+
+  const getCardGradient = (bankName: string | undefined, cardType: Card['card_type']) => {
+    const name = bankName?.trim();
+    if (!name) {
+      return cardType === 'credit'
+        ? 'bg-gradient-to-br from-purple-600 to-indigo-700'
+        : 'bg-gradient-to-br from-blue-600 to-cyan-700';
+    }
+
+    const normalized = normalizeBankName(name);
+    for (const [key, gradient] of Object.entries(bankGradientMap)) {
+      if (normalized.includes(key)) return gradient;
+    }
+
+    let hash = 0;
+    for (let i = 0; i < name.length; i += 1) {
+      hash = (hash * 31 + name.charCodeAt(i)) % cardGradients.length;
+    }
+    return cardGradients[hash];
+  };
+
+  const suggestedBankNames = (() => {
+    const map = new Map<string, string>();
+    for (const card of cards) {
+      const name = card.bank_name?.trim();
+      if (!name || name.toLowerCase() === 'bank') continue;
+      const key = name.toLowerCase();
+      if (!map.has(key)) map.set(key, name);
+    }
+    return Array.from(map.values());
+  })();
+
+  const lastSuggestedBankName = (() => {
+    const candidates = cards.filter((card) => {
+      const name = card.bank_name?.trim();
+      return name && name.toLowerCase() !== 'bank';
+    });
+    if (candidates.length === 0) return '';
+    const sorted = candidates.sort((a, b) => {
+      const aTime = Date.parse(a.created_at || '') || 0;
+      const bTime = Date.parse(b.created_at || '') || 0;
+      return bTime - aTime;
+    });
+    return sorted[0]?.bank_name?.trim() || '';
+  })();
+
   const [formData, setFormData] = useState<CardFormState>({
     card_type: 'credit',
     bank_name: '',
@@ -128,7 +209,7 @@ export default function Cards() {
   const resetForm = () => {
     setFormData({
       card_type: 'credit',
-      bank_name: '',
+      bank_name: lastSuggestedBankName,
       card_name: '',
       last_four_digits: '',
       card_limit: '',
@@ -187,11 +268,10 @@ export default function Cards() {
               {cards.map((card) => (
                 <div
                   key={card.id}
-                  className={`p-6 rounded-xl text-white relative ${
-                    card.card_type === 'credit'
-                      ? 'bg-gradient-to-br from-purple-600 to-indigo-700'
-                      : 'bg-gradient-to-br from-blue-600 to-cyan-700'
-                  }`}
+                  className={`p-6 rounded-xl text-white relative ${getCardGradient(
+                    card.bank_name,
+                    card.card_type
+                  )}`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <CreditCard className="w-10 h-10 opacity-80" />
@@ -308,7 +388,15 @@ export default function Cards() {
                   required
                   placeholder="HDFC Bank"
                   className="input-theme"
+                  list="card-bank-name-suggestions"
                 />
+                {suggestedBankNames.length > 0 && (
+                  <datalist id="card-bank-name-suggestions">
+                    {suggestedBankNames.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
+                )}
               </div>
 
               <div>

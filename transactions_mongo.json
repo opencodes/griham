@@ -1,0 +1,1410 @@
+[
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 2000.0,
+    "description": "HARISH BABU S",
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 983.0,
+    "description": "ABHILASH ASHOK SHERKANE",
+    "transaction_date": {
+      "$date": "2026-03-11T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "income",
+    "category": "Other",
+    "amount": 1391.0,
+    "description": "Axis Bank",
+    "transaction_date": {
+      "$date": "2023-01-01T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 50.0,
+    "description": "HARSHITHA",
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 248.0,
+    "description": "BharatPe Merchant",
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "income",
+    "category": "Other",
+    "amount": 35000.0,
+    "description": "Axis Bank",
+    "transaction_date": {
+      "$date": "2023-03-01T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 13577.0,
+    "description": "IDFC FIRST Bank",
+    "transaction_date": {
+      "$date": "2026-03-03T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 200.0,
+    "description": "THIRUVATHAMMA",
+    "transaction_date": {
+      "$date": "2023-03-02T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "income",
+    "category": "Other",
+    "amount": 719.0,
+    "description": "IDFC FIRST Bank",
+    "transaction_date": {
+      "$date": "2026-02-27T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 5000.0,
+    "description": null,
+    "transaction_date": {
+      "$date": "2026-03-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 56388.0,
+    "description": "HDFC Bank",
+    "transaction_date": {
+      "$date": "2026-03-07T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 248.0,
+    "description": "RETROCART GODAVARI",
+    "transaction_date": {
+      "$date": "2022-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 40.0,
+    "description": "UDUPI PAAKARUCHI",
+    "transaction_date": {
+      "$date": "2025-03-05T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 13577.0,
+    "description": "IDFC FIRST Bank",
+    "transaction_date": {
+      "$date": "2026-03-03T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 45.0,
+    "description": "TOP IN TOWN HYPER MARKET",
+    "transaction_date": {
+      "$date": "2026-03-05T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 90.0,
+    "description": "YARAGADLA SUNITHA",
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 426.0,
+    "description": "FLIPKART",
+    "transaction_date": {
+      "$date": "2024-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 10.0,
+    "description": "NEELAM DEVI",
+    "transaction_date": {
+      "$date": "2027-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 339.0,
+    "description": "EKART",
+    "transaction_date": {
+      "$date": "2023-03-02T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 950.0,
+    "description": "Usekiwi Infolabs Private",
+    "transaction_date": {
+      "$date": "2026-03-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 220.0,
+    "description": "Jaya Kumar Sakthi",
+    "transaction_date": {
+      "$date": "2008-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 158.0,
+    "description": "Zudio",
+    "transaction_date": {
+      "$date": "2024-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Healthcare",
+    "amount": 200.0,
+    "description": "ABHAYAHASTA DIAGNOSTIC CE",
+    "transaction_date": {
+      "$date": "2026-03-11T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 278.0,
+    "description": "FLIPKART",
+    "transaction_date": {
+      "$date": "2026-03-06T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 60.0,
+    "description": "TEJRAJ P",
+    "transaction_date": {
+      "$date": "2026-03-01T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 171.0,
+    "description": "TABREZ PASHA",
+    "transaction_date": {
+      "$date": "2026-02-28T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 40.0,
+    "description": "BROTHERS CHEMIST",
+    "transaction_date": {
+      "$date": "2026-02-11T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 100.0,
+    "description": "JASMINE SUSHEELA S",
+    "transaction_date": {
+      "$date": "2026-03-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "income",
+    "category": "Other",
+    "amount": 187500.0,
+    "description": null,
+    "transaction_date": {
+      "$date": "2023-03-01T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 64.0,
+    "description": "TOP IN TOWN HYPER MARKET",
+    "transaction_date": {
+      "$date": "2026-03-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 368.0,
+    "description": "TOP IN TOWN HYPER M",
+    "transaction_date": {
+      "$date": "2028-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 1601.0,
+    "description": "AMAZON PAY",
+    "transaction_date": {
+      "$date": "2026-02-15T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 60.0,
+    "description": "Sagar",
+    "transaction_date": {
+      "$date": "2026-02-25T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 125.0,
+    "description": "ARVIND STORE",
+    "transaction_date": {
+      "$date": "2026-03-06T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 330.0,
+    "description": "SAIF ALI KHAN",
+    "transaction_date": {
+      "$date": "2026-02-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 444.5,
+    "description": "RETROCART YAMUNA 1",
+    "transaction_date": {
+      "$date": "2026-03-11T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 208.0,
+    "description": "NEELAM DEVI",
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 53.0,
+    "description": "BharatPe Merchant",
+    "transaction_date": {
+      "$date": "2023-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 3000.0,
+    "description": null,
+    "transaction_date": {
+      "$date": "2026-02-15T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 300.0,
+    "description": "RETROCART MAHANADI",
+    "transaction_date": {
+      "$date": "2026-02-11T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 60.0,
+    "description": "GAUTAM TAMANG",
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 435.0,
+    "description": "ALR DRUG EMPORIUM",
+    "transaction_date": {
+      "$date": "2023-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 265.0,
+    "description": "ARVIND STORE",
+    "transaction_date": {
+      "$date": "2026-02-24T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 4630.0,
+    "description": "KALAMANDIR",
+    "transaction_date": {
+      "$date": "2026-02-16T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 2400.0,
+    "description": "BLUE SUPER MART",
+    "transaction_date": {
+      "$date": "2024-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 628.0,
+    "description": "Delhivery Limited",
+    "transaction_date": {
+      "$date": "2026-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 165000.0,
+    "description": null,
+    "transaction_date": {
+      "$date": "2026-03-09T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Transport",
+    "amount": 2729.4,
+    "description": "Harikrishna Fuel Sta",
+    "transaction_date": {
+      "$date": "2026-03-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 149.0,
+    "description": "URBANCOMPANY",
+    "transaction_date": {
+      "$date": "2026-03-08T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 106.0,
+    "description": "Flipkart",
+    "transaction_date": {
+      "$date": "2023-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 20.0,
+    "description": "RAMAPPA",
+    "transaction_date": {
+      "$date": "2027-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 90.0,
+    "description": "YARAGADLA SUNITHA",
+    "transaction_date": {
+      "$date": "2026-02-24T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 35.0,
+    "description": "NEELAM DEVI",
+    "transaction_date": {
+      "$date": "2026-03-06T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 647.0,
+    "description": "INSTAMART",
+    "transaction_date": {
+      "$date": "2026-03-11T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 2520.0,
+    "description": "Gajendra M",
+    "transaction_date": {
+      "$date": "2023-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 2155.0,
+    "description": null,
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 70.0,
+    "description": "YARAGADLA BABU",
+    "transaction_date": {
+      "$date": "2023-03-02T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 120.0,
+    "description": "HARSHITHA",
+    "transaction_date": {
+      "$date": "2026-02-24T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 945.0,
+    "description": "MANOJ",
+    "transaction_date": {
+      "$date": "2026-03-08T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 32.0,
+    "description": "SEASON FRESH DAILY N",
+    "transaction_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 129.0,
+    "description": "FLIPKART",
+    "transaction_date": {
+      "$date": "2026-03-12T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Healthcare",
+    "amount": 700.0,
+    "description": "ABHAYAHASTA DIAGNOSTIC CE",
+    "transaction_date": {
+      "$date": "2026-03-11T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 159.0,
+    "description": "RETROCART",
+    "transaction_date": {
+      "$date": "2023-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 180.0,
+    "description": "patanjali",
+    "transaction_date": {
+      "$date": "2023-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 28.0,
+    "description": "BANGALORE HORTICULT",
+    "transaction_date": {
+      "$date": "2024-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 30.0,
+    "description": "RUMALA KUMARI",
+    "transaction_date": {
+      "$date": "2026-02-28T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 279.0,
+    "description": "ABHILASH ASHOK SHERKANE",
+    "transaction_date": {
+      "$date": "2026-03-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Healthcare",
+    "amount": 1900.0,
+    "description": "SRI KAUVERY MEDICAL",
+    "transaction_date": {
+      "$date": "2026-02-27T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Transport",
+    "amount": 223.23,
+    "description": "HARIKRISHNA FUEL",
+    "transaction_date": {
+      "$date": "2026-03-06T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 110.0,
+    "description": "ANASUYA",
+    "transaction_date": {
+      "$date": "2026-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 280.0,
+    "description": "RETROCART NARMADA 1",
+    "transaction_date": {
+      "$date": "2026-02-27T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "income",
+    "category": "Other",
+    "amount": 867.0,
+    "description": "IDFC FIRST Bank",
+    "transaction_date": {
+      "$date": "2023-02-23T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 497.0,
+    "description": "Delhivery Limited",
+    "transaction_date": {
+      "$date": "2026-02-27T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 755.0,
+    "description": "SWATI RAJAPANTULU",
+    "transaction_date": {
+      "$date": "2026-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 190.0,
+    "description": "RETROCART GODAVARI",
+    "transaction_date": {
+      "$date": "2028-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 165.0,
+    "description": "SHADOWFAX TECHNOLOGIES PR",
+    "transaction_date": {
+      "$date": "2026-03-05T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 50.0,
+    "description": "HARSHITHA",
+    "transaction_date": {
+      "$date": "2027-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 324.0,
+    "description": "TOP IN TOWN HYPER MARKET",
+    "transaction_date": {
+      "$date": "2026-03-13T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 1819.8,
+    "description": "KAVYA PETRO",
+    "transaction_date": {
+      "$date": "2026-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Food",
+    "amount": 244.0,
+    "description": "Swiggy",
+    "transaction_date": {
+      "$date": "2026-03-14T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Healthcare",
+    "amount": 1068.0,
+    "description": "SRI KAUVERY MEDICAL",
+    "transaction_date": {
+      "$date": "2026-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 300.0,
+    "description": "ARBAJ ALI",
+    "transaction_date": {
+      "$date": "2026-03-07T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "income",
+    "category": "Other",
+    "amount": 1249.0,
+    "description": "IDFC FIRST Bank",
+    "transaction_date": {
+      "$date": "2026-02-27T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 2400.0,
+    "description": "BharatPe Merchant",
+    "transaction_date": {
+      "$date": "2026-02-15T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 518.0,
+    "description": null,
+    "transaction_date": {
+      "$date": "2022-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Shopping",
+    "amount": 339.0,
+    "description": "FLIPKART",
+    "transaction_date": {
+      "$date": "2024-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 223.0,
+    "description": "TOP IN TOWN HYPER M",
+    "transaction_date": {
+      "$date": "2023-03-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  },
+  {
+    "family_id": "aae27dc6-e4be-414e-af56-a6ae83b8e05e",
+    "account_id": "e4384d17-ea57-4748-80ce-12125c3c966e",
+    "type": "expense",
+    "category": "Other",
+    "amount": 78.0,
+    "description": "NEELAM DEVI",
+    "transaction_date": {
+      "$date": "2023-02-26T00:00:00Z"
+    },
+    "created_by": "fa82da30-70f2-47f1-adf4-9f21572c3331",
+    "currency": null,
+    "merchant_name": null,
+    "payment_method": null,
+    "bank_name": null
+  }
+]

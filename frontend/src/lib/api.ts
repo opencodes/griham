@@ -259,11 +259,11 @@ export const financeAPI = {
       insights: string | null;
       ai_available: boolean;
     }>(`/finance/ai/insights/${familyId}${params}`);
-    return data.data;
+    return data;
   },
   getSavingsTips: async (familyId: string) => {
     const { data } = await api.get<{ tips: string[] | null; ai_available: boolean }>(`/finance/ai/savings-tips/${familyId}`);
-    return data.data;
+    return data;
   },
   suggestCategory: async (
     familyId: string,
@@ -273,14 +273,14 @@ export const financeAPI = {
       `/finance/ai/suggest-category/${familyId}`,
       payload
     );
-    return data.data;
+    return data;
   },
   suggestBillCategory: async (familyId: string, payload: { bill_name: string }) => {
     const { data } = await api.post<{ category: string }>(
       `/finance/ai/suggest-bill-category/${familyId}`,
       payload
     );
-    return data.data;
+    return data;
   },
 };
 

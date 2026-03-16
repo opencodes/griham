@@ -351,7 +351,7 @@ export default function Dashboard() {
               <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {canAccessModule(user, 'family') && (
                   <button
-                    onClick={() => setActiveTab('family')}
+                    onClick={() => navigate('/family')}
                     className="text-left rounded-xl p-4 hover:shadow-sm glass-black-surface border border-[var(--panel-border)] transition"
                   >
                     <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />

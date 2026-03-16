@@ -124,7 +124,7 @@ export default function FamilyDetail() {
     if (!createName.trim()) return;
     setIsCreating(true);
     try {
-      const created = await householdAPI.create(createName.trim(), createAddress.trim() || undefined);
+      // const created = await householdAPI.create(createName.trim(), createAddress.trim() || undefined);
       setShowCreateModal(false);
       setCreateName('');
       setCreateAddress('');
@@ -262,9 +262,9 @@ export default function FamilyDetail() {
                     const displayName = member.status === 'pending'
                       ? member.invitation_email
                       : member.full_name;
-                    const displayEmail = member.status === 'pending'
-                      ? 'Invitation sent'
-                      : member.user_email;
+                    // const displayEmail = member.status === 'pending'
+                    //   ? 'Invitation sent'
+                    //   : member.user_email;
 
                     return (
                       <div key={member.id} className="flex items-center justify-between p-4 rounded-lg glass-black-soft border border-[var(--panel-border)]">

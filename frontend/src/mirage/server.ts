@@ -790,7 +790,7 @@ export function makeServer({ environment = 'development' } = {}) {
       this.post('/finance/ai/suggest-category/:familyId', (_schema, request) => {
         const body = JSON.parse(request.requestBody);
         const desc = ((body.description ?? '') as string).toLowerCase();
-        const amount = Number(body.amount);
+        // const amount = Number(body.amount);
         const categories: Array<{ keywords: string[]; category: string; type: 'income' | 'expense' }> = [
           { keywords: ['salary', 'pay', 'credited', 'income', 'deposit'], category: 'Salary', type: 'income' },
           { keywords: ['amazon', 'flipkart', 'shopping', 'mall'], category: 'Shopping', type: 'expense' },

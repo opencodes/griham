@@ -33,6 +33,35 @@ const cardSchema = new Schema<ICardDoc>(
 
 cardSchema.index({ family_id: 1 });
 
+cardSchema.pre('validate', async function (next) {
+  const placeholder = typeof this.bank_name === 'string' ? this.bank_name.trim() : '';
+  if (placeholder && placeholder.toLowerCase() !== 'bank') {
+    next();
+    return;
+  }
+
+  try {
+    const last = await this.model<ICardDoc>('Card')
+      .findOne({
+        family_id: this.family_id,
+        bank_name: { $exists: true, $nin: ['', 'Bank'] },
+      })
+      .sort({ createdAt: -1, _id: -1 })
+      .select({ bank_name: 1 })
+      .lean();
+
+    if (last?.bank_name) {
+      this.bank_name = last.bank_name;
+    } else if (!placeholder) {
+      this.bank_name = 'Bank';
+    }
+
+    next();
+  } catch (err) {
+    next(err as Error);
+  }
+});
+
 cardSchema.virtual('id').get(function () {
   return this._id;
 });
