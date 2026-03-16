@@ -1,10 +1,10 @@
 /**
- * Finance AI service: Hugging Face when available, rule-based fallback otherwise.
+ * Finance AI service: configured provider when available, rule-based fallback otherwise.
  */
-import * as hf from '../../lib/huggingface.js';
+import * as ai from '../../lib/ai/index.js';
 
-const TEXT_MODEL = 'google/flan-t5-base';
-const ZERO_SHOT_MODEL = 'facebook/bart-large-mnli';
+const TEXT_MODEL = ai.getDefaultTextModel();
+const ZERO_SHOT_MODEL = ai.getDefaultZeroShotModel();
 
 const TRANSACTION_CATEGORIES = [
   'Salary', 'Shopping', 'Food', 'Transport', 'Utilities', 'Subscription',
@@ -71,12 +71,12 @@ export async function answerAskMonth(
   const categoryLines =
     context.top_categories.length > 0
       ? context.top_categories
-          .map((c) => `- ${c.category}: ₹${c.amount.toLocaleString()} (${c.percent}% of expenses)`)
-          .join('\n')
+        .map((c) => `- ${c.category}: ₹${c.amount.toLocaleString()} (${c.percent}% of expenses)`)
+        .join('\n')
       : 'No expense categories this month.';
   const fallback =
     `This month: income ₹${context.total_income.toLocaleString()}, expenses ₹${context.total_expense.toLocaleString()}, savings rate ${context.savings_rate}%, ${context.upcoming_bills} pending bills. Top categories: ${context.top_categories.slice(0, 3).map((c) => c.category).join(', ')}.`;
-  if (!hf.isHuggingFaceAvailable()) {
+  if (!ai.isAiAvailable()) {
     return { answer: fallback, ai_available: false };
   }
   const monthLabel = context.month ? ` for ${context.month}` : '';
@@ -92,7 +92,7 @@ ${categoryLines}
 User question: ${q}
 
 Answer (1-3 sentences, no bullet points):`;
-  const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 150 });
+  const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 150 });
   if (out && out.trim().length > 10) {
     return { answer: out.trim(), ai_available: true };
   }
@@ -104,7 +104,7 @@ export async function generateNarrativeSummary(
 ): Promise<{ narrative: string; ai_available: boolean }> {
   const fallback =
     `This month: income ₹${context.total_income.toLocaleString()}, expenses ₹${context.total_expense.toLocaleString()}; savings rate ${context.savings_rate}%. ${context.upcoming_bills} pending bill(s).`;
-  if (!hf.isHuggingFaceAvailable()) {
+  if (!ai.isAiAvailable()) {
     return { narrative: fallback, ai_available: false };
   }
   const monthLabel = context.month ? ` for ${context.month}` : '';
@@ -115,7 +115,7 @@ export async function generateNarrativeSummary(
   const prompt = `Write exactly 2-3 short sentences summarizing this month's finances. Do not use bullet points.
 This month${monthLabel}: income ₹${context.total_income}, expenses ₹${context.total_expense}, savings rate ${context.savings_rate}%, ${context.upcoming_bills} pending bill(s).${trend}
 Mention income, expenses, and bills; if trend is available mention whether spending is up or down vs last month. Be concise and neutral.`;
-  const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 150 });
+  const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 150 });
   if (out && out.trim().length > 30) {
     return { narrative: out.trim(), ai_available: true };
   }
@@ -146,7 +146,7 @@ export async function generateCategoryInsights(
     summary: `${c.category}: ${c.percent}% of expenses (₹${c.amount.toLocaleString()}).`,
   }));
 
-  if (!hf.isHuggingFaceAvailable()) {
+  if (!ai.isAiAvailable()) {
     return { insights: fallbackInsights, ai_available: false };
   }
 
@@ -161,7 +161,7 @@ export async function generateCategoryInsights(
 Categories (this month):
 ${lines}
 Reply with one sentence per category, in the same order, one per line. No numbering.`;
-  const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 200 });
+  const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 200 });
   if (!out || out.trim().length < 5) {
     return { insights: fallbackInsights, ai_available: false };
   }
@@ -181,7 +181,7 @@ Reply with one sentence per category, in the same order, one per line. No number
 export async function generateRiskSuggestions(
   context: RiskSuggestionsContext
 ): Promise<{ risks: string[]; ai_available: boolean }> {
-  if (!hf.isHuggingFaceAvailable()) {
+  if (!ai.isAiAvailable()) {
     return { risks: DEFAULT_RISK_SUGGESTIONS, ai_available: false };
   }
   const prevIncome = context.prev_month_income || 0;
@@ -213,9 +213,9 @@ export async function generateRiskSuggestions(
   const billsSummary =
     context.upcoming_bills.length > 0
       ? `Upcoming/pending bills: ${context.upcoming_bills
-          .slice(0, 5)
-          .map((b) => `${b.due_date} ₹${b.amount}`)
-          .join('; ')}${context.upcoming_bills.length > 5 ? '...' : ''}. Total pending: ${context.pending_bills_count}. Overdue: ${context.overdue_bills_count}. Bills due in 5 days: ${billsDueIn5.length}, total ₹${totalDueIn5}. Bills due in 7 days: ${billsDueIn7.length}, total ₹${totalDueIn7}. Balance: ₹${context.total_balance}. ${shortfall5 > 0 ? `Shortfall for 5-day bills: ₹${shortfall5}.` : ''} ${shortfall7 > 0 ? `Shortfall for 7-day bills: ₹${shortfall7}.` : ''}`
+        .slice(0, 5)
+        .map((b) => `${b.due_date} ₹${b.amount}`)
+        .join('; ')}${context.upcoming_bills.length > 5 ? '...' : ''}. Total pending: ${context.pending_bills_count}. Overdue: ${context.overdue_bills_count}. Bills due in 5 days: ${billsDueIn5.length}, total ₹${totalDueIn5}. Bills due in 7 days: ${billsDueIn7.length}, total ₹${totalDueIn7}. Balance: ₹${context.total_balance}. ${shortfall5 > 0 ? `Shortfall for 5-day bills: ₹${shortfall5}.` : ''} ${shortfall7 > 0 ? `Shortfall for 7-day bills: ₹${shortfall7}.` : ''}`
       : 'No pending bills.';
   const prompt = `You are a household finance risk advisor. Given this data, suggest 2 to 5 SHORT risk alerts (one line each, no numbering). Focus on:
 - Spending or income changes vs last month (e.g. "Spending up 20% vs last month")
@@ -223,7 +223,7 @@ export async function generateRiskSuggestions(
 - Savings rate or balance concerns
 Current month: income ₹${context.total_income}, expenses ₹${context.total_expense}, savings rate ${context.savings_rate}%, balance ₹${context.total_balance}. Previous month: income ₹${prevIncome}, expenses ₹${prevExpense}. ${incomePct != null ? `Income change: ${incomePct}% vs last month.` : ''} ${expensePct != null ? `Expense change: ${expensePct}% vs last month.` : ''} ${billsSummary}
 Reply with ONLY the risk lines, one per line, no numbers or bullets. If no real risks, reply "No additional risks."`;
-  const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 250 });
+  const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 250 });
   if (!out || out.trim().length < 5) {
     return { risks: DEFAULT_RISK_SUGGESTIONS, ai_available: false };
   }
@@ -278,14 +278,14 @@ export async function generateCashflowTips(
     ruleBasedTips.push(`Consider paying ${first.due_date} (₹${first.amount}) before ${second.due_date} (₹${second.amount}).`);
   }
 
-  if (!hf.isHuggingFaceAvailable()) {
+  if (!ai.isAiAvailable()) {
     return { tips: ruleBasedTips, ai_available: false };
   }
 
   const billLines = context.upcoming_bills.slice(0, 6).map((b) => `${b.due_date} ₹${b.amount}`).join('; ');
   const prompt = `Generate 1 to 3 SHORT cash-flow tips for the user. Data: Balance ₹${context.total_balance}. ${billsDueIn5.length} bills due in 5 days (total ₹${totalDueIn5}). ${shortfall5 > 0 ? `Shortfall: ₹${shortfall5}.` : ''} Bills: ${billLines}.
 Include if relevant: "N bills due in 5 days; balance might be short by ₹X" or "Consider paying Y before Z." One tip per line, no numbering.`;
-  const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
+  const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
   if (out && out.trim().length > 10) {
     const lines = out
       .split(/[\n•·-]/)
@@ -299,7 +299,7 @@ Include if relevant: "N bills due in 5 days; balance might be short by ₹X" or 
 export async function generateInsights(context: InsightsContext): Promise<{ insights: string; ai_available: boolean }> {
   const fallback =
     'Household is set up with family members. Finance is active: balance and monthly flow are tracked. Consider keeping savings rate above 20%. Review upcoming bills and add more transactions for better insights. Other modules (Events, Assets, Health, etc.) are available in the app.';
-  if (!hf.isHuggingFaceAvailable()) {
+  if (!ai.isAiAvailable()) {
     return { insights: fallback, ai_available: false };
   }
   const members = context.members_count ?? 0;
@@ -312,7 +312,7 @@ export async function generateInsights(context: InsightsContext): Promise<{ insi
 2) Finance: total balance ${context.total_balance} INR; this month${monthLabel} income ${context.total_income} INR, expenses ${context.total_expense} INR; savings rate ${context.savings_rate}%; ${context.upcoming_bills} pending bill(s). Finance module: ${accounts} account(s), ${transactions} transaction(s) this month, ${cards} card(s).
 3) Module status: mention Finance is active with the above; briefly note that other modules (Events, Assets, Health, Contacts, Organizer, Messages) are available in the app.
 Be concise, practical, and motivating. One paragraph only.`;
-  const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 200 });
+  const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 200 });
   if (out && out.length > 20) {
     return { insights: out.trim(), ai_available: true };
   }
@@ -326,12 +326,12 @@ const DEFAULT_SAVINGS_TIPS = [
 ];
 
 export async function getSavingsTips(): Promise<{ tips: string[]; ai_available: boolean }> {
-  if (!hf.isHuggingFaceAvailable()) {
+  if (!ai.isAiAvailable()) {
     return { tips: DEFAULT_SAVINGS_TIPS, ai_available: false };
   }
   const prompt =
     'Give exactly 3 short savings tips for a household (one per line, no numbering). Focus on daily habits and subscriptions.';
-  const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
+  const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
   if (out) {
     const lines = out.split(/[\n.]/).map((s) => s.trim()).filter((s) => s.length > 10);
     if (lines.length >= 2) {
@@ -373,7 +373,7 @@ export async function interpretSearchQuery(
   if (!q) {
     return { spec: fallback, ai_available: false };
   }
-  if (hf.isHuggingFaceAvailable()) {
+  if (ai.isAiAvailable()) {
     const today = new Date().toISOString().slice(0, 10);
     const lastWeek = getLastWeekRange();
     const prompt = `Convert this transaction search query into a JSON object. Today is ${today}. Current month context: ${month || 'not set'}. Last week: ${lastWeek.date_from} to ${lastWeek.date_to}.
@@ -384,7 +384,7 @@ Examples: "coffee last week" -> {"description_contains":"coffee","date_from":"${
 "biggest expense this month" -> {"type":"expense","sort":"amount_high"}
 "salary" -> {"description_contains":"salary","type":"income"}
 Return only the JSON, no other text.`;
-    const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
+    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
     if (out) {
       const jsonMatch = out.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -426,12 +426,12 @@ Return only the JSON, no other text.`;
 
 export async function suggestTransactionCategory(
   description: string,
-  amount?: number,  type?: string
+  amount?: number, type?: string
 ): Promise<{ category: string; type?: 'income' | 'expense' }> {
   const desc = (description || '').toLowerCase();
   const fallback = { category: 'Other', type: 'expense' as const };
-  if (hf.isHuggingFaceAvailable()) {
-    const result = await hf.zeroShotClassification(
+  if (ai.isAiAvailable()) {
+    const result = await ai.zeroShotClassification(
       ZERO_SHOT_MODEL,
       desc + (amount != null ? ` Amount: ${amount}.` : ''),
       TRANSACTION_CATEGORIES
@@ -451,8 +451,8 @@ export async function suggestTransactionCategory(
 export async function suggestBillCategory(billName: string): Promise<{ category: string }> {
   const name = (billName || '').toLowerCase();
   const fallback = { category: 'Other' };
-  if (hf.isHuggingFaceAvailable()) {
-    const result = await hf.zeroShotClassification(ZERO_SHOT_MODEL, name, BILL_CATEGORIES);
+  if (ai.isAiAvailable()) {
+    const result = await ai.zeroShotClassification(ZERO_SHOT_MODEL, name, BILL_CATEGORIES);
     if (result) return { category: result.label };
   }
   for (const { keywords, category } of BILL_KEYWORDS) {
@@ -472,9 +472,9 @@ export interface ParsedTransaction {
 export async function parseSmsToTransaction(smsText: string): Promise<ParsedTransaction | null> {
   const text = (smsText || '').trim();
   if (!text) return null;
-  if (hf.isHuggingFaceAvailable()) {
+  if (ai.isAiAvailable()) {
     const prompt = `From this Indian bank SMS, extract: amount (number), type (income or expense), category (one word), short description, date (YYYY-MM-DD if present). Reply in one line: amount|type|category|description|date. SMS: ${text.slice(0, 400)}`;
-    const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 80 });
+    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 80 });
     if (out) {
       const parts = out.split('|').map((s) => s.trim());
       const amount = parseFloat(parts[0]?.replace(/[^0-9.-]/g, '') || '0') || 0;
@@ -512,9 +512,9 @@ export interface ParsedCard {
 export async function parseSmsToCard(smsText: string): Promise<ParsedCard | null> {
   const text = (smsText || '').trim();
   if (!text) return null;
-  if (hf.isHuggingFaceAvailable()) {
+  if (ai.isAiAvailable()) {
     const prompt = `From this bank card SMS, extract: bank name, card name, last 4 digits, card type (credit or debit), credit limit (number if present). Reply: bank|cardname|last4|type|limit. SMS: ${text.slice(0, 400)}`;
-    const out = await hf.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 60 });
+    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 60 });
     if (out) {
       const parts = out.split('|').map((s) => s.trim());
       const last4 = parts[2]?.replace(/\D/g, '').slice(-4) || undefined;
