@@ -778,6 +778,161 @@ export function makeServer({ environment = 'development' } = {}) {
         return { data: { data, insights, ai_available: true } };
       });
 
+      this.get('/finance/ai/risk-suggestions/:familyId', (_schema, request) => {
+        const familyId = request.params.familyId;
+        const accounts = db.accounts.filter((a) => a.family_id === familyId);
+        const totalBalance = accounts.reduce((s, a) => s + Number(a.balance || 0), 0);
+        let transactions = db.transactions.filter((t) => t.family_id === familyId);
+        const q = request.queryParams;
+        const monthStr = (q?.month as string) || new Date().toISOString().slice(0, 7);
+        const [y, m] = monthStr.split('-').map(Number);
+        const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+        const end = new Date(y, m, 0).toISOString().slice(0, 10);
+        transactions = transactions.filter((t) => t.transaction_date >= start && t.transaction_date <= end);
+        const total_income = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+        const total_expense = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        const bills = db.bills.filter((b) => b.family_id === familyId && b.status === 'pending');
+        const billsTotal = bills.reduce((s, b) => s + Number(b.amount || 0), 0);
+        const risks: string[] = [];
+        if (total_expense > total_balance && total_balance > 0) {
+          risks.push('Monthly expenses exceed current balance; consider delaying non-essential spending.');
+        }
+        if (bills.length > 0 && billsTotal > totalBalance) {
+          risks.push(`Bills due total ₹${billsTotal.toLocaleString()} but balance is ₹${totalBalance.toLocaleString()}.`);
+        }
+        if (total_income > 0 && total_expense / total_income > 0.9) {
+          risks.push('Spending is over 90% of income this month; savings may be at risk.');
+        }
+        return { data: { risks, ai_available: true } };
+      });
+
+      this.post('/finance/ai/ask-month/:familyId', (_schema, request) => {
+        const body = JSON.parse(request.requestBody || '{}');
+        const q = ((body.question || '') as string).toLowerCase();
+        const familyId = request.params.familyId;
+        const monthStr = (body.month as string) || new Date().toISOString().slice(0, 7);
+        const [y, m] = monthStr.split('-').map(Number);
+        const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+        const end = new Date(y, m, 0).toISOString().slice(0, 10);
+        const txs = db.transactions.filter(
+          (t) => t.family_id === familyId && t.transaction_date >= start && t.transaction_date <= end
+        );
+        const income = txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+        const expense = txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        const byCat = new Map<string, number>();
+        txs.filter((t) => t.type === 'expense').forEach((t) => {
+          const cat = t.category || 'Other';
+          byCat.set(cat, (byCat.get(cat) || 0) + t.amount);
+        });
+        const top3 = Array.from(byCat.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([c]) => c);
+        let answer = `This month: income ₹${income.toLocaleString()}, expenses ₹${expense.toLocaleString()}.`;
+        if (/\btop\s*3|top three|biggest|largest\b/.test(q) && top3.length > 0) {
+          answer += ` Top 3 categories: ${top3.join(', ')}.`;
+        }
+        if (/\bwhy.*(high|expense|spend)\b|\bexpense.*high\b/.test(q)) {
+          answer += ` Expense is driven mainly by ${top3[0] || 'general spending'}.`;
+        }
+        return { data: { answer, ai_available: true } };
+      });
+
+      this.get('/finance/ai/cashflow-tips/:familyId', (_schema, request) => {
+        const familyId = request.params.familyId;
+        const bills = db.bills.filter((b) => b.family_id === familyId && b.status === 'pending');
+        const accounts = db.accounts.filter((a) => a.family_id === familyId);
+        const balance = accounts.reduce((s, a) => s + Number(a.balance || 0), 0);
+        const now = Date.now();
+        const in5 = 5 * 24 * 60 * 60 * 1000;
+        const dueIn5 = bills.filter((b) => {
+          const t = new Date(b.due_date).getTime();
+          return t >= now && t <= now + in5;
+        });
+        const totalDue5 = dueIn5.reduce((s, b) => s + Number(b.amount || 0), 0);
+        const shortfall = Math.max(0, totalDue5 - balance);
+        const tips: string[] = [];
+        if (dueIn5.length > 0) {
+          tips.push(`${dueIn5.length} bill(s) due in 5 days${shortfall > 0 ? `; balance might be short by ₹${shortfall.toLocaleString()}` : ''}.`);
+        }
+        if (bills.length >= 2 && balance < bills.reduce((s, b) => s + Number(b.amount || 0), 0)) {
+          const sorted = [...bills].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+          tips.push(`Consider paying ${sorted[0].bill_name} (${sorted[0].due_date}) before ${sorted[1].bill_name}.`);
+        }
+        return { data: { tips, ai_available: true } };
+      });
+
+      this.get('/finance/ai/narrative-summary/:familyId', (_schema, request) => {
+        const familyId = request.params.familyId;
+        const monthStr = (request.queryParams?.month as string) || new Date().toISOString().slice(0, 7);
+        const [y, m] = monthStr.split('-').map(Number);
+        const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+        const end = new Date(y, m, 0).toISOString().slice(0, 10);
+        const txs = db.transactions.filter(
+          (t) => t.family_id === familyId && t.transaction_date >= start && t.transaction_date <= end
+        );
+        const income = txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+        const expense = txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+        const savingsRate = income > 0 ? ((income - expense) / income) * 100 : 0;
+        const bills = db.bills.filter((b) => b.family_id === familyId && b.status === 'pending').length;
+        const narrative =
+          `This month income is ₹${income.toLocaleString()} and expenses ₹${expense.toLocaleString()}; savings rate ${savingsRate.toFixed(1)}%. ${bills} pending bill(s).`;
+        return { data: { narrative, ai_available: true } };
+      });
+
+      this.get('/finance/ai/category-insights/:familyId', (_schema, request) => {
+        const familyId = request.params.familyId;
+        const monthStr = (request.queryParams?.month as string) || new Date().toISOString().slice(0, 7);
+        const [y, m] = monthStr.split('-').map(Number);
+        const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+        const end = new Date(y, m, 0).toISOString().slice(0, 10);
+        const txs = db.transactions.filter(
+          (t) => t.family_id === familyId && t.type === 'expense' && t.transaction_date >= start && t.transaction_date <= end
+        );
+        const byCat = new Map<string, number>();
+        let total = 0;
+        txs.forEach((t) => {
+          const cat = t.category || 'Other';
+          const amt = Number(t.amount || 0);
+          byCat.set(cat, (byCat.get(cat) || 0) + amt);
+          total += amt;
+        });
+        const insights = Array.from(byCat.entries())
+          .map(([category, amount]) => ({
+            category,
+            amount,
+            percent: total > 0 ? Math.round((amount / total) * 1000) / 10 : 0,
+            summary: `${category} is ${total > 0 ? Math.round((amount / total) * 1000) / 10 : 0}% of expenses this month.`,
+          }))
+          .sort((a, b) => b.amount - a.amount)
+          .slice(0, 8);
+        return { data: { insights, ai_available: true } };
+      });
+
+      this.post('/finance/ai/interpret-search/:familyId', (_schema, request) => {
+        const body = JSON.parse(request.requestBody || '{}');
+        const q = ((body.q || '') as string).toLowerCase().trim();
+        const spec: Record<string, unknown> = {};
+        if (/\b(last\s+week|past\s+week)\b/.test(q)) {
+          const now = new Date();
+          const day = now.getDay();
+          const diffToMonday = day === 0 ? 6 : day - 1;
+          const lastMonday = new Date(now);
+          lastMonday.setDate(now.getDate() - diffToMonday - 7);
+          const lastSunday = new Date(lastMonday);
+          lastSunday.setDate(lastMonday.getDate() + 6);
+          spec.date_from = lastMonday.toISOString().slice(0, 10);
+          spec.date_to = lastSunday.toISOString().slice(0, 10);
+        }
+        if (/\b(biggest|largest|highest)\b.*\b(expense|spend)\b/.test(q) || /\bexpense.*\b(biggest|largest)\b/.test(q)) {
+          spec.type = 'expense';
+          spec.sort = 'amount_high';
+        }
+        const words = q.replace(/\b(last week|this month|biggest|expense|income)\b/gi, '').trim().split(/\s+/).filter(Boolean);
+        if (words.length > 0) spec.description_contains = words[0];
+        return { data: { spec, ai_available: true } };
+      });
+
       this.get('/finance/ai/savings-tips/:familyId', () => {
         const tips = [
           'Track small daily expenses to find easy cuts.',

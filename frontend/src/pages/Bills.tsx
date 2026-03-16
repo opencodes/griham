@@ -20,6 +20,8 @@ export default function Bills() {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestCategoryLoading, setSuggestCategoryLoading] = useState(false);
+  const [cashflowTips, setCashflowTips] = useState<string[]>([]);
+  const [cashflowTipsLoading, setCashflowTipsLoading] = useState(false);
   const [formData, setFormData] = useState({
     bill_name: '',
     category: '',
@@ -37,6 +39,19 @@ export default function Bills() {
     if (familyId) {
       loadBills();
     }
+  }, [familyId]);
+
+  useEffect(() => {
+    if (!familyId) return;
+    let cancelled = false;
+    setCashflowTipsLoading(true);
+    setCashflowTips([]);
+    financeAPI.getCashflowTips(familyId).then((res) => {
+      if (!cancelled && Array.isArray(res?.tips)) setCashflowTips(res.tips);
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setCashflowTipsLoading(false);
+    });
+    return () => { cancelled = true; };
   }, [familyId]);
 
   const loadFamily = async () => {
@@ -174,6 +189,32 @@ export default function Bills() {
                 </button>
               )}
             </div>
+
+            {/* Due-date / cash-flow tips */}
+            {familyId && (cashflowTipsLoading || cashflowTips.length > 0) && (
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">Cash-flow tips</h3>
+                  {cashflowTipsLoading && (
+                    <span className="text-xs text-[var(--app-fg-muted)]">Loading…</span>
+                  )}
+                </div>
+                {cashflowTips.length > 0 && (
+                  <ul className="space-y-1.5">
+                    {cashflowTips.map((tip, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-900/20 px-2.5 py-1.5 text-sm text-amber-800 dark:text-amber-200"
+                      >
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {bills.map((bill) => (

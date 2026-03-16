@@ -1,9 +1,15 @@
 import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { getInsightsContext } from './aggregate.js';
+import { getInsightsContext, getRiskSuggestionsContext, getCategoryInsightsContext, getNarrativeSummaryContext, getAskMonthContext } from './aggregate.js';
 import {
   generateInsights,
+  generateRiskSuggestions,
+  generateCategoryInsights,
+  generateNarrativeSummary,
+  answerAskMonth,
+  generateCashflowTips,
   getSavingsTips,
+  interpretSearchQuery,
   suggestTransactionCategory,
   suggestBillCategory,
   parseSmsToTransaction,
@@ -39,6 +45,109 @@ export const financeController = {
     } catch (e) {
       console.error('[finance] insights:', e);
       res.fail('Failed to load insights', 500);
+    }
+  },
+
+  async riskSuggestions(req: Request, res: Response): Promise<void> {
+    const familyId = req.params.familyId as string;
+    const month = (req.query.month as string) || undefined;
+    if (!familyId) {
+      res.fail('familyId required', 400);
+      return;
+    }
+    try {
+      const context = await getRiskSuggestionsContext(familyId, month);
+      const { risks, ai_available } = await generateRiskSuggestions(context);
+      res.success({ risks, ai_available });
+    } catch (e) {
+      console.error('[finance] riskSuggestions:', e);
+      res.fail('Failed to load risk suggestions', 500);
+    }
+  },
+
+  async askMonth(req: Request, res: Response): Promise<void> {
+    const familyId = req.params.familyId as string;
+    const body = (req.body || {}) as { question?: string; month?: string };
+    const question = typeof body.question === 'string' ? body.question.trim() : '';
+    if (!familyId) {
+      res.fail('familyId required', 400);
+      return;
+    }
+    try {
+      const context = await getAskMonthContext(familyId, body.month);
+      const { answer, ai_available } = await answerAskMonth(question, context);
+      res.success({ answer, ai_available });
+    } catch (e) {
+      console.error('[finance] askMonth:', e);
+      res.fail('Failed to answer question', 500);
+    }
+  },
+
+  async narrativeSummary(req: Request, res: Response): Promise<void> {
+    const familyId = req.params.familyId as string;
+    const month = (req.query.month as string) || undefined;
+    if (!familyId) {
+      res.fail('familyId required', 400);
+      return;
+    }
+    try {
+      const context = await getNarrativeSummaryContext(familyId, month);
+      const { narrative, ai_available } = await generateNarrativeSummary(context);
+      res.success({ narrative, ai_available });
+    } catch (e) {
+      console.error('[finance] narrativeSummary:', e);
+      res.fail('Failed to load narrative summary', 500);
+    }
+  },
+
+  async cashflowTips(req: Request, res: Response): Promise<void> {
+    const familyId = req.params.familyId as string;
+    const month = (req.query.month as string) || undefined;
+    if (!familyId) {
+      res.fail('familyId required', 400);
+      return;
+    }
+    try {
+      const context = await getRiskSuggestionsContext(familyId, month);
+      const { tips, ai_available } = await generateCashflowTips(context);
+      res.success({ tips, ai_available });
+    } catch (e) {
+      console.error('[finance] cashflowTips:', e);
+      res.fail('Failed to load cash-flow tips', 500);
+    }
+  },
+
+  async categoryInsights(req: Request, res: Response): Promise<void> {
+    const familyId = req.params.familyId as string;
+    const month = (req.query.month as string) || undefined;
+    if (!familyId) {
+      res.fail('familyId required', 400);
+      return;
+    }
+    try {
+      const context = await getCategoryInsightsContext(familyId, month);
+      const { insights, ai_available } = await generateCategoryInsights(context);
+      res.success({ insights, ai_available });
+    } catch (e) {
+      console.error('[finance] categoryInsights:', e);
+      res.fail('Failed to load category insights', 500);
+    }
+  },
+
+  async interpretSearch(req: Request, res: Response): Promise<void> {
+    const familyId = req.params.familyId as string;
+    const body = (req.body || {}) as { q?: string; month?: string };
+    const query = typeof body.q === 'string' ? body.q.trim() : '';
+    if (!familyId) {
+      res.fail('familyId required', 400);
+      return;
+    }
+    try {
+      const { spec, ai_available } = await interpretSearchQuery(query, body.month);
+      res.success({ spec, ai_available });
+    } catch (e) {
+      console.error('[finance] interpretSearch:', e);
+      res.fail('Failed to interpret search', 500);
     }
   },
 

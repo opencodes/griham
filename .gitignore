@@ -83,3 +83,7 @@ temp/
 # yarn.lock
 # composer.lock
  
+.cursor/commands/diff.md
+.cursor/rules/diff-format.mdc
+docs/MICROSERVICE_SOURCE.md
+docs/MICROSERVICE_SOURCE.md

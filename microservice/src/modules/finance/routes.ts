@@ -34,6 +34,12 @@ financeRoutes.delete('/cards/:familyId/:cardId', financeDataController.deleteCar
 
 // AI
 financeRoutes.get('/ai/insights/:familyId', financeController.insights);
+financeRoutes.get('/ai/risk-suggestions/:familyId', financeController.riskSuggestions);
+financeRoutes.get('/ai/narrative-summary/:familyId', financeController.narrativeSummary);
+financeRoutes.post('/ai/ask-month/:familyId', financeController.askMonth);
+financeRoutes.get('/ai/cashflow-tips/:familyId', financeController.cashflowTips);
+financeRoutes.get('/ai/category-insights/:familyId', financeController.categoryInsights);
+financeRoutes.post('/ai/interpret-search/:familyId', financeController.interpretSearch);
 financeRoutes.get('/ai/savings-tips/:familyId', financeController.savingsTips);
 financeRoutes.post('/ai/suggest-category/:familyId', financeController.suggestCategory);
 financeRoutes.post('/ai/suggest-bill-category/:familyId', financeController.suggestBillCategory);

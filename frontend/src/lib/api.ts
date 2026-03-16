@@ -73,6 +73,22 @@ export interface Transaction {
   created_by_name?: string;
 }
 
+export interface TransactionSearchSpec {
+  description_contains?: string;
+  category?: string;
+  type?: 'income' | 'expense';
+  date_from?: string;
+  date_to?: string;
+  sort?: 'newest' | 'oldest' | 'amount_high' | 'amount_low';
+}
+
+export interface CategoryInsightItem {
+  category: string;
+  amount: number;
+  percent: number;
+  summary: string;
+}
+
 export interface Bill {
   id: string;
   family_id: string;
@@ -260,6 +276,55 @@ export const financeAPI = {
       ai_available: boolean;
     }>(`/finance/ai/insights/${familyId}${params}`);
     return data;
+  },
+  // AI risk suggestions for Dashboard Risk Radar
+  getRiskSuggestions: async (familyId: string, month?: string) => {
+    const params = month ? `?month=${month}` : '';
+    const { data } = await api.get<{ data: { risks: string[]; ai_available: boolean } }>(
+      `/finance/ai/risk-suggestions/${familyId}${params}`
+    );
+    return data.data ?? { risks: [], ai_available: false };
+  },
+  getCategoryInsights: async (familyId: string, month?: string) => {
+    const params = month ? `?month=${month}` : '';
+    const { data } = await api.get<{ data: { insights: CategoryInsightItem[]; ai_available: boolean } }>(
+      `/finance/ai/category-insights/${familyId}${params}`
+    );
+    return data.data ?? { insights: [], ai_available: false };
+  },
+  getNarrativeSummary: async (familyId: string, month?: string) => {
+    const params = month ? `?month=${month}` : '';
+    const { data } = await api.get<{ data: { narrative: string; ai_available: boolean } }>(
+      `/finance/ai/narrative-summary/${familyId}${params}`
+    );
+    return data.data ?? { narrative: '', ai_available: false };
+  },
+  askAboutMonth: async (
+    familyId: string,
+    payload: { question: string; month?: string }
+  ): Promise<{ answer: string; ai_available: boolean }> => {
+    const { data } = await api.post<{ data: { answer: string; ai_available: boolean } }>(
+      `/finance/ai/ask-month/${familyId}`,
+      payload
+    );
+    return data.data ?? { answer: '', ai_available: false };
+  },
+  getCashflowTips: async (familyId: string, month?: string) => {
+    const params = month ? `?month=${month}` : '';
+    const { data } = await api.get<{ data: { tips: string[]; ai_available: boolean } }>(
+      `/finance/ai/cashflow-tips/${familyId}${params}`
+    );
+    return data.data ?? { tips: [], ai_available: false };
+  },
+  interpretSearch: async (
+    familyId: string,
+    payload: { q: string; month?: string }
+  ): Promise<{ spec: TransactionSearchSpec; ai_available: boolean }> => {
+    const { data } = await api.post<{ data: { spec: TransactionSearchSpec; ai_available: boolean } }>(
+      `/finance/ai/interpret-search/${familyId}`,
+      payload
+    );
+    return data.data ?? { spec: {}, ai_available: false };
   },
   getSavingsTips: async (familyId: string) => {
     const { data } = await api.get<{ tips: string[] | null; ai_available: boolean }>(`/finance/ai/savings-tips/${familyId}`);

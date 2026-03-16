@@ -43,6 +43,8 @@ export default function Dashboard() {
   const [summary, setSummary] = useState({ total_income: 0, total_expense: 0, balance: 0 });
   const [aiInsights, setAiInsights] = useState<string | null>(null);
   const [aiInsightsLoading, setAiInsightsLoading] = useState(false);
+  const [aiRiskSuggestions, setAiRiskSuggestions] = useState<string[]>([]);
+  const [aiRiskSuggestionsLoading, setAiRiskSuggestionsLoading] = useState(false);
 
   const month = financeMonth?.month;
 
@@ -68,21 +70,26 @@ export default function Dashboard() {
         setCards([]);
         setSummary({ total_income: 0, total_expense: 0, balance: 0 });
         setAiInsights(null);
+        setAiRiskSuggestions([]);
         return;
       }
 
       const familyId = data[0].id;
       setAiInsightsLoading(true);
+      setAiRiskSuggestionsLoading(true);
       setAiInsights(null);
-      const [members, accountData, transactionData, billData, cardData, summaryData, insightsResult] = await Promise.all([
-        householdAPI.listMembers(familyId).catch(() => []),
-        financeAPI.listAccounts(familyId).catch(() => []),
-        financeAPI.listTransactions(familyId, month ? { month } : undefined).catch(() => []),
-        financeAPI.listBills(familyId).catch(() => []),
-        financeAPI.listCards(familyId).catch(() => []),
-        financeAPI.getSummary(familyId, month).catch(() => ({ total_income: 0, total_expense: 0, balance: 0 })),
-        financeAPI.getInsights(familyId, month ?? undefined).catch(() => ({ insights: null, ai_available: false })),
-      ]);
+      setAiRiskSuggestions([]);
+      const [members, accountData, transactionData, billData, cardData, summaryData, insightsResult, riskResult] =
+        await Promise.all([
+          householdAPI.listMembers(familyId).catch(() => []),
+          financeAPI.listAccounts(familyId).catch(() => []),
+          financeAPI.listTransactions(familyId, month ? { month } : undefined).catch(() => []),
+          financeAPI.listBills(familyId).catch(() => []),
+          financeAPI.listCards(familyId).catch(() => []),
+          financeAPI.getSummary(familyId, month).catch(() => ({ total_income: 0, total_expense: 0, balance: 0 })),
+          financeAPI.getInsights(familyId, month ?? undefined).catch(() => ({ insights: null, ai_available: false })),
+          financeAPI.getRiskSuggestions(familyId, month ?? undefined).catch(() => ({ risks: [], ai_available: false })),
+        ]);
 
       setMembersCount(Array.isArray(members) ? members.length : 0);
       setAccounts(accountData);
@@ -92,6 +99,8 @@ export default function Dashboard() {
       setSummary(summaryData);
       setAiInsights(insightsResult?.insights ?? null);
       setAiInsightsLoading(false);
+      setAiRiskSuggestions(Array.isArray(riskResult?.risks) ? riskResult.risks : []);
+      setAiRiskSuggestionsLoading(false);
     } catch (error) {
       console.error('Failed to load dashboard data', error);
     } finally {
@@ -127,72 +136,106 @@ export default function Dashboard() {
   const overdueBills = bills.filter(
     (bill) => bill.status === 'pending' && new Date(bill.due_date).getTime() < Date.now()
   ).length;
+  const now = Date.now();
+  const oneWeekFromNow = now + 7 * 24 * 60 * 60 * 1000;
+  const billsDueThisWeek = bills.filter((bill) => {
+    if (bill.status !== 'pending') return false;
+    const t = new Date(bill.due_date).getTime();
+    return t >= now && t <= oneWeekFromNow;
+  }).length;
 
-  const moduleCards = [
-    {
-      key: 'finance',
-      title: 'Finance',
-      icon: Wallet,
-      path: '/finance',
-      tone: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30',
-      primary: `₹${totalBalance.toFixed(2)}`,
-      secondary: `${transactions.length} transactions, ${pendingBills} pending bills`,
-    },
-    {
-      key: 'events',
-      title: 'Events',
-      icon: Calendar,
-      path: '/events',
-      tone: 'text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30',
-      primary: '4 upcoming',
-      secondary: '2 recurring occasions',
-    },
-    {
-      key: 'assets',
-      title: 'Assets',
-      icon: Package,
-      path: '/assets',
-      tone: 'text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/30',
-      primary: '6 tracked',
-      secondary: '1 expiry in 30 days',
-    },
-    {
-      key: 'health',
-      title: 'Health',
-      icon: Heart,
-      path: '/health',
-      tone: 'text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30',
-      primary: '2 appointments',
-      secondary: '1 vaccine due',
-    },
-    {
-      key: 'contacts',
-      title: 'Contacts',
-      icon: ContactRound,
-      path: '/contacts',
-      tone: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/30',
-      primary: '18 contacts',
-      secondary: '3 emergency entries',
-    },
-    {
-      key: 'organizer',
-      title: 'Organizer',
-      icon: ListTodo,
-      path: '/organizer',
-      tone: 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30',
-      primary: '5 pending tasks',
-      secondary: '3 reminders this week',
-    },
-    {
-      key: 'messages',
-      title: 'Messages',
-      icon: MessageSquare,
-      path: '/messages',
-      tone: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30',
-      primary: '4 unread',
-      secondary: '1 critical alert',
-    },
-  ];
+  const moduleCards = useMemo(() => {
+    const financePulse =
+      overdueBills > 0
+        ? `${overdueBills} bill${overdueBills > 1 ? 's' : ''} overdue; review payments.`
+        : billsDueThisWeek > 0
+          ? `Healthy; ${billsDueThisWeek} bill${billsDueThisWeek > 1 ? 's' : ''} due this week.`
+          : pendingBills > 0
+            ? `Healthy; ${pendingBills} pending bill${pendingBills > 1 ? 's' : ''}.`
+            : transactions.length === 0
+              ? 'Add transactions to track spending.'
+              : savingsRate >= 20
+                ? 'Healthy; savings on track.'
+                : savingsRate >= 10
+                  ? 'OK; consider boosting savings.'
+                  : monthlyIncome > 0
+                    ? 'Low savings rate; review expenses.'
+                    : 'No income logged this month.';
+
+    return [
+      {
+        key: 'finance',
+        title: 'Finance',
+        icon: Wallet,
+        path: '/finance',
+        tone: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30',
+        primary: `₹${totalBalance.toFixed(2)}`,
+        pulseText: financePulse,
+      },
+      {
+        key: 'events',
+        title: 'Events',
+        icon: Calendar,
+        path: '/events',
+        tone: 'text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30',
+        primary: '4 upcoming',
+        pulseText: '4 upcoming events, 2 recurring occasions.',
+      },
+      {
+        key: 'assets',
+        title: 'Assets',
+        icon: Package,
+        path: '/assets',
+        tone: 'text-cyan-600 dark:text-cyan-400 bg-cyan-100 dark:bg-cyan-900/30',
+        primary: '6 tracked',
+        pulseText: '6 assets tracked; 1 expiry in 30 days.',
+      },
+      {
+        key: 'health',
+        title: 'Health',
+        icon: Heart,
+        path: '/health',
+        tone: 'text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/30',
+        primary: '2 appointments',
+        pulseText: '2 appointments; 1 vaccine due.',
+      },
+      {
+        key: 'contacts',
+        title: 'Contacts',
+        icon: ContactRound,
+        path: '/contacts',
+        tone: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/30',
+        primary: '18 contacts',
+        pulseText: '18 contacts; 3 emergency entries.',
+      },
+      {
+        key: 'organizer',
+        title: 'Organizer',
+        icon: ListTodo,
+        path: '/organizer',
+        tone: 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30',
+        primary: '5 pending tasks',
+        pulseText: '5 pending tasks; 3 reminders this week.',
+      },
+      {
+        key: 'messages',
+        title: 'Messages',
+        icon: MessageSquare,
+        path: '/messages',
+        tone: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30',
+        primary: '4 unread',
+        pulseText: '4 unread; 1 critical alert.',
+      },
+    ];
+  }, [
+    overdueBills,
+    billsDueThisWeek,
+    pendingBills,
+    transactions.length,
+    savingsRate,
+    monthlyIncome,
+    totalBalance,
+  ]);
 
   const risks = useMemo(() => {
     const items: string[] = [];
@@ -200,8 +243,17 @@ export default function Dashboard() {
     if (savingsRate < 10 && monthlyIncome > 0) items.push('Monthly savings rate is below 10%');
     if (transactions.length === 0) items.push('No finance transactions logged yet');
     if (households.length === 0) items.push('Create your first family to activate modules');
+    const aiRisks = (aiRiskSuggestions || []).filter((s) => s.trim().length > 0);
+    const seen = new Set(items.map((s) => s.toLowerCase()));
+    for (const r of aiRisks) {
+      const key = r.trim().toLowerCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        items.push(r.trim());
+      }
+    }
     return items;
-  }, [overdueBills, savingsRate, monthlyIncome, transactions.length, households.length]);
+  }, [overdueBills, savingsRate, monthlyIncome, transactions.length, households.length, aiRiskSuggestions]);
 
   const handleMenuToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -310,7 +362,7 @@ export default function Dashboard() {
                           </div>
                           <p className="mt-3 text-sm font-semibold text-[var(--app-fg)]">{module.title}</p>
                           <p className="mt-1 text-sm font-medium text-[var(--app-fg)]">{module.primary}</p>
-                          <p className="mt-0.5 text-xs text-[var(--app-fg-muted)]">{module.secondary}</p>
+                          <p className="mt-0.5 text-xs text-[var(--app-fg-muted)]">{module.pulseText}</p>
                         </button>
                       );
                     })}
@@ -320,8 +372,11 @@ export default function Dashboard() {
                 <div className="rounded-xl p-5 glass-black-surface border border-[var(--panel-border)]">
                   <h3 className="text-lg font-semibold text-[var(--app-fg)]">Risk Radar</h3>
                   <p className="text-xs text-[var(--app-fg-muted)] mt-1">
-                    Actionable alerts across household operations.
+                    Actionable alerts: fixed rules + AI suggestions (spending vs last month, bills vs balance).
                   </p>
+                  {aiRiskSuggestionsLoading && (
+                    <p className="mt-2 text-xs text-[var(--app-fg-muted)]">Loading AI risk suggestions…</p>
+                  )}
                   <div className="mt-4 space-y-2">
                     {risks.length > 0 ? (
                       risks.map((risk, idx) => (
@@ -333,11 +388,11 @@ export default function Dashboard() {
                           <p className="text-xs text-amber-800 dark:text-amber-200">{risk}</p>
                         </div>
                       ))
-                    ) : (
+                    ) : !aiRiskSuggestionsLoading ? (
                       <div className="rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 p-2.5">
                         <p className="text-xs text-emerald-700 dark:text-emerald-300">No major operational risks detected.</p>
                       </div>
-                    )}
+                    ) : null}
                     {!aiInsightsLoading && aiInsights && (
                       <div className="flex items-start gap-2 rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/20 p-2.5">
                         <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />

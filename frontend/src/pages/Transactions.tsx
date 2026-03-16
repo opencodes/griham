@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { financeAPI, householdAPI, Transaction, BankAccount } from '@/lib/api';
+import { financeAPI, householdAPI, Transaction, BankAccount, CategoryInsightItem } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
@@ -88,6 +88,12 @@ export default function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [sortBy, setSortBy] = useState<SortBy>('newest');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [aiSearchMode, setAiSearchMode] = useState(false);
+  const [aiSearchLoading, setAiSearchLoading] = useState(false);
+  const [categoryInsights, setCategoryInsights] = useState<CategoryInsightItem[]>([]);
+  const [categoryInsightsLoading, setCategoryInsightsLoading] = useState(false);
 
   const handleMenuToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -109,6 +115,25 @@ export default function TransactionsPage() {
       loadTransactions();
     }
   }, [familyId, month, typeFilter, categoryFilter]);
+
+  useEffect(() => {
+    if (!familyId) return;
+    let cancelled = false;
+    setCategoryInsightsLoading(true);
+    setCategoryInsights([]);
+    financeAPI
+      .getCategoryInsights(familyId, month ?? undefined)
+      .then((res) => {
+        if (!cancelled && Array.isArray(res?.insights)) setCategoryInsights(res.insights);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setCategoryInsightsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [familyId, month]);
 
   const loadFamily = async () => {
     try {
@@ -241,7 +266,11 @@ export default function TransactionsPage() {
       const matchesCategory = categoryFilter === 'all' || tx.category === categoryFilter;
       const matchesType = typeFilter === 'all' || tx.type === typeFilter;
 
-      return matchesSearch && matchesCategory && matchesType;
+      const txDate = (tx.transaction_date || '').slice(0, 10);
+      const matchesDateFrom = !dateFrom || txDate >= dateFrom;
+      const matchesDateTo = !dateTo || txDate <= dateTo;
+
+      return matchesSearch && matchesCategory && matchesType && matchesDateFrom && matchesDateTo;
     });
 
     filtered.sort((a, b) => {
@@ -264,7 +293,7 @@ export default function TransactionsPage() {
     });
 
     return filtered;
-  }, [transactions, search, categoryFilter, typeFilter, sortBy]);
+  }, [transactions, search, categoryFilter, typeFilter, sortBy, dateFrom, dateTo]);
 
   const groupedTransactions = useMemo(() => {
     const groups: Record<string, Transaction[]> = {};
@@ -300,6 +329,27 @@ export default function TransactionsPage() {
     setCategoryFilter('all');
     setTypeFilter('all');
     setSortBy('newest');
+    setDateFrom('');
+    setDateTo('');
+  };
+
+  const runAiSearch = async () => {
+    const query = search.trim();
+    if (!query || !familyId || aiSearchLoading) return;
+    setAiSearchLoading(true);
+    try {
+      const { spec } = await financeAPI.interpretSearch(familyId, { q: query, month: month ?? undefined });
+      setSearch(spec.description_contains ?? '');
+      setCategoryFilter(spec.category ?? 'all');
+      setTypeFilter((spec.type ?? 'all') as TypeFilter);
+      setSortBy((spec.sort ?? 'newest') as SortBy);
+      setDateFrom(spec.date_from ?? '');
+      setDateTo(spec.date_to ?? '');
+    } catch (err) {
+      console.error('AI search failed', err);
+    } finally {
+      setAiSearchLoading(false);
+    }
   };
 
   return (
@@ -389,21 +439,61 @@ export default function TransactionsPage() {
 
             <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-4 space-y-3">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-                <div className="relative lg:col-span-5">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search category, note, account, bank..."
-                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-9 pr-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+                <div className="relative lg:col-span-5 flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && aiSearchMode) {
+                          e.preventDefault();
+                          runAiSearch();
+                        }
+                      }}
+                      placeholder={
+                        aiSearchMode
+                          ? "Try: 'coffee last week', 'biggest expense this month'..."
+                          : 'Search category, note, account, bank...'
+                      }
+                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-9 pr-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  {aiSearchMode && (
+                    <button
+                      type="button"
+                      onClick={runAiSearch}
+                      disabled={aiSearchLoading || !search.trim()}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap"
+                    >
+                      {aiSearchLoading ? (
+                        '...'
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          Interpret
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
-
-                <div className="lg:col-span-3">
+                <div className="lg:col-span-3 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAiSearchMode(!aiSearchMode)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition whitespace-nowrap ${
+                      aiSearchMode
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    AI search
+                  </button>
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {categoryOptions.map((category) => (
                       <option key={category} value={category}>
@@ -444,11 +534,56 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <ArrowDownUp className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+                <ArrowDownUp className="w-3.5 h-3.5 shrink-0" />
                 <span>Use filters to narrow records and compare inflow vs outflow.</span>
+                {aiSearchMode && (
+                  <span className="text-indigo-600 dark:text-indigo-400">
+                    AI search: type a phrase (e.g. &quot;coffee last week&quot;) and press Enter or click Interpret.
+                  </span>
+                )}
+                {(dateFrom || dateTo) && (
+                  <span className="text-amber-600 dark:text-amber-400">
+                    Date range: {dateFrom || '…'} to {dateTo || '…'}
+                  </span>
+                )}
               </div>
             </div>
+
+            {/* Category insights panel */}
+            {familyId && (
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">Category insights</h3>
+                  {categoryInsightsLoading && (
+                    <span className="text-xs text-[var(--app-fg-muted)]">Loading…</span>
+                  )}
+                </div>
+                {categoryInsightsLoading && categoryInsights.length === 0 && (
+                  <p className="text-xs text-[var(--app-fg-muted)]">Generating short AI summaries per category…</p>
+                )}
+                {!categoryInsightsLoading && categoryInsights.length === 0 && transactions.length > 0 && (
+                  <p className="text-xs text-[var(--app-fg-muted)]">No expense categories this month.</p>
+                )}
+                {categoryInsights.length > 0 && (
+                  <ul className="space-y-2">
+                    {categoryInsights.map((item) => (
+                      <li
+                        key={item.category}
+                        className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-[var(--panel-border)] bg-black/5 dark:bg-white/5 px-3 py-2"
+                      >
+                        <span className="font-medium text-[var(--app-fg)]">{getCategoryIcon(item.category)} {item.category}</span>
+                        <span className="text-xs text-[var(--app-fg-muted)]">
+                          {formatCurrency(item.amount)} · {item.percent}%
+                        </span>
+                        <span className="text-xs text-[var(--app-fg)] flex-1 min-w-0">{item.summary}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             {loading && (
               <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-6 text-sm text-gray-500 dark:text-gray-400">

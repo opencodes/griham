@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { householdAPI, financeAPI, BankAccount, Transaction, Bill } from '@/lib/api';
+import { householdAPI, financeAPI, BankAccount, Transaction, Bill, CategoryInsightItem } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
 import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
-import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard, Sparkles } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard, Sparkles, MessageCircle, Send } from 'lucide-react';
 
 const getCategoryIcon = (category?: string) => {
   const value = (category || '').toLowerCase();
@@ -42,8 +42,14 @@ export default function FinanceOverview() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [upcomingBills, setUpcomingBills] = useState<Bill[]>([]);
   const [summary, setSummary] = useState({ total_income: 0, total_expense: 0, balance: 0 });
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [narrativeSummary, setNarrativeSummary] = useState<string | null>(null);
+  const [narrativeSummaryLoading, setNarrativeSummaryLoading] = useState(false);
+  const [categoryInsights, setCategoryInsights] = useState<CategoryInsightItem[]>([]);
+  const [categoryInsightsLoading, setCategoryInsightsLoading] = useState(false);
+  const [askQuestion, setAskQuestion] = useState('');
+  const [askAnswer, setAskAnswer] = useState<string | null>(null);
+  const [askLoading, setAskLoading] = useState(false);
+  const [lastQuestion, setLastQuestion] = useState<string | null>(null);
 
   useEffect(() => {
     loadFamily();
@@ -66,12 +72,25 @@ export default function FinanceOverview() {
   useEffect(() => {
     if (!familyId) return;
     let cancelled = false;
-    setAiSummaryLoading(true);
-    setAiSummary(null);
-    financeAPI.getInsights(familyId, month).then((res) => {
-      if (!cancelled && res?.insights) setAiSummary(res.insights);
+    setNarrativeSummaryLoading(true);
+    setNarrativeSummary(null);
+    financeAPI.getNarrativeSummary(familyId, month).then((res) => {
+      if (!cancelled && res?.narrative) setNarrativeSummary(res.narrative);
     }).catch(() => {}).finally(() => {
-      if (!cancelled) setAiSummaryLoading(false);
+      if (!cancelled) setNarrativeSummaryLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [familyId, month]);
+
+  useEffect(() => {
+    if (!familyId) return;
+    let cancelled = false;
+    setCategoryInsightsLoading(true);
+    setCategoryInsights([]);
+    financeAPI.getCategoryInsights(familyId, month).then((res) => {
+      if (!cancelled && Array.isArray(res?.insights)) setCategoryInsights(res.insights);
+    }).catch(() => {}).finally(() => {
+      if (!cancelled) setCategoryInsightsLoading(false);
     });
     return () => { cancelled = true; };
   }, [familyId, month]);
@@ -130,6 +149,24 @@ export default function FinanceOverview() {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const handleAskSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = askQuestion.trim();
+    if (!q || !familyId || askLoading) return;
+    setAskLoading(true);
+    setAskAnswer(null);
+    setLastQuestion(q);
+    try {
+      const res = await financeAPI.askAboutMonth(familyId, { question: q, month });
+      setAskAnswer(res?.answer ?? 'Could not get an answer.');
+      setAskQuestion('');
+    } catch {
+      setAskAnswer('Something went wrong. Please try again.');
+    } finally {
+      setAskLoading(false);
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
@@ -150,18 +187,43 @@ export default function FinanceOverview() {
               <FinanceMonthFilter />
             </div>
 
-            {/* AI narrative summary */}
-            {(aiSummaryLoading || aiSummary) && (
+            {/* Narrative summary: 2–3 sentences on income, expenses, bills, trend */}
+            {(narrativeSummaryLoading || narrativeSummary) && (
               <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">AI summary</h3>
+                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">Narrative summary</h3>
                 </div>
-                {aiSummaryLoading && (
+                {narrativeSummaryLoading && (
                   <p className="text-sm text-[var(--app-fg-muted)]">Loading summary…</p>
                 )}
-                {!aiSummaryLoading && aiSummary && (
-                  <p className="text-sm text-[var(--app-fg)] leading-relaxed">{aiSummary}</p>
+                {!narrativeSummaryLoading && narrativeSummary && (
+                  <p className="text-sm text-[var(--app-fg)] leading-relaxed">{narrativeSummary}</p>
+                )}
+              </div>
+            )}
+
+            {/* Category insights (compact) */}
+            {(categoryInsightsLoading || categoryInsights.length > 0) && (
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">Spending by category</h3>
+                  {categoryInsightsLoading && <span className="text-xs text-[var(--app-fg-muted)]">Loading…</span>}
+                </div>
+                {categoryInsights.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {categoryInsights.slice(0, 5).map((item) => (
+                      <div
+                        key={item.category}
+                        className="rounded-lg border border-[var(--panel-border)] bg-black/5 dark:bg-white/5 px-2.5 py-1.5 text-xs"
+                      >
+                        <span className="font-medium text-[var(--app-fg)]">{getCategoryIcon(item.category)} {item.category}</span>
+                        <span className="text-[var(--app-fg-muted)] ml-1">· {item.percent}%</span>
+                        <p className="text-[var(--app-fg-muted)] mt-0.5 line-clamp-2">{item.summary}</p>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
@@ -237,9 +299,52 @@ export default function FinanceOverview() {
               </button>
             </div>
 
-
-
-
+            {/* Ask about this month – Q&A widget */}
+            {familyId && (
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageCircle className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">Ask about this month</h3>
+                </div>
+                <p className="text-xs text-[var(--app-fg-muted)] mb-2">
+                  e.g. &quot;Why is expense high?&quot; or &quot;What were the top 3 categories?&quot;
+                </p>
+                <form onSubmit={handleAskSubmit} className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={askQuestion}
+                    onChange={(e) => setAskQuestion(e.target.value)}
+                    placeholder="Ask a question..."
+                    disabled={askLoading}
+                    className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-[var(--app-fg)] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={askLoading || !askQuestion.trim()}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white px-3 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {askLoading ? (
+                      <span className="text-xs">…</span>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Ask
+                      </>
+                    )}
+                  </button>
+                </form>
+                {lastQuestion && (
+                  <div className="rounded-lg bg-black/5 dark:bg-white/5 px-2.5 py-1.5 mb-2">
+                    <p className="text-xs text-[var(--app-fg-muted)]">You asked: {lastQuestion}</p>
+                  </div>
+                )}
+                {askAnswer !== null && (
+                  <div className="rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/20 px-3 py-2">
+                    <p className="text-sm text-[var(--app-fg)] leading-relaxed">{askAnswer}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Recent Transactions */}
             <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-6 glass-black-surface">
