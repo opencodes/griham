@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String _baseUrl = 'https://griham.opencodes.dev/api';
+  static const String _baseUrl = 'http://192.168.1.100:8000/api';
 
   static Future<String?> _getToken() async {
     // Prefer token stored by AuthProvider in shared preferences. This allows
@@ -77,5 +77,18 @@ class ApiService {
 
   static Future<http.Response> parseSMS(String familyId, String smsText) async {
     return post('finance/ai/parse-sms/$familyId', {'sms_text': smsText});
+  }
+
+  static Future<http.Response> syncContacts({
+    required List<Map<String, dynamic>> contacts,
+    String? familyId,
+    String? deviceId,
+  }) async {
+    final payload = <String, dynamic>{
+      'contacts': contacts,
+      if (familyId != null && familyId.isNotEmpty) 'family_id': familyId,
+      if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
+    };
+    return post('contacts/sync', payload);
   }
 }

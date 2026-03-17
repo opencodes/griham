@@ -1,4 +1,4 @@
-import mongoose, { Schema, Model, plugin } from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
 import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export interface IFamilyMemberDoc {

@@ -41,7 +41,8 @@ cardSchema.pre('validate', async function (next) {
   }
 
   try {
-    const last = await this.model<ICardDoc>('Card')
+    const Card = this.constructor as Model<ICardDoc>;
+    const last = await Card
       .findOne({
         family_id: this.family_id,
         bank_name: { $exists: true, $nin: ['', 'Bank'] },

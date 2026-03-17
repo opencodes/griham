@@ -1,4 +1,4 @@
-import mongoose, { Schema, Model, plugin } from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
 
 export interface IGroupRoleDoc {
   group_id: string;

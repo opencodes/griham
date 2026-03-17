@@ -6,6 +6,7 @@ import { authRoutes } from './modules/auth/routes.js';
 import { financeRoutes } from './modules/finance/routes.js';
 import { adminRoutes } from './modules/admin/routes.js';
 import { familiesRoutes } from './modules/families/routes.js';
+import { contactsRoutes } from './modules/contacts/routes.js';
 import morgan from 'morgan';
 
 const app: Express = express();
@@ -18,6 +19,7 @@ app.use(morgan('dev'));
 
 app.use('/api', authRoutes);
 app.use('/api', familiesRoutes);
+app.use('/api', contactsRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/admin', adminRoutes);
 

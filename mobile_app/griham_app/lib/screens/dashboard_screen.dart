@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/finance_provider.dart';
+import '../services/contacts_sync_service.dart';
 import '../widgets/common/app_widgets.dart';
 import '../widgets/finance/finance_widgets.dart';
 import 'sms_list_screen.dart';
@@ -16,6 +17,32 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedTabIndex = 0;
+  bool _syncingContacts = false;
+
+  Future<void> _handleSyncContacts() async {
+    if (_syncingContacts) return;
+    setState(() => _syncingContacts = true);
+    try {
+      final result = await ContactsSyncService.syncAllContacts();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Synced ${result.sentContacts} contacts (${result.batches} batches)',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Contacts sync failed: $e'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _syncingContacts = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -534,6 +561,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           SizedBox(height: AppSpacing.lg),
+          AppButton(
+            label: _syncingContacts ? 'Syncing contacts…' : 'Sync Contacts',
+            isEnabled: !_syncingContacts,
+            onPressed: () {
+              _handleSyncContacts();
+            },
+          ),
+          SizedBox(height: AppSpacing.md),
           AppButton(
             label: 'Logout',
             onPressed: () {

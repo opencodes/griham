@@ -172,7 +172,6 @@ export const familiesController = {
 
     const members = await FamilyMemberModel.find({ family_id: familyId }).lean({ virtuals: true });
     const users = await UserModel.find({ _id: { $in: members.map((m) => m.user_id) } }).lean({ virtuals: true });
-    const memberMap = members.reduce((acc, m) => ({ ...acc, [m.user_id]: m }), {});
     const userMap:any = users.reduce((acc, u) => ({ ...acc, [u._id]: u }), {});
    
     const membersWithUser:any = members.map((m) => {
