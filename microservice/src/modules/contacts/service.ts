@@ -100,6 +100,8 @@ export async function syncContacts(params: {
       if (!name && !phoneNorm && !emailNorm) return null;
 
       const hasPhone = phoneNumber != null && phoneNumber.length > 0;
+      // Per requirement: only store contacts with a phone number.
+      if (!hasPhone) return null;
       if (hasPhone && existingPhoneSet.has(phoneNumber)) {
         duplicates += 1;
         return null;
@@ -114,45 +116,20 @@ export async function syncContacts(params: {
         updateOne: {
           filter,
           update: {
-            ...(hasPhone
-              ? {
-                  // For phone-number records: don't overwrite existing; only insert if new.
-                  $setOnInsert: {
-                    _id: randomUUID(),
-                    family_id: familyId,
-                    user_id: userId,
-                    device_id: deviceId,
-                    name,
-                    phone,
-                    phone_ext: phoneExt,
-                    phone_number: phoneNumber,
-                    email,
-                    phone_norm: phoneNorm,
-                    email_norm: emailNorm,
-                    last_synced_at: now,
-                  },
-                }
-              : {
-                  // For email-only contacts: allow upsert/update.
-                  $set: {
-                    family_id: familyId,
-                    user_id: userId,
-                    device_id: deviceId,
-                    name,
-                    phone,
-                    phone_ext: phoneExt,
-                    phone_number: phoneNumber,
-                    email,
-                    phone_norm: phoneNorm,
-                    email_norm: emailNorm,
-                    last_synced_at: now,
-                  },
-                  $setOnInsert: {
-                    _id: randomUUID(),
-                  },
-                }),
+            // For phone-number records: don't overwrite existing; only insert if new.
             $setOnInsert: {
-              // merged above (kept for backward compatibility if branch changes)
+              _id: randomUUID(),
+              family_id: familyId,
+              user_id: userId,
+              device_id: deviceId,
+              name,
+              phone,
+              phone_ext: phoneExt,
+              phone_number: phoneNumber,
+              email,
+              phone_norm: phoneNorm,
+              email_norm: emailNorm,
+              last_synced_at: now,
             },
           },
           upsert: true,
