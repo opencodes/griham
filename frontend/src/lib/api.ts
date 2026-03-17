@@ -359,11 +359,23 @@ export interface Contact {
   last_synced_at?: string | null;
 }
 
+export interface ContactsSummary {
+  total: number;
+  last_synced_at: string | null;
+}
+
 export const contactsAPI = {
   list: async (familyId: string, params?: { q?: string; limit?: number }): Promise<Contact[]> => {
-    const qs = new URLSearchParams(params as any).toString();
+    const sp = new URLSearchParams();
+    if (params?.q && params.q.trim()) sp.set('q', params.q.trim());
+    if (typeof params?.limit === 'number' && Number.isFinite(params.limit)) sp.set('limit', String(params.limit));
+    const qs = sp.toString();
     const { data } = await api.get(`/contacts/${familyId}${qs ? `?${qs}` : ''}`);
     return data.data ?? [];
+  },
+  summary: async (familyId: string): Promise<ContactsSummary> => {
+    const { data } = await api.get(`/contacts/${familyId}/summary`);
+    return data.data ?? { total: 0, last_synced_at: null };
   },
 };
 

@@ -41,6 +41,10 @@ export default function Contacts() {
   const [search, setSearch] = useState('');
 
   const [contacts, setContacts] = useState<ContactItem[]>([]);
+  const [summaryFromApi, setSummaryFromApi] = useState<{ total: number; last_synced_at: string | null }>({
+    total: 0,
+    last_synced_at: null,
+  });
 
   const mapApiToUi = (c: ApiContact): ContactItem => {
     const phone = c.phone ?? (c.phone_ext && c.phone_number ? `${c.phone_ext} ${c.phone_number}` : c.phone_number ?? '');
@@ -65,8 +69,12 @@ export default function Contacts() {
         setLoadError('No family selected');
         return;
       }
-      const apiContacts = await contactsAPI.list(familyId, { q: q?.trim() || undefined, limit: 500 });
+      const [apiContacts, apiSummary] = await Promise.all([
+        contactsAPI.list(familyId, { q: q?.trim() || undefined, limit: 500 }),
+        contactsAPI.summary(familyId),
+      ]);
       setContacts(apiContacts.map(mapApiToUi));
+      setSummaryFromApi(apiSummary);
     } catch (e: any) {
       setLoadError(e?.message ?? 'Failed to load contacts');
     } finally {
@@ -91,11 +99,11 @@ export default function Contacts() {
 
   const summary = useMemo(() => {
     return {
-      family: contacts.filter((c) => c.group === 'Family').length,
-      vendors: contacts.filter((c) => c.group === 'Vendor').length,
-      emergency: contacts.filter((c) => c.isEmergency || c.group === 'Emergency').length,
+      family: summaryFromApi.total,
+      vendors: 0,
+      emergency: 0,
     };
-  }, [contacts]);
+  }, [summaryFromApi.total]);
 
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) => {
