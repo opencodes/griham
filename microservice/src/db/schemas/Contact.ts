@@ -11,6 +11,8 @@ export interface IContactDoc {
 
   name: string | null;
   phone: string | null;
+  phone_ext: string | null;
+  phone_number: string | null;
   email: string | null;
 
   phone_norm: string | null;
@@ -31,6 +33,8 @@ const contactSchema = new Schema<IContactDoc>(
 
     name: { type: String, default: null },
     phone: { type: String, default: null },
+    phone_ext: { type: String, default: null },
+    phone_number: { type: String, default: null },
     email: { type: String, default: null },
 
     phone_norm: { type: String, default: null },

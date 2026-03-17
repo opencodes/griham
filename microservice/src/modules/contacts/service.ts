@@ -7,9 +7,29 @@ export type ContactSyncInput = {
   email?: string | null;
 };
 
-function normalizePhone(phone: string): string {
-  // Keep digits only. Works well enough for de-dupe across formats.
-  return phone.replace(/\D+/g, '');
+function digitsOnly(s: string): string {
+  return s.replace(/\D+/g, '');
+}
+
+function splitPhone(phoneRaw: string): {
+  phoneExt: string | null;
+  phoneNumber: string | null;
+  phoneNorm: string | null;
+} {
+  const raw = phoneRaw.trim();
+  if (!raw) return { phoneExt: null, phoneNumber: null, phoneNorm: null };
+
+  // If it starts with +<digits>, treat that as extension/country code.
+  // Example: "+91 70223 68755" -> ext "+91", number "7022368755"
+  const m = raw.match(/^\+(\d{1,4})\b/);
+  const extDigits = m?.[1] ?? null;
+  const phoneExt = extDigits ? `+${extDigits}` : null;
+
+  const rest = extDigits ? raw.slice(m![0].length).trim() : raw;
+  const phoneNumber = digitsOnly(rest) || null;
+
+  const phoneNorm = digitsOnly(`${extDigits ?? ''}${phoneNumber ?? ''}`) || null;
+  return { phoneExt, phoneNumber, phoneNorm };
 }
 
 function normalizeEmail(email: string): string {
@@ -30,7 +50,7 @@ export async function syncContacts(params: {
       const phone = (c.phone ?? null)?.toString().trim() || null;
       const email = (c.email ?? null)?.toString().trim() || null;
 
-      const phoneNorm = phone ? normalizePhone(phone) : null;
+      const { phoneExt, phoneNumber, phoneNorm } = phone ? splitPhone(phone) : { phoneExt: null, phoneNumber: null, phoneNorm: null };
       const emailNorm = email ? normalizeEmail(email) : null;
 
       // Skip totally empty contact rows
@@ -52,6 +72,8 @@ export async function syncContacts(params: {
               device_id: deviceId,
               name,
               phone,
+              phone_ext: phoneExt,
+              phone_number: phoneNumber,
               email,
               phone_norm: phoneNorm,
               email_norm: emailNorm,
