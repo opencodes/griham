@@ -50,9 +50,14 @@ contactSchema.virtual('id').get(function () {
 });
 
 // De-dupe within a family.
-// Unique sparse indexes allow nulls while preventing duplicates on actual values.
-contactSchema.index({ family_id: 1, phone_number: 1 }, { unique: true, sparse: true });
-contactSchema.index({ family_id: 1, email_norm: 1 }, { unique: true, sparse: true });
+// Unique key (primary): family_id + phone_norm
+contactSchema.index(
+  { family_id: 1, phone_norm: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { phone_norm: { $type: 'string' } },
+  }
+);
 
 contactSchema.plugin(mongooseLeanVirtuals);
 

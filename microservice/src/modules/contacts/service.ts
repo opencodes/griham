@@ -50,7 +50,7 @@ export async function syncContacts(params: {
   const { userId, familyId, deviceId = null, contacts } = params;
 
   const prepared = contacts.map((c) => {
-    const name = (c.name ?? null)?.toString().trim() || null;
+    const nameTrimmed = (c.name ?? null)?.toString().trim() || null;
     const phone = (c.phone ?? null)?.toString().trim() || null;
     const email = (c.email ?? null)?.toString().trim() || null;
 
@@ -59,27 +59,28 @@ export async function syncContacts(params: {
       : { phoneExt: null, phoneNumber: null, phoneNorm: null };
     const emailNorm = email ? normalizeEmail(email) : null;
 
+    const name = phoneNumber ? (nameTrimmed ?? 'Unknown Name') : nameTrimmed;
     return { name, phone, email, phoneExt, phoneNumber, phoneNorm, emailNorm };
   });
 
-  const incomingPhoneNumbers = Array.from(
+  const incomingPhoneNorms = Array.from(
     new Set(
       prepared
-        .map((p) => p.phoneNumber)
+        .map((p) => p.phoneNorm)
         .filter((n): n is string => typeof n === 'string' && n.length > 0)
     )
   );
 
-  const existingPhoneSet = new Set<string>();
-  if (incomingPhoneNumbers.length > 0) {
+  const existingPhoneNormSet = new Set<string>();
+  if (incomingPhoneNorms.length > 0) {
     const existing = await ContactModel.find({
       family_id: familyId,
-      phone_number: { $in: incomingPhoneNumbers },
+      phone_norm: { $in: incomingPhoneNorms },
     })
-      .select({ phone_number: 1 })
+      .select({ phone_norm: 1 })
       .lean();
     for (const doc of existing) {
-      if (doc.phone_number) existingPhoneSet.add(doc.phone_number);
+      if (doc.phone_norm) existingPhoneNormSet.add(doc.phone_norm);
     }
   }
 
@@ -87,7 +88,7 @@ export async function syncContacts(params: {
 
   const ops = contacts
     .map((c) => {
-      const name = (c.name ?? null)?.toString().trim() || null;
+      const nameTrimmed = (c.name ?? null)?.toString().trim() || null;
       const phone = (c.phone ?? null)?.toString().trim() || null;
       const email = (c.email ?? null)?.toString().trim() || null;
 
@@ -95,6 +96,7 @@ export async function syncContacts(params: {
         ? splitPhone(phone)
         : { phoneExt: null, phoneNumber: null, phoneNorm: null };
       const emailNorm = email ? normalizeEmail(email) : null;
+      const name = phoneNumber ? (nameTrimmed ?? 'Unknown Name') : nameTrimmed;
 
       // Skip totally empty contact rows
       if (!name && !phoneNorm && !emailNorm) return null;
@@ -102,14 +104,12 @@ export async function syncContacts(params: {
       const hasPhone = phoneNumber != null && phoneNumber.length > 0;
       // Per requirement: only store contacts with a phone number.
       if (!hasPhone) return null;
-      if (hasPhone && existingPhoneSet.has(phoneNumber)) {
+      if (phoneNorm && existingPhoneNormSet.has(phoneNorm)) {
         duplicates += 1;
         return null;
       }
 
-      const filter = hasPhone
-        ? { family_id: familyId, phone_number: phoneNumber }
-        : { family_id: familyId, email_norm: emailNorm! };
+      const filter = { family_id: familyId, phone_norm: phoneNorm };
 
       const now = new Date();
       return {
@@ -128,7 +128,6 @@ export async function syncContacts(params: {
               phone_number: phoneNumber,
               email,
               phone_norm: phoneNorm,
-              email_norm: emailNorm,
               last_synced_at: now,
             },
           },
