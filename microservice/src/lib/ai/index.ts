@@ -49,6 +49,9 @@ export async function textGeneration(
   inputs: string,
   options?: TextGenerationOptions
 ): Promise<string | null> {
+  console.log('TextGenerationOptions', JSON.stringify({
+    model, inputs, options
+  }));
   return getProvider(config.aiProvider).textGeneration(model, inputs, options);
 }
 
