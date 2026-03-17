@@ -794,7 +794,7 @@ export function makeServer({ environment = 'development' } = {}) {
         const bills = db.bills.filter((b) => b.family_id === familyId && b.status === 'pending');
         const billsTotal = bills.reduce((s, b) => s + Number(b.amount || 0), 0);
         const risks: string[] = [];
-        if (total_expense > total_balance && total_balance > 0) {
+        if (total_expense > totalBalance && totalBalance > 0) {
           risks.push('Monthly expenses exceed current balance; consider delaying non-essential spending.');
         }
         if (bills.length > 0 && billsTotal > totalBalance) {

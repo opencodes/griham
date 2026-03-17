@@ -102,7 +102,6 @@ export default function CardDetails() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [familyId, setFamilyId] = useState<string>('');
-  const [userRole, setUserRole] = useState<string>('');
   const [card, setCard] = useState<Card | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -125,7 +124,7 @@ export default function CardDetails() {
         setFamilyId(families[0].id);
         const members = await householdAPI.listMembers(families[0].id);
         const currentMember = members.find((m: any) => m.user_id === user?.id);
-        setUserRole(currentMember?.role || 'viewer');
+        void currentMember?.role;
       }
     } catch (error) {
       console.error('Failed to load family', error);

@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { Plus, Phone, ShieldAlert, User, Building2, Users } from 'lucide-react';
+import { contactsAPI, householdAPI, type Contact as ApiContact } from '@/lib/api';
 
 type ContactGroup = 'Family' | 'Neighbor' | 'Vendor' | 'Emergency';
 
@@ -35,43 +36,48 @@ export default function Contacts() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
-  const [contacts, setContacts] = useState<ContactItem[]>([
-    {
-      id: 'cnt-1',
-      name: 'Rajesh Kumar Jha',
+  const [contacts, setContacts] = useState<ContactItem[]>([]);
+
+  const mapApiToUi = (c: ApiContact): ContactItem => {
+    const phone = c.phone ?? (c.phone_ext && c.phone_number ? `${c.phone_ext} ${c.phone_number}` : c.phone_number ?? '');
+    return {
+      id: c.id,
+      name: c.name ?? 'Unknown Name',
       group: 'Family',
-      relationOrRole: 'Father',
-      phone: '+91 98xxxxxx10',
-      email: 'rajesh@example.com',
-      isEmergency: true,
-    },
-    {
-      id: 'cnt-2',
-      name: 'Sharma Ji',
-      group: 'Neighbor',
-      relationOrRole: 'Flat 402',
-      phone: '+91 98xxxxxx22',
-      address: 'Tower B, 4th Floor',
+      relationOrRole: 'Synced',
+      phone,
       isEmergency: false,
-    },
-    {
-      id: 'cnt-3',
-      name: 'Ravi Electrician',
-      group: 'Vendor',
-      relationOrRole: 'Electric Repair',
-      phone: '+91 98xxxxxx45',
-      isEmergency: true,
-    },
-    {
-      id: 'cnt-4',
-      name: 'City Ambulance',
-      group: 'Emergency',
-      relationOrRole: '24x7 Emergency',
-      phone: '108',
-      isEmergency: true,
-    },
-  ]);
+    };
+  };
+
+  const loadContacts = async (q?: string) => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const family = await householdAPI.getCurrent();
+      const familyId = family?.id;
+      if (!familyId) {
+        setContacts([]);
+        setLoadError('No family selected');
+        return;
+      }
+      const apiContacts = await contactsAPI.list(familyId, { q: q?.trim() || undefined, limit: 500 });
+      setContacts(apiContacts.map(mapApiToUi));
+    } catch (e: any) {
+      setLoadError(e?.message ?? 'Failed to load contacts');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadContacts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -181,8 +187,33 @@ export default function Contacts() {
             <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Contact Directory</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{sortedContacts.length} contacts</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {isLoading ? 'Loading…' : `${sortedContacts.length} contacts`}
+                </p>
               </div>
+
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search name or phone…"
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => loadContacts(search)}
+                  className="btn-secondary whitespace-nowrap"
+                  disabled={isLoading}
+                >
+                  Search
+                </button>
+              </div>
+
+              {loadError && (
+                <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+                  {loadError}
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 {sortedContacts.map((contact) => (
@@ -227,7 +258,9 @@ export default function Contacts() {
                 ))}
 
                 {sortedContacts.length === 0 && (
-                  <div className="text-center py-10 text-gray-500 dark:text-gray-400">No contacts added yet</div>
+                  <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+                    {isLoading ? 'Loading contacts…' : 'No contacts found'}
+                  </div>
                 )}
               </div>
             </div>

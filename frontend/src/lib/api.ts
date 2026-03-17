@@ -349,6 +349,24 @@ export const financeAPI = {
   },
 };
 
+export interface Contact {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  phone_ext: string | null;
+  phone_number: string | null;
+  phone_norm: string | null;
+  last_synced_at?: string | null;
+}
+
+export const contactsAPI = {
+  list: async (familyId: string, params?: { q?: string; limit?: number }): Promise<Contact[]> => {
+    const qs = new URLSearchParams(params as any).toString();
+    const { data } = await api.get(`/contacts/${familyId}${qs ? `?${qs}` : ''}`);
+    return data.data ?? [];
+  },
+};
+
 export interface Role {
   id: string;
   name: string;
