@@ -36,8 +36,9 @@ export const contactsController = {
 
     res.success({
       received: result.received,
-      upserted: result.upserted,
-      modified: result.modified,
+      inserted: result.inserted,
+      updated: result.updated,
+      duplicates: result.duplicates,
     }, 'Contacts synced');
   },
 };
