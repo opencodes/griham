@@ -11,6 +11,7 @@ import BankAccounts from './pages/BankAccounts';
 import Transactions from './pages/Transactions';
 import Bills from './pages/Bills';
 import Cards from './pages/Cards';
+import CardDetails from './pages/CardDetails';
 import Events from './pages/Events';
 import Assets from './pages/Assets';
 import Health from './pages/Health';
@@ -160,6 +161,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <PermissionRoute moduleKey="finance">
               <Cards />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/cards/:cardId"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="finance">
+              <CardDetails />
             </PermissionRoute>
           </ProtectedRoute>
         }

@@ -99,6 +99,23 @@ export default function BankAccounts() {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const summary = (() => {
+    const totalBalance = accounts.reduce((sum, account) => sum + (account.balance || 0), 0);
+    const totalAccounts = accounts.length;
+    const savingsCount = accounts.filter((a) => a.account_type === 'savings').length;
+    const currentCount = accounts.filter((a) => a.account_type === 'current').length;
+    const creditCount = accounts.filter((a) => a.account_type === 'credit').length;
+    const avgBalance = totalAccounts > 0 ? totalBalance / totalAccounts : 0;
+    return {
+      totalBalance,
+      totalAccounts,
+      savingsCount,
+      currentCount,
+      creditCount,
+      avgBalance
+    };
+  })();
+
   return (
     <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
@@ -134,6 +151,39 @@ export default function BankAccounts() {
                   Add Account
                 </button>
               )}
+            </div>
+
+            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Total Balance</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    ₹{summary.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Total Accounts</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.totalAccounts}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Savings Accounts</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.savingsCount}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Current Accounts</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.currentCount}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Credit Accounts</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.creditCount}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Avg Balance</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    ₹{summary.avgBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

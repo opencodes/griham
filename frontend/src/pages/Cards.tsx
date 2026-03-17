@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { householdAPI, financeAPI, Card } from '@/lib/api';
+import { householdAPI, financeAPI, Card, Transaction } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import CardSMSParser from '@/components/CardSMSParser';
@@ -26,6 +26,7 @@ export default function Cards() {
   const [familyId, setFamilyId] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('');
   const [cards, setCards] = useState<Card[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,6 +86,68 @@ export default function Cards() {
     }
     return cardGradients[hash];
   };
+
+  const matchesCard = (card: Card, tx: Transaction) => {
+    const needle = [
+      card.card_name,
+      card.bank_name,
+      card.last_four_digits
+    ]
+      .filter(Boolean)
+      .map((s) => s.toLowerCase());
+
+    if (needle.length === 0) return false;
+    const hay = [
+      tx.description,
+      tx.bank_name,
+      tx.account_name
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return needle.some((n) => hay.includes(n));
+  };
+
+  const getCardSpend = (card: Card) => {
+    const total = transactions.reduce((sum, tx) => {
+      if (tx.type !== 'expense') return sum;
+      if (!matchesCard(card, tx)) return sum;
+      return sum + (tx.amount || 0);
+    }, 0);
+    return total;
+  };
+
+  const summary = (() => {
+    const totalSpending = transactions.reduce((sum, tx) => {
+      if (tx.type === 'expense') return sum + (tx.amount || 0);
+      return sum;
+    }, 0);
+    const totalPayments = transactions.reduce((sum, tx) => {
+      if (tx.type === 'income') return sum + (tx.amount || 0);
+      return sum;
+    }, 0);
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const statementDue = transactions.reduce((sum, tx) => {
+      if (tx.type !== 'expense') return sum;
+      const d = new Date(tx.transaction_date);
+      if (Number.isNaN(d.getTime())) return sum;
+      if (d < monthStart) return sum;
+      return sum + (tx.amount || 0);
+    }, 0);
+    const activeCards = cards.filter((c) => c.status === 'active').length;
+    const totalLimit = cards.reduce((sum, c) => sum + (c.card_limit || 0), 0);
+    const avgSpend = cards.length > 0 ? totalSpending / cards.length : 0;
+    return {
+      totalSpending,
+      totalPayments,
+      statementDue,
+      activeCards,
+      totalLimit,
+      avgSpend
+    };
+  })();
 
   const suggestedBankNames = (() => {
     const map = new Map<string, string>();
@@ -147,8 +210,12 @@ export default function Cards() {
 
   const loadCards = async () => {
     try {
-      const data = await financeAPI.listCards(familyId);
+      const [data, tx] = await Promise.all([
+        financeAPI.listCards(familyId),
+        financeAPI.listTransactions(familyId)
+      ]);
       setCards(data);
+      setTransactions(tx);
     } catch (error) {
       console.error('Failed to load cards', error);
     }
@@ -264,59 +331,139 @@ export default function Cards() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="premium-panel rounded-2xl border border-[var(--panel-border)] p-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 text-sm">
+                <div>
+                  <p className="text-[var(--app-fg-muted)]">Total Spending</p>
+                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                    ₹{summary.totalSpending.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--app-fg-muted)]">Total Payments</p>
+                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                    ₹{summary.totalPayments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--app-fg-muted)]">Statement Due (This Month)</p>
+                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                    ₹{summary.statementDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--app-fg-muted)]">Active Cards</p>
+                  <p className="text-lg font-semibold text-[var(--app-fg)]">{summary.activeCards}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--app-fg-muted)]">Total Credit Limit</p>
+                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                    ₹{summary.totalLimit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[var(--app-fg-muted)]">Avg Spend / Card</p>
+                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                    ₹{summary.avgSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {cards.map((card) => (
-                <div
-                  key={card.id}
-                  className={`p-6 rounded-xl text-white relative ${getCardGradient(
-                    card.bank_name,
-                    card.card_type
-                  )}`}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <CreditCard className="w-10 h-10 opacity-80" />
-                    <span className="text-xs uppercase bg-white/20 px-2 py-1 rounded">
-                      {card.card_type}
+                <div key={card.id} className="space-y-3">
+                  <div
+                    className={`relative overflow-hidden rounded-2xl text-white shadow-xl ${getCardGradient(
+                      card.bank_name,
+                      card.card_type
+                    )}`}
+                    style={{ aspectRatio: '1.586', minHeight: '200px' }}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/finance/cards/${card.id}`)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        navigate(`/finance/cards/${card.id}`);
+                      }
+                    }}
+                  >
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute -top-14 -right-10 h-36 w-36 rounded-full bg-white/20 blur-3xl" />
+                      <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-black/20 blur-2xl" />
+                    </div>
+
+                    {userRole === 'admin' && (
+                      <div className="absolute top-4 right-4 flex gap-2">
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleEdit(card);
+                          }}
+                          className="h-9 w-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center"
+                          aria-label="Edit card"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDelete(card.id);
+                          }}
+                          className="h-9 w-9 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"
+                          aria-label="Delete card"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="relative p-6 h-full flex flex-col justify-between">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-[11px] uppercase tracking-[0.18em] text-white/80">
+                            {card.bank_name || 'Bank'}
+                          </p>
+                          <p className="text-sm font-semibold truncate">{card.card_name || 'Card'}</p>
+                        </div>
+                        <span className="text-[10px] uppercase bg-white/20 px-2 py-1 rounded">
+                          {card.card_type}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="h-9 w-12 rounded-md bg-white/25 border border-white/30 shadow-inner">
+                          <div className="h-full w-full rounded-md bg-gradient-to-br from-white/30 to-transparent" />
+                        </div>
+                        <CreditCard className="w-10 h-10 opacity-70" />
+                      </div>
+
+                      <div className="flex items-end justify-between gap-4">
+                        <p className="text-base font-mono tracking-[0.28em]">•••• {card.last_four_digits}</p>
+                        <div className="text-right text-[11px] text-white/80 space-y-1">
+                          {card.card_limit && (
+                            <div>
+                              <p className="uppercase tracking-[0.12em]">Limit</p>
+                              <p className="text-[12px] font-semibold text-white">
+                                ₹{parseFloat(card.card_limit.toString()).toFixed(2)}
+                              </p>
+                            </div>
+                          )}
+                          {card.billing_date && (
+                            <p>Bill {card.billing_date} / month</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-1 text-sm text-[var(--app-fg-muted)]">
+                    <span>Card wise spend</span>
+                    <span className="font-semibold text-[var(--app-fg)]">
+                      ₹{getCardSpend(card).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
-
-                  <div className="space-y-2">
-                    <p className="text-sm opacity-90">{card.bank_name}</p>
-                    <p className="text-lg font-semibold">{card.card_name}</p>
-                    <p className="text-2xl font-mono tracking-wider">•••• {card.last_four_digits}</p>
-                  </div>
-
-                  {card.card_limit && (
-                    <div className="mt-4 pt-4 border-t border-white/20">
-                      <p className="text-xs opacity-75">Credit Limit</p>
-                      <p className="text-lg font-bold">₹{parseFloat(card.card_limit.toString()).toFixed(2)}</p>
-                    </div>
-                  )}
-
-                  {card.billing_date && (
-                    <div className="mt-2">
-                      <p className="text-xs opacity-75">Billing Date: {card.billing_date} of every month</p>
-                    </div>
-                  )}
-
-                  {userRole === 'admin' && (
-                    <div className="flex gap-2 mt-4">
-                      <button
-                        onClick={() => handleEdit(card)}
-                        className="flex-1 bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg flex items-center justify-center gap-2"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(card.id)}
-                        className="flex-1 bg-red-500/80 hover:bg-red-600 px-3 py-2 rounded-lg flex items-center justify-center gap-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </button>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

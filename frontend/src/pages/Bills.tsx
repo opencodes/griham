@@ -153,6 +153,29 @@ export default function Bills() {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const summary = (() => {
+    const now = new Date();
+    const pendingBills = bills.filter((b) => b.status === 'pending');
+    const paidBills = bills.filter((b) => b.status === 'paid');
+    const pendingTotal = pendingBills.reduce((sum, b) => sum + (b.amount || 0), 0);
+    const paidTotal = paidBills.reduce((sum, b) => sum + (b.amount || 0), 0);
+    const overdueCount = pendingBills.filter((b) => new Date(b.due_date) < now).length;
+    const upcomingCount = pendingBills.filter((b) => {
+      const due = new Date(b.due_date);
+      const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= 7;
+    }).length;
+    const recurringCount = bills.filter((b) => b.is_recurring).length;
+    return {
+      pendingTotal,
+      paidTotal,
+      overdueCount,
+      upcomingCount,
+      recurringCount,
+      pendingCount: pendingBills.length
+    };
+  })();
+
   return (
     <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar
@@ -188,6 +211,39 @@ export default function Bills() {
                   Add Bill
                 </button>
               )}
+            </div>
+
+            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Pending Amount</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    ₹{summary.pendingTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Paid Amount</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    ₹{summary.paidTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Pending Bills</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.pendingCount}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Overdue</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.overdueCount}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Due in 7 Days</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.upcomingCount}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400">Recurring Bills</p>
+                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.recurringCount}</p>
+                </div>
+              </div>
             </div>
 
             {/* Due-date / cash-flow tips */}
