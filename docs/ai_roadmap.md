@@ -1,129 +1,131 @@
-# AI Roadmap – Griham
+# Griham — AI roadmap (customer experience)
 
-Suggested and listed places where AI can be used across the Griham home management platform.
+This document proposes **additional AI capabilities** to reduce friction and improve outcomes for households. It complements what already exists (finance insights, risk radar, Q&A on the month, NL transaction search, SMS parsing, category suggestions, contact cleanup).
 
----
-
-## 1. Already Using or Planned AI (Finance)
-
-| Place | What It Does | Where in Codebase |
-|-------|----------------|-------------------|
-| **SMS → Transaction** | Parse bank SMS into transaction (amount, date, category, merchant, etc.) | `SMSParser.tsx` → `POST /finance/ai/parse-sms/{familyId}` |
-| **SMS → Card** | Parse card SMS into card record | `CardSMSParser.tsx` → `POST /finance/ai/parse-sms-card/{familyId}` |
-| **Financial insights** | Health assessment, observations, recommendations | `GET /finance/ai/insights/{familyId}` (see AI_Implementation.md) |
-| **Savings tips** | Tips from spending by category | `GET /finance/ai/savings-tips/{familyId}` (see AI_Implementation.md) |
+Priorities are indicative: **P0** = high impact / common pain, **P1** = strong differentiator, **P2** = nice-to-have or later phase.
 
 ---
 
-## 2. Dashboard & Overview
+## Principles
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **AI summary for “Household Overview”** | One short paragraph summarizing families, finance, and module status (instead of only raw numbers). | `Dashboard.tsx` – “AI Command Center” hero section (lines ~221–241). |
-| **Smarter “Risk Radar”** | Use AI to suggest risks (e.g. “spending up 20% vs last month”, “bills due in same week as low balance”) beyond fixed rules. | `Dashboard.tsx` – `risks` useMemo and Risk Radar block (lines ~191–322). |
-| **Module Pulse text** | Per-module one-liner (e.g. “Finance: healthy; 2 bills due this week”) instead of only counts. | Same Module Pulse cards in `Dashboard.tsx`. |
-
----
-
-## 3. Transactions
-
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Auto-category from description** | When user types description (or pastes SMS), suggest/auto-fill category (and optionally type). | `Transactions.tsx` – Add Transaction modal; trigger on `description` or when creating from parsed SMS. |
-| **Smart search** | Natural language search, e.g. “coffee last week” or “biggest expense this month”. | `Transactions.tsx` – search/filter area (lines ~366–416); add an “AI search” mode or interpret query. |
-| **Spending insights per category** | Short AI explanation for a category (e.g. “Food is 25% of expenses; above your usual”). | Transaction list or a “Category insights” panel on Transactions or Finance Overview. |
-| **Duplicate / anomaly detection** | Flag possible duplicates or unusual amounts/dates. | After loading transactions (e.g. in `loadTransactions` or a dedicated “Review” view). |
+- **Opt-in & transparent** — User chooses when AI runs; show when answers are AI-generated.
+- **Grounded in their data** — Prefer answers tied to accounts, transactions, bills the user already entered.
+- **Short, actionable** — One screen, one job: summaries and next steps, not essays.
+- **Fallbacks** — If AI is off or fails, core flows still work manually.
 
 ---
 
-## 4. Finance Overview
+## P0 — High impact, everyday ease
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Narrative summary** | 2–3 sentence summary of the month (income, expenses, bills, trend). | `FinanceOverview.tsx` – above or below the summary cards (lines ~137–169). |
-| **“Ask about this month”** | Simple Q&A: “Why is expense high?” “What were the top 3 categories?” | New small chat or Q&A widget on Finance Overview. |
+### 1. **Voice & quick capture**
 
----
+- Voice note → draft transaction or bill (“Paid electricity 3200 yesterday”) with user confirm before save.
+- Reduces typing on mobile; critical for adoption.
 
-## 5. Bills
+### 2. **Receipt / bill photo → structured entry**
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Bill name → category** | From bill name (e.g. “Airtel Broadband”) suggest category (e.g. Internet). | `Bills.tsx` – Create Bill form; suggest category from `bill_name`. |
-| **Due-date / cash-flow tips** | “3 bills due in 5 days; balance might be short by ₹X” or “Consider paying Y before Z.” | Bills list or Dashboard Risk Radar. |
-| **Recurrence from description** | If user pastes bill text, infer name, amount, due date, recurrence. | Same flow as SMS parsing: new “Parse from bill text” in Bills. |
+- Photo of receipt or utility bill → amount, merchant, date, suggested category; user edits and confirms.
+- Pairs well with existing category suggestion.
 
----
+### 3. **Proactive “this week” digest**
 
-## 6. Events (from docs)
+- Push or in-app card: “This week: 2 bills due, spending vs last week, one suggested action.”
+- Uses same aggregates as risk/cashflow; packaged as a **weekly narrative**.
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Event from natural language** | “Add birthday for Mom on 15 March” → create event with type, title, date. | Events module (when built) – create event form or a small “Add with AI” input. |
-| **Gift / reminder suggestions** | E.g. “Suggest gifts for upcoming birthdays” or “Remind 3 days before.” | Event detail or list view. |
+### 4. **Duplicate & anomaly detection**
 
----
+- Flag likely duplicate transactions, suspicious amount spikes, or recurring charges that changed.
+- Short explanation: “Similar ₹2,500 debit on Mar 10 and Mar 12 — same merchant?”
 
-## 7. Organizer (Tasks, Notes, Shopping – from docs)
+### 5. **Plain-language onboarding coach**
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Task from natural language** | “Remind me to pay electricity tomorrow” → task + due date + reminder. | Organizer / Tasks create form. |
-| **Shopping list from text** | Paste “milk, bread, eggs” or a recipe → list of items. | Shopping list create/edit. |
-| **Note summarization / tags** | Summarize long note or suggest tags. | Notes list or editor. |
-| **Priority / assignee suggestion** | Suggest priority or assignee from task title/description. | Task create form. |
+- After signup: “Tell me in one sentence what you want to track” → suggested setup (add account, first bill, invite member).
+- Lowers blank-page anxiety.
 
 ---
 
-## 8. Health (from docs)
+## P1 — Strong differentiation
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Extract from prescription / report** | Parse image or text of prescription/lab report into structured fields. | Health module – add “Add from photo/text” for records. |
-| **Next dose / appointment phrasing** | “When is the next vaccination?” answered from health data. | Health dashboard or a small Q&A. |
-| **Medication reminders** | Smarter reminder text (e.g. “Take with food”) from prescription text. | When building reminders. |
+### 6. **Goal-based planning**
 
----
+- User sets goals (“Save ₹50k for trip by Dec”) → AI suggests monthly tuck-away amount from current income/expense patterns (informational, not advice).
+- Monthly check-in: “You’re on track / behind by ~X.”
 
-## 9. Contacts
+### 7. **Bill negotiation & renewal reminders**
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Contact from message** | Parse “Call plumber Raj 9876543210” into contact (name, role, phone). | Contacts create flow. |
-| **Relationship / role from name** | Suggest relation or category from name/context. | Contact form. |
+- From bill names + amounts: “Your broadband bill renewed — compare plans?” with generic checklist (no partner bias unless you add partners later).
+- Renewal date awareness from recurring bills.
 
----
+### 8. **Family-aware insights**
 
-## 10. Messaging & Notifications
+- Respect permissions: “Spending visible to you this month…” for shared vs private views where product allows.
+- Suggested **conversation starters** for couples: “Food spend is up 15%; want to set a weekly cap?”
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Smart notifications** | Summarize multiple alerts (e.g. “3 bills due, 1 overdue”) in one line. | Messaging/notification layer. |
-| **Intent from in-app message** | “Pay electricity” → link to Bills or suggest payment. | Message Center / notification actions. |
+### 9. **Smart contact enrichment (privacy-safe)**
 
----
+- Optional: suggest missing last names, company from email domain, or merge hints — **only with explicit confirm**, no auto-write to phone OS contacts without consent.
 
-## 11. Global / UX
+### 10. **Natural language dashboard**
 
-| Use Case | Idea | Where to Plug In |
-|----------|------|-------------------|
-| **Assistant / chat** | One place to “Ask about my home”: finance, events, tasks, health in one chat. | New route or sidebar entry, e.g. “Ask Griham” or “Assistant”. |
-| **Onboarding tips** | Contextual tips per page (e.g. “You can add transactions from SMS here”). | Dashboard and main modules. |
-| **Accessibility** | Alt text or short summaries for charts/tables for screen readers. | Finance Overview, Dashboard, any charts. |
+- “Show me everything due before salary day” → composes filters across bills + balance (rule-backed + LLM for intent).
+
+### 11. **Multi-language summaries**
+
+- Insights, risk lines, and Q&A in user’s preferred language (Hindi, Tamil, etc.) while data stays in app language.
 
 ---
 
-## Suggested Implementation Order
+## P2 — Deeper / later phases
 
-1. **Dashboard** – AI summary for “Household Overview” and smarter Risk Radar (reuse existing insights/context).
-2. **Transactions** – Auto-category from description (and from parsed SMS) in the Add Transaction flow.
-3. **Finance Overview** – Narrative summary of the month using existing summary/insights API if available.
-4. **Bills** – Category suggestion from bill name in Create Bill.
-5. **Assistant** – Single “Ask Griham” chat that can query finance (and later events, health, etc.).
+### 12. **Events & reminders assistant**
+
+- “Kids’ school fee due next month — add to bills?” from pasted text or photo of notice.
+
+### 13. **Health module assistant** (when module is real)
+
+- Summarize medication schedules or appointment reminders from user-entered notes (no medical diagnosis; reminders only).
+
+### 14. **Document vault helper**
+
+- User uploads policy PDF → extract policy number, renewal date, premium (metadata only); store encrypted; user verifies.
+
+### 15. **Chat continuity**
+
+- Threaded assistant that remembers **this session’s** questions about the selected month (context window), not full history forever unless product decides.
+
+### 16. **Fraud / scam awareness nudges**
+
+- Generic education when user pastes SMS that looks like phishing (“Banks don’t ask for PIN by SMS”) — careful tone, no false alarms.
 
 ---
 
-## Related Docs
+## Cross-cutting (any phase)
 
-- [AI_Implementation.md](AI_Implementation.md) – Technical design for current finance AI (insights, savings tips, parse-sms).
-- [FINANCE.md](FINANCE.md) – Finance module features and schema.
+| Theme | Idea |
+|-------|------|
+| **Trust** | “Why did you say this?” — one-line citation: “Based on Food ₹18k vs ₹14k last month.” |
+| **Cost control** | Batch or cache similar requests; smaller models for classification, larger only for narrative. |
+| **Accessibility** | Screen-reader friendly summaries; high-contrast “key number” extraction from paragraphs. |
+| **Compliance** | Disclaimers on non-advice; no guaranteed returns; regional regulations for “financial advice.” |
+
+---
+
+## Suggested implementation order (lean)
+
+1. **Voice / quick text → transaction draft** (P0) — reuses category + date parsing patterns.  
+2. **Weekly digest** (P0) — reuses aggregates + narrative prompt.  
+3. **Receipt photo** (P0) — needs OCR pipeline (e.g. cloud vision API + LLM structuring).  
+4. **Duplicates & anomalies** (P0) — mostly rules + short LLM explanation.  
+5. **Goals + on-track** (P1) — simple math + one narrative template.  
+
+---
+
+## Out of scope (for this roadmap)
+
+- Fully automated trading or investment advice.  
+- Sharing data with third parties without explicit consent.  
+- Replacing licensed financial planners for regulated use cases.  
+
+---
+
+*AiRoadmap.md — living doc; revise as product scope and compliance posture evolve.*
