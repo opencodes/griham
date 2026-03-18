@@ -356,12 +356,37 @@ export interface Contact {
   phone_ext: string | null;
   phone_number: string | null;
   phone_norm: string | null;
+   email?: string | null;
   last_synced_at?: string | null;
 }
 
 export interface ContactsSummary {
   total: number;
   last_synced_at: string | null;
+}
+
+export interface ContactCleanupSuggestion {
+  id: string;
+  reasons: string[];
+  ai_reason?: string;
+}
+
+export interface ContactCleanupResponse {
+  suggestions: ContactCleanupSuggestion[];
+  ai_available: boolean;
+  ai_used: boolean;
+}
+
+export interface ContactCleanupApplyResponse {
+  deleted: number;
+  ids: string[];
+  reasons: Record<string, string[]>;
+}
+
+export interface ContactUpdatePayload {
+  name: string;
+  phone: string;
+  email?: string | null;
 }
 
 export const contactsAPI = {
@@ -376,6 +401,36 @@ export const contactsAPI = {
   summary: async (familyId: string): Promise<ContactsSummary> => {
     const { data } = await api.get(`/contacts/${familyId}/summary`);
     return data.data ?? { total: 0, last_synced_at: null };
+  },
+  cleanupSuggestions: async (
+    familyId: string,
+    params?: { country?: string; limit?: number }
+  ): Promise<ContactCleanupResponse> => {
+    const sp = new URLSearchParams();
+    if (params?.country) sp.set('country', params.country);
+    if (typeof params?.limit === 'number' && Number.isFinite(params.limit)) sp.set('limit', String(params.limit));
+    const qs = sp.toString();
+    const { data } = await api.get(`/contacts/${familyId}/cleanup-suggestions${qs ? `?${qs}` : ''}`);
+    return data.data ?? { suggestions: [], ai_available: false, ai_used: false };
+  },
+  cleanupApply: async (
+    familyId: string,
+    params?: { country?: string; limit?: number }
+  ): Promise<ContactCleanupApplyResponse> => {
+    const sp = new URLSearchParams();
+    if (params?.country) sp.set('country', params.country);
+    if (typeof params?.limit === 'number' && Number.isFinite(params.limit)) sp.set('limit', String(params.limit));
+    const qs = sp.toString();
+    const { data } = await api.post(`/contacts/${familyId}/cleanup-apply${qs ? `?${qs}` : ''}`, {});
+    return data.data ?? { deleted: 0, ids: [], reasons: {} };
+  },
+  update: async (id: string, payload: ContactUpdatePayload): Promise<Contact> => {
+    const { data } = await api.patch(`/contacts/${id}`, payload);
+    return data.data;
+  },
+  remove: async (id: string): Promise<{ id: string }> => {
+    const { data } = await api.delete(`/contacts/${id}`);
+    return data.data ?? { id };
   },
 };
 

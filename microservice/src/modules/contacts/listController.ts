@@ -59,6 +59,7 @@ export const contactsListController = {
         phone: c.phone,
         phone_ext: c.phone_ext,
         phone_number: c.phone_number,
+        email: c.email,
         phone_norm: c.phone_norm,
         last_synced_at: c.last_synced_at ?? null,
       }))

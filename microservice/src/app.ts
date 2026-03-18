@@ -12,14 +12,12 @@ import morgan from 'morgan';
 const app: Express = express();
 
 morgan.token("body", (req) => {
-    return JSON.stringify((req as any).body);
-  });
+  return JSON.stringify((req as any).body);
+});
 app.use(cors({ origin: config.corsOrigin, credentials: true }));
 app.use(express.json());
 app.use(responseMiddleware);
-app.use(
-    morgan(":method :url :status :res[content-length] - :response-time ms \n body=> :body")
-);
+app.use(morgan('dev'));
 
 app.use('/api', authRoutes);
 app.use('/api', familiesRoutes);
