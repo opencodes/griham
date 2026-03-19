@@ -16,6 +16,9 @@ export interface ITransactionDoc {
   merchant_name: string | null;
   payment_method: string | null;
   bank_name: string | null;
+  event_id: string | null;
+  sub_event_id: string | null;
+  source_type: string | null;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -35,6 +38,9 @@ const transactionSchema = new Schema<ITransactionDoc>(
     merchant_name: { type: String, default: null },
     payment_method: { type: String, default: null },
     bank_name: { type: String, default: null },
+    event_id: { type: String, default: null, ref: 'Event' },
+    sub_event_id: { type: String, default: null, ref: 'SubEvent' },
+    source_type: { type: String, default: null },
   },
   { timestamps: true, id: false }
 );
@@ -42,6 +48,9 @@ const transactionSchema = new Schema<ITransactionDoc>(
 transactionSchema.index({ family_id: 1 });
 transactionSchema.index({ transaction_date: 1 });
 transactionSchema.index({ type: 1 });
+transactionSchema.index({ event_id: 1, transaction_date: -1 });
+transactionSchema.index({ sub_event_id: 1, transaction_date: -1 });
+transactionSchema.index({ source_type: 1 });
 
 
 transactionSchema.virtual('id').get(function () {

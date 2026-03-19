@@ -8,6 +8,11 @@ export const adminRoutes = Router();
 adminRoutes.use(authMiddleware);
 adminRoutes.use(requireRoot);
 
+// AI prompt playground
+adminRoutes.get('/ai-prompts', adminController.listPrompts);
+adminRoutes.get('/ai-prompts/:id/preview', adminController.previewPrompt);
+adminRoutes.post('/ai-prompts/test', adminController.testPrompt);
+
 // Users
 adminRoutes.get('/users', adminController.listUsers);
 adminRoutes.post('/users', adminController.createAdmin);

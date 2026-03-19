@@ -12,7 +12,11 @@ import Transactions from './pages/Transactions';
 import Bills from './pages/Bills';
 import Cards from './pages/Cards';
 import CardDetails from './pages/CardDetails';
+import Insurance from './pages/Insurance';
+import Investments from './pages/Investments';
+import Loans from './pages/Loans';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Assets from './pages/Assets';
 import Health from './pages/Health';
 import Contacts from './pages/Contacts';
@@ -22,6 +26,7 @@ import Assistant from './pages/Assistant';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
 import RootGroups from './pages/RootGroups';
+import RootPromptLab from './pages/RootPromptLab';
 import { canAccessModule } from './lib/permissions';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -78,7 +83,15 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/root/permissions" />} />
+        <Route
+          path="/root/prompts"
+          element={
+            <ProtectedRoute>
+              <RootPromptLab />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/root/prompts" />} />
       </Routes>
     );
   }
@@ -176,11 +189,51 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/finance/insurance"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="finance">
+              <Insurance />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/investments"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="finance">
+              <Investments />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/loans"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="finance">
+              <Loans />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/events"
         element={
           <ProtectedRoute>
             <PermissionRoute moduleKey="events">
               <Events />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:eventId"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="events">
+              <EventDetail />
             </PermissionRoute>
           </ProtectedRoute>
         }

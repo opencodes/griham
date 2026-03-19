@@ -17,6 +17,7 @@ financeRoutes.delete('/accounts/:familyId/:accountId', financeDataController.del
 financeRoutes.get('/transactions/:familyId/summary', financeDataController.getSummary);
 financeRoutes.get('/transactions/:familyId', financeDataController.listTransactions);
 financeRoutes.post('/transactions', financeDataController.createTransaction);
+financeRoutes.put('/transactions/:familyId/:transactionId', financeDataController.updateTransaction);
 financeRoutes.delete('/transactions/:familyId/:transactionId', financeDataController.deleteTransaction);
 
 // Bills
@@ -32,6 +33,27 @@ financeRoutes.post('/cards', financeDataController.createCard);
 financeRoutes.put('/cards/:familyId/:cardId', financeDataController.updateCard);
 financeRoutes.delete('/cards/:familyId/:cardId', financeDataController.deleteCard);
 
+// Insurance
+financeRoutes.get('/insurance/:familyId/summary', financeDataController.getInsuranceSummary);
+financeRoutes.get('/insurance/:familyId', financeDataController.listInsurance);
+financeRoutes.post('/insurance', financeDataController.createInsurance);
+financeRoutes.put('/insurance/:familyId/:insuranceId', financeDataController.updateInsurance);
+financeRoutes.delete('/insurance/:familyId/:insuranceId', financeDataController.deleteInsurance);
+
+// Investments
+financeRoutes.get('/investments/:familyId/summary', financeDataController.getInvestmentSummary);
+financeRoutes.get('/investments/:familyId', financeDataController.listInvestments);
+financeRoutes.post('/investments', financeDataController.createInvestment);
+financeRoutes.put('/investments/:familyId/:investmentId', financeDataController.updateInvestment);
+financeRoutes.delete('/investments/:familyId/:investmentId', financeDataController.deleteInvestment);
+
+// Loans
+financeRoutes.get('/loans/:familyId/summary', financeDataController.getLoanSummary);
+financeRoutes.get('/loans/:familyId', financeDataController.listLoans);
+financeRoutes.post('/loans', financeDataController.createLoan);
+financeRoutes.put('/loans/:familyId/:loanId', financeDataController.updateLoan);
+financeRoutes.delete('/loans/:familyId/:loanId', financeDataController.deleteLoan);
+
 // AI
 financeRoutes.get('/ai/insights/:familyId', financeController.insights);
 financeRoutes.get('/ai/risk-suggestions/:familyId', financeController.riskSuggestions);
@@ -45,3 +67,6 @@ financeRoutes.post('/ai/suggest-category/:familyId', financeController.suggestCa
 financeRoutes.post('/ai/suggest-bill-category/:familyId', financeController.suggestBillCategory);
 financeRoutes.post('/ai/parse-sms/:familyId', financeController.parseSms);
 financeRoutes.post('/ai/parse-sms-card/:familyId', financeController.parseSmsCard);
+financeRoutes.post('/ai/parse-sms-insurance/:familyId', financeController.parseSmsInsurance);
+financeRoutes.post('/ai/parse-sms-investment/:familyId', financeController.parseSmsInvestment);
+financeRoutes.post('/ai/parse-sms-loan/:familyId', financeController.parseSmsLoan);

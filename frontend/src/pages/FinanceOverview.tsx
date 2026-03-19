@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
 import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
-import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard, Sparkles, MessageCircle, Send } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, AlertCircle, CreditCard, Sparkles, MessageCircle, Send, Shield, Landmark } from 'lucide-react';
 
 const getCategoryIcon = (category?: string) => {
   const value = (category || '').toLowerCase();
@@ -52,21 +52,23 @@ export default function FinanceOverview() {
   const [lastQuestion, setLastQuestion] = useState<string | null>(null);
 
   useEffect(() => {
-    loadFamily();
+    void loadFamily();
   }, []);
 
   useEffect(() => {
     if (familyId) {
-      loadAccounts();
-      loadUpcomingBills();
+      void loadAccounts();
+      void loadUpcomingBills();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [familyId]);
 
   useEffect(() => {
     if (familyId) {
-      loadTransactions();
-      loadSummary();
+      void loadTransactions();
+      void loadSummary();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [familyId, month]);
 
   useEffect(() => {
@@ -264,7 +266,7 @@ export default function FinanceOverview() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-4">
               <button
                 onClick={() => navigate('/finance/accounts')}
                 className="p-4 rounded-xl border border-[var(--panel-border)] hover:shadow-md transition text-left glass-black-surface"
@@ -296,6 +298,30 @@ export default function FinanceOverview() {
                 <AlertCircle className="w-8 h-8 text-orange-600 dark:text-orange-400 mb-2" />
                 <p className="font-semibold text-[var(--app-fg)]">Bills</p>
                 <p className="text-xs text-[var(--app-fg-muted)]">Manage bills</p>
+              </button>
+              <button
+                onClick={() => navigate('/finance/insurance')}
+                className="p-4 rounded-xl border border-[var(--panel-border)] hover:shadow-md transition text-left glass-black-surface"
+              >
+                <Shield className="w-8 h-8 text-cyan-600 dark:text-cyan-400 mb-2" />
+                <p className="font-semibold text-[var(--app-fg)]">Insurance</p>
+                <p className="text-xs text-[var(--app-fg-muted)]">Policies and dues</p>
+              </button>
+              <button
+                onClick={() => navigate('/finance/investments')}
+                className="p-4 rounded-xl border border-[var(--panel-border)] hover:shadow-md transition text-left glass-black-surface"
+              >
+                <TrendingUp className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mb-2" />
+                <p className="font-semibold text-[var(--app-fg)]">Investments</p>
+                <p className="text-xs text-[var(--app-fg-muted)]">Portfolio and SIPs</p>
+              </button>
+              <button
+                onClick={() => navigate('/finance/loans')}
+                className="p-4 rounded-xl border border-[var(--panel-border)] hover:shadow-md transition text-left glass-black-surface"
+              >
+                <Landmark className="w-8 h-8 text-amber-600 dark:text-amber-400 mb-2" />
+                <p className="font-semibold text-[var(--app-fg)]">Loans</p>
+                <p className="text-xs text-[var(--app-fg-muted)]">EMI and outstanding</p>
               </button>
             </div>
 

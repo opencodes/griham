@@ -1,4 +1,4 @@
-import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles } from 'lucide-react';
+import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles, FlaskConical } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { canAccessModule } from '@/lib/permissions';
@@ -32,6 +32,7 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle, is
     { id: 'root-permissions', label: 'Permissions', icon: Shield, path: '/root/permissions' },
     { id: 'root-roles', label: 'Roles', icon: UserCog, path: '/root/roles' },
     { id: 'root-groups', label: 'Groups', icon: UsersRound, path: '/root/groups' },
+    { id: 'root-prompts', label: 'Prompt Lab', icon: FlaskConical, path: '/root/prompts' },
   ];
   const items = user?.role === 'root'
     ? rootNavItems

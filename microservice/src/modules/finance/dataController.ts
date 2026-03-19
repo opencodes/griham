@@ -4,11 +4,65 @@ import { BankAccountModel } from '../../db/schemas/BankAccount.js';
 import { TransactionModel } from '../../db/schemas/Transaction.js';
 import { BillModel } from '../../db/schemas/Bill.js';
 import { CardModel } from '../../db/schemas/Card.js';
+import { InsuranceModel } from '../../db/schemas/Insurance.js';
+import { InvestmentModel } from '../../db/schemas/Investments.js';
+import { LoanModel } from '../../db/schemas/Loan.js';
 
 type AuthRequest = Request & { auth?: { userId: string } };
 
 function toId<T extends { _id: string }>(doc: T) {
   return { ...doc, id: doc._id } as T & { id: string };
+}
+
+function formatDate(value: Date | string | null | undefined): string | null {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return value;
+}
+
+function normalizeInsuranceType(value: string | undefined): 'life' | 'health' | 'vehicle' | 'term' | 'other' {
+  const normalized = (value || '').trim().toLowerCase();
+  if (normalized === 'life' || normalized === 'health' || normalized === 'vehicle' || normalized === 'term') return normalized;
+  return 'other';
+}
+
+function normalizeInsuranceFrequency(value: string | undefined): 'monthly' | 'quarterly' | 'yearly' {
+  const normalized = (value || '').trim().toLowerCase();
+  if (normalized === 'monthly' || normalized === 'quarterly') return normalized;
+  return 'yearly';
+}
+
+function normalizeInsuranceStatus(value: string | undefined): 'active' | 'expired' {
+  return (value || '').trim().toLowerCase() === 'expired' ? 'expired' : 'active';
+}
+
+function normalizeInvestmentType(value: string | undefined): 'mutual_fund' | 'stock' | 'fd' | 'other' {
+  const normalized = (value || '').trim().toLowerCase();
+  if (normalized === 'mutual_fund' || normalized === 'stock' || normalized === 'fd') return normalized;
+  return 'other';
+}
+
+function normalizeInvestmentStatus(value: string | undefined): 'active' | 'paused' | 'closed' {
+  const normalized = (value || '').trim().toLowerCase();
+  if (normalized === 'paused' || normalized === 'closed') return normalized;
+  return 'active';
+}
+
+function normalizeLoanType(value: string | undefined): 'home' | 'car' | 'personal' | 'education' | 'other' {
+  const normalized = (value || '').trim().toLowerCase();
+  if (normalized === 'home' || normalized === 'car' || normalized === 'personal' || normalized === 'education') return normalized;
+  return 'other';
+}
+
+function normalizeLoanStatus(value: string | undefined): 'active' | 'closed' {
+  return (value || '').trim().toLowerCase() === 'closed' ? 'closed' : 'active';
+}
+
+function normalizeTransactionSourceType(value: string | undefined): string | null {
+  const normalized = (value || '').trim().toLowerCase();
+  if (!normalized) return null;
+  if (normalized === 'event') return 'event';
+  return normalized;
 }
 
 export const financeDataController = {
@@ -118,6 +172,9 @@ export const financeDataController = {
       amount?: number;
       description?: string;
       transaction_date?: string;
+      event_id?: string;
+      sub_event_id?: string;
+      source_type?: string;
     };
     const family_id = body.family_id;
     if (!family_id) {
@@ -136,6 +193,9 @@ export const financeDataController = {
       description: body.description ?? null,
       transaction_date,
       created_by: userId,
+      event_id: body.event_id ?? null,
+      sub_event_id: body.sub_event_id ?? null,
+      source_type: normalizeTransactionSourceType(body.source_type ?? (body.event_id ? 'event' : undefined)),
     });
     const tx = await TransactionModel.findById(id).lean();
     if (!tx) {
@@ -143,6 +203,54 @@ export const financeDataController = {
       return;
     }
     res.success({ ...toId(tx), transaction_date: tx.transaction_date instanceof Date ? tx.transaction_date.toISOString().slice(0, 10) : tx.transaction_date }, 'Created', 201);
+  },
+
+  async updateTransaction(req: Request, res: Response): Promise<void> {
+    const { familyId, transactionId } = req.params;
+    const transaction = await TransactionModel.findOne({ _id: transactionId, family_id: familyId });
+    if (!transaction) {
+      res.fail('Transaction not found', 404);
+      return;
+    }
+
+    const body = req.body as Partial<{
+      account_id: string;
+      type: 'income' | 'expense';
+      category: string;
+      amount: number | string;
+      description: string | null;
+      transaction_date: string;
+      event_id: string | null;
+      sub_event_id: string | null;
+      source_type: string | null;
+    }>;
+
+    if (body.account_id !== undefined) transaction.account_id = body.account_id || transaction.account_id;
+    if (body.type !== undefined) transaction.type = body.type;
+    if (body.category !== undefined) transaction.category = body.category || transaction.category;
+    if (body.amount !== undefined) transaction.amount = Number(body.amount) || 0;
+    if (body.description !== undefined) transaction.description = body.description?.trim() || null;
+    if (body.transaction_date !== undefined) transaction.transaction_date = body.transaction_date ? new Date(body.transaction_date) : transaction.transaction_date;
+    if (body.event_id !== undefined) transaction.event_id = body.event_id || null;
+    if (body.sub_event_id !== undefined) transaction.sub_event_id = body.sub_event_id || null;
+    if (body.source_type !== undefined || body.event_id !== undefined) {
+      transaction.source_type = normalizeTransactionSourceType(
+        body.source_type === undefined
+          ? (body.event_id ? 'event' : undefined)
+          : body.source_type ?? undefined
+      );
+    }
+    if (!transaction.event_id) {
+      transaction.sub_event_id = null;
+      transaction.source_type = normalizeTransactionSourceType(body.source_type ?? undefined);
+    }
+
+    await transaction.save();
+    const updated = transaction.toObject();
+    res.success({
+      ...toId(updated),
+      transaction_date: updated.transaction_date instanceof Date ? updated.transaction_date.toISOString().slice(0, 10) : updated.transaction_date,
+    });
   },
 
   async deleteTransaction(req: Request, res: Response): Promise<void> {
@@ -298,5 +406,266 @@ export const financeDataController = {
       return;
     }
     res.success({ ok: true });
+  },
+
+  // Insurance
+  async listInsurance(req: Request, res: Response): Promise<void> {
+    const list = await InsuranceModel.find({ family_id: req.params.familyId }).sort({ nextDueDate: 1, _id: -1 }).lean();
+    res.success(list.map((item) => ({ ...toId(item), nextDueDate: formatDate(item.nextDueDate) })));
+  },
+
+  async createInsurance(req: Request, res: Response): Promise<void> {
+    const body = req.body as {
+      family_id?: string;
+      type?: string;
+      provider?: string;
+      policyName?: string;
+      policyNumber?: string;
+      premiumAmount?: number;
+      premiumFrequency?: string;
+      nextDueDate?: string;
+      coverageAmount?: number;
+      insuredMembers?: string[];
+      status?: string;
+    };
+    const family_id = body.family_id;
+    if (!family_id) {
+      res.fail('family_id is required', 400);
+      return;
+    }
+    const id = uuidv4();
+    await InsuranceModel.create({
+      _id: id,
+      family_id,
+      type: normalizeInsuranceType(body.type),
+      provider: body.provider ?? 'Provider',
+      policyName: body.policyName ?? 'Policy',
+      policyNumber: body.policyNumber ?? `POL-${id.slice(0, 8)}`,
+      premiumAmount: Number(body.premiumAmount) || 0,
+      premiumFrequency: normalizeInsuranceFrequency(body.premiumFrequency),
+      nextDueDate: body.nextDueDate ? new Date(body.nextDueDate) : null,
+      coverageAmount: Number(body.coverageAmount) || 0,
+      insuredMembers: Array.isArray(body.insuredMembers) ? body.insuredMembers.filter(Boolean) : [],
+      status: normalizeInsuranceStatus(body.status),
+    });
+    const insurance = await InsuranceModel.findById(id).lean();
+    res.success(insurance ? { ...toId(insurance), nextDueDate: formatDate(insurance.nextDueDate) } : null, 'Created', 201);
+  },
+
+  async updateInsurance(req: Request, res: Response): Promise<void> {
+    const { familyId, insuranceId } = req.params;
+    const insurance = await InsuranceModel.findOne({ _id: insuranceId, family_id: familyId });
+    if (!insurance) {
+      res.fail('Insurance not found', 404);
+      return;
+    }
+    const body = req.body as Partial<{ type: string; provider: string; policyName: string; policyNumber: string; premiumAmount: number; premiumFrequency: string; nextDueDate: string; coverageAmount: number; insuredMembers: string[]; status: string }>;
+    if (body.type !== undefined) insurance.type = normalizeInsuranceType(body.type);
+    if (body.provider !== undefined) insurance.provider = body.provider;
+    if (body.policyName !== undefined) insurance.policyName = body.policyName;
+    if (body.policyNumber !== undefined) insurance.policyNumber = body.policyNumber;
+    if (body.premiumAmount !== undefined) insurance.premiumAmount = Number(body.premiumAmount) || 0;
+    if (body.premiumFrequency !== undefined) insurance.premiumFrequency = normalizeInsuranceFrequency(body.premiumFrequency);
+    if (body.nextDueDate !== undefined) insurance.nextDueDate = body.nextDueDate ? new Date(body.nextDueDate) : null;
+    if (body.coverageAmount !== undefined) insurance.coverageAmount = Number(body.coverageAmount) || 0;
+    if (body.insuredMembers !== undefined) insurance.insuredMembers = Array.isArray(body.insuredMembers) ? body.insuredMembers.filter(Boolean) : [];
+    if (body.status !== undefined) insurance.status = normalizeInsuranceStatus(body.status);
+    await insurance.save();
+    const updated = insurance.toObject();
+    res.success({ ...toId(updated), nextDueDate: formatDate(updated.nextDueDate) });
+  },
+
+  async deleteInsurance(req: Request, res: Response): Promise<void> {
+    const deleted = await InsuranceModel.findOneAndDelete({ _id: req.params.insuranceId, family_id: req.params.familyId });
+    if (!deleted) {
+      res.fail('Insurance not found', 404);
+      return;
+    }
+    res.success({ ok: true });
+  },
+
+  async getInsuranceSummary(req: Request, res: Response): Promise<void> {
+    const list = await InsuranceModel.find({ family_id: req.params.familyId }).lean();
+    const totalCoverage = list.reduce((sum, item) => sum + (item.coverageAmount || 0), 0);
+    const activeCount = list.filter((item) => item.status === 'active').length;
+    const premiumTotal = list.reduce((sum, item) => sum + (item.premiumAmount || 0), 0);
+    res.success({ totalCoverage, activeCount, premiumTotal });
+  },
+
+  // Investments
+  async listInvestments(req: Request, res: Response): Promise<void> {
+    const list = await InvestmentModel.find({ family_id: req.params.familyId }).sort({ startDate: -1, _id: -1 }).lean();
+    res.success(list.map((item) => ({ ...toId(item), startDate: formatDate(item.startDate) })));
+  },
+
+  async createInvestment(req: Request, res: Response): Promise<void> {
+    const body = req.body as {
+      family_id?: string;
+      type?: string;
+      name?: string;
+      folioNumber?: string;
+      sipAmount?: number;
+      sipDay?: number;
+      startDate?: string;
+      currentValue?: number;
+      investedAmount?: number;
+      units?: number;
+      nav?: number;
+      platform?: string;
+      status?: string;
+    };
+    const family_id = body.family_id;
+    if (!family_id) {
+      res.fail('family_id is required', 400);
+      return;
+    }
+    const id = uuidv4();
+    await InvestmentModel.create({
+      _id: id,
+      family_id,
+      type: normalizeInvestmentType(body.type),
+      name: body.name ?? 'Investment',
+      folioNumber: body.folioNumber ?? `FOL-${id.slice(0, 8)}`,
+      sipAmount: Number(body.sipAmount) || 0,
+      sipDay: Number(body.sipDay) || 1,
+      startDate: body.startDate ? new Date(body.startDate) : new Date(),
+      currentValue: Number(body.currentValue) || 0,
+      investedAmount: Number(body.investedAmount) || 0,
+      units: Number(body.units) || 0,
+      nav: Number(body.nav) || 0,
+      platform: body.platform ?? null,
+      status: normalizeInvestmentStatus(body.status),
+    });
+    const investment = await InvestmentModel.findById(id).lean();
+    res.success(investment ? { ...toId(investment), startDate: formatDate(investment.startDate) } : null, 'Created', 201);
+  },
+
+  async updateInvestment(req: Request, res: Response): Promise<void> {
+    const { familyId, investmentId } = req.params;
+    const investment = await InvestmentModel.findOne({ _id: investmentId, family_id: familyId });
+    if (!investment) {
+      res.fail('Investment not found', 404);
+      return;
+    }
+    const body = req.body as Partial<{ type: string; name: string; folioNumber: string; sipAmount: number; sipDay: number; startDate: string; currentValue: number; investedAmount: number; units: number; nav: number; platform: string | null; status: string }>;
+    if (body.type !== undefined) investment.type = normalizeInvestmentType(body.type);
+    if (body.name !== undefined) investment.name = body.name;
+    if (body.folioNumber !== undefined) investment.folioNumber = body.folioNumber;
+    if (body.sipAmount !== undefined) investment.sipAmount = Number(body.sipAmount) || 0;
+    if (body.sipDay !== undefined) investment.sipDay = Number(body.sipDay) || 1;
+    if (body.startDate !== undefined) investment.startDate = body.startDate ? new Date(body.startDate) : investment.startDate;
+    if (body.currentValue !== undefined) investment.currentValue = Number(body.currentValue) || 0;
+    if (body.investedAmount !== undefined) investment.investedAmount = Number(body.investedAmount) || 0;
+    if (body.units !== undefined) investment.units = Number(body.units) || 0;
+    if (body.nav !== undefined) investment.nav = Number(body.nav) || 0;
+    if (body.platform !== undefined) investment.platform = body.platform;
+    if (body.status !== undefined) investment.status = normalizeInvestmentStatus(body.status);
+    await investment.save();
+    const updated = investment.toObject();
+    res.success({ ...toId(updated), startDate: formatDate(updated.startDate) });
+  },
+
+  async deleteInvestment(req: Request, res: Response): Promise<void> {
+    const deleted = await InvestmentModel.findOneAndDelete({ _id: req.params.investmentId, family_id: req.params.familyId });
+    if (!deleted) {
+      res.fail('Investment not found', 404);
+      return;
+    }
+    res.success({ ok: true });
+  },
+
+  async getInvestmentSummary(req: Request, res: Response): Promise<void> {
+    const list = await InvestmentModel.find({ family_id: req.params.familyId }).lean();
+    const totalCurrentValue = list.reduce((sum, item) => sum + (item.currentValue || 0), 0);
+    const totalInvested = list.reduce((sum, item) => sum + (item.investedAmount || 0), 0);
+    const totalGain = totalCurrentValue - totalInvested;
+    res.success({ totalCurrentValue, totalInvested, totalGain, totalCount: list.length });
+  },
+
+  // Loans
+  async listLoans(req: Request, res: Response): Promise<void> {
+    const list = await LoanModel.find({ family_id: req.params.familyId }).sort({ nextDueDate: 1, _id: -1 }).lean();
+    res.success(list.map((item) => ({ ...toId(item), startDate: formatDate(item.startDate), nextDueDate: formatDate(item.nextDueDate) })));
+  },
+
+  async createLoan(req: Request, res: Response): Promise<void> {
+    const body = req.body as {
+      family_id?: string;
+      name?: string;
+      lender?: string;
+      principalAmount?: number;
+      interestRate?: number;
+      tenureMonths?: number;
+      emiAmount?: number;
+      startDate?: string;
+      nextDueDate?: string;
+      outstandingPrincipal?: number;
+      type?: string;
+      status?: string;
+    };
+    const family_id = body.family_id;
+    if (!family_id) {
+      res.fail('family_id is required', 400);
+      return;
+    }
+    const id = uuidv4();
+    await LoanModel.create({
+      _id: id,
+      family_id,
+      name: body.name ?? 'Loan',
+      lender: body.lender ?? 'Lender',
+      principalAmount: Number(body.principalAmount) || 0,
+      interestRate: Number(body.interestRate) || 0,
+      tenureMonths: Number(body.tenureMonths) || 0,
+      emiAmount: Number(body.emiAmount) || 0,
+      startDate: body.startDate ? new Date(body.startDate) : new Date(),
+      nextDueDate: body.nextDueDate ? new Date(body.nextDueDate) : null,
+      outstandingPrincipal: Number(body.outstandingPrincipal) || 0,
+      type: normalizeLoanType(body.type),
+      status: normalizeLoanStatus(body.status),
+    });
+    const loan = await LoanModel.findById(id).lean();
+    res.success(loan ? { ...toId(loan), startDate: formatDate(loan.startDate), nextDueDate: formatDate(loan.nextDueDate) } : null, 'Created', 201);
+  },
+
+  async updateLoan(req: Request, res: Response): Promise<void> {
+    const { familyId, loanId } = req.params;
+    const loan = await LoanModel.findOne({ _id: loanId, family_id: familyId });
+    if (!loan) {
+      res.fail('Loan not found', 404);
+      return;
+    }
+    const body = req.body as Partial<{ name: string; lender: string; principalAmount: number; interestRate: number; tenureMonths: number; emiAmount: number; startDate: string; nextDueDate: string; outstandingPrincipal: number; type: string; status: string }>;
+    if (body.name !== undefined) loan.name = body.name;
+    if (body.lender !== undefined) loan.lender = body.lender;
+    if (body.principalAmount !== undefined) loan.principalAmount = Number(body.principalAmount) || 0;
+    if (body.interestRate !== undefined) loan.interestRate = Number(body.interestRate) || 0;
+    if (body.tenureMonths !== undefined) loan.tenureMonths = Number(body.tenureMonths) || 0;
+    if (body.emiAmount !== undefined) loan.emiAmount = Number(body.emiAmount) || 0;
+    if (body.startDate !== undefined) loan.startDate = body.startDate ? new Date(body.startDate) : loan.startDate;
+    if (body.nextDueDate !== undefined) loan.nextDueDate = body.nextDueDate ? new Date(body.nextDueDate) : null;
+    if (body.outstandingPrincipal !== undefined) loan.outstandingPrincipal = Number(body.outstandingPrincipal) || 0;
+    if (body.type !== undefined) loan.type = normalizeLoanType(body.type);
+    if (body.status !== undefined) loan.status = normalizeLoanStatus(body.status);
+    await loan.save();
+    const updated = loan.toObject();
+    res.success({ ...toId(updated), startDate: formatDate(updated.startDate), nextDueDate: formatDate(updated.nextDueDate) });
+  },
+
+  async deleteLoan(req: Request, res: Response): Promise<void> {
+    const deleted = await LoanModel.findOneAndDelete({ _id: req.params.loanId, family_id: req.params.familyId });
+    if (!deleted) {
+      res.fail('Loan not found', 404);
+      return;
+    }
+    res.success({ ok: true });
+  },
+
+  async getLoanSummary(req: Request, res: Response): Promise<void> {
+    const list = await LoanModel.find({ family_id: req.params.familyId }).lean();
+    const totalOutstanding = list.reduce((sum, item) => sum + (item.outstandingPrincipal || 0), 0);
+    const totalEmi = list.reduce((sum, item) => sum + (item.emiAmount || 0), 0);
+    const activeCount = list.filter((item) => item.status === 'active').length;
+    res.success({ totalOutstanding, totalEmi, activeCount });
   },
 };

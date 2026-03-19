@@ -8,6 +8,7 @@ import { adminRoutes } from './modules/admin/routes.js';
 import { familiesRoutes } from './modules/families/routes.js';
 import { contactsRoutes } from './modules/contacts/routes.js';
 import { assetsRoutes } from './modules/assets/routes.js';
+import { eventsRoutes } from './modules/events/routes.js';
 import morgan from 'morgan';
 
 const app: Express = express();
@@ -25,7 +26,7 @@ app.use('/api', familiesRoutes);
 app.use('/api', contactsRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/assets', assetsRoutes);
+app.use('/api/events', eventsRoutes);
 app.use('/api/admin', adminRoutes);
 
 export default app;
-

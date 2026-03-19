@@ -9,6 +9,8 @@ import { GroupModel } from '../../db/schemas/Group.js';
 import { GroupRoleModel } from '../../db/schemas/GroupRole.js';
 import { UserGroupModel } from '../../db/schemas/UserGroup.js';
 import { v4 as uuidv4 } from 'uuid';
+import * as ai from '../../lib/ai/index.js';
+import { getPromptDefinition, promptRegistry } from '../../lib/ai/prompts/registry.js';
 
 const SALT_ROUNDS = 10;
 
@@ -17,6 +19,46 @@ function toId<T extends { _id: string }>(doc: T) {
 }
 
 export const adminController = {
+  async listPrompts(_req: Request, res: Response): Promise<void> {
+    res.success(
+      promptRegistry.map((item) => ({
+        id: item.id,
+        module: item.module,
+        label: item.label,
+        inputLabel: item.inputLabel,
+        inputPlaceholder: item.inputPlaceholder,
+      }))
+    );
+  },
+
+  async previewPrompt(req: Request, res: Response): Promise<void> {
+    const definition = getPromptDefinition(req.params.id);
+    if (!definition) {
+      res.fail('Prompt not found', 404);
+      return;
+    }
+    const input = typeof req.query.input === 'string' ? req.query.input : '';
+    res.success({ prompt: definition.buildPrompt(input) });
+  },
+
+  async testPrompt(req: Request, res: Response): Promise<void> {
+    const body = req.body as { prompt_id?: string; input?: string };
+    const promptId = body.prompt_id?.trim() || '';
+    const definition = getPromptDefinition(promptId);
+    if (!definition) {
+      res.fail('Prompt not found', 404);
+      return;
+    }
+    const prompt = definition.buildPrompt(body.input ?? '');
+    if (!ai.isAiAvailable()) {
+      res.success({ prompt, result: 'AI is not configured for this environment.', ai_available: false });
+      return;
+    }
+    const model = ai.getDefaultTextModel();
+    const result = await ai.textGeneration(model, prompt, { max_new_tokens: definition.maxTokens ?? 200 });
+    res.success({ prompt, result: result ?? '', ai_available: true });
+  },
+
   async listUsers(_req: Request, res: Response): Promise<void> {
     const users = await UserModel.find().select('-password').lean({ virtuals: true });
     const roles = await RoleModel.find().lean({ virtuals: true });

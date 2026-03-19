@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { financeAPI, householdAPI, Transaction, BankAccount, CategoryInsightItem } from '@/lib/api';
+import { financeAPI, householdAPI, Transaction, BankAccount, CategoryInsightItem, eventsAPI, Event, SubEvent } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
 import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
 import SMSParser from '@/components/SMSParser';
-import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus, Sparkles } from 'lucide-react';
+import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus, Sparkles, Pencil } from 'lucide-react';
 
 type TypeFilter = 'all' | 'income' | 'expense';
 type SortBy = 'newest' | 'oldest' | 'amount_high' | 'amount_low';
@@ -69,10 +69,14 @@ export default function TransactionsPage() {
   const [familyId, setFamilyId] = useState('');
   const [userRole, setUserRole] = useState('viewer');
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
+  const [allSubEvents, setAllSubEvents] = useState<SubEvent[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [suggestCategoryLoading, setSuggestCategoryLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -82,6 +86,8 @@ export default function TransactionsPage() {
     amount: '',
     description: '',
     transaction_date: new Date().toISOString().split('T')[0],
+    event_id: '',
+    sub_event_id: '',
   });
 
   const [search, setSearch] = useState('');
@@ -99,22 +105,6 @@ export default function TransactionsPage() {
     setMobileMenuOpen(!mobileMenuOpen);
     setSidebarCollapsed(!sidebarCollapsed);
   };
-
-  useEffect(() => {
-    loadFamily();
-  }, []);
-
-  useEffect(() => {
-    if (familyId) {
-      loadAccounts();
-    }
-  }, [familyId]);
-
-  useEffect(() => {
-    if (familyId) {
-      loadTransactions();
-    }
-  }, [familyId, month, typeFilter, categoryFilter]);
 
   useEffect(() => {
     if (!familyId) return;
@@ -135,7 +125,7 @@ export default function TransactionsPage() {
     };
   }, [familyId, month]);
 
-  const loadFamily = async () => {
+  const loadFamily = useCallback(async () => {
     try {
       const families = await householdAPI.list();
       if (families.length > 0) {
@@ -155,9 +145,9 @@ export default function TransactionsPage() {
       setError('Unable to load household details.');
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -172,9 +162,9 @@ export default function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [categoryFilter, familyId, month, typeFilter]);
 
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       const data = await financeAPI.listAccounts(familyId);
       setAccounts(data);
@@ -184,7 +174,59 @@ export default function TransactionsPage() {
     } catch (err) {
       console.error('Failed to load accounts', err);
     }
-  };
+  }, [familyId, formData.account_id]);
+
+  const loadEvents = useCallback(async () => {
+    try {
+      const data = await eventsAPI.listEvents(familyId);
+      setEvents(data);
+      const subEventGroups = await Promise.all(
+        data.map((event) => eventsAPI.listSubEvents(event.id).catch(() => []))
+      );
+      setAllSubEvents(subEventGroups.flat());
+    } catch (err) {
+      console.error('Failed to load events', err);
+      setEvents([]);
+      setAllSubEvents([]);
+    }
+  }, [familyId]);
+
+  const loadSubEvents = useCallback(async (eventId: string) => {
+    try {
+      const data = await eventsAPI.listSubEvents(eventId);
+      setSubEvents(data);
+    } catch (err) {
+      console.error('Failed to load sub-events', err);
+      setSubEvents([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadFamily();
+  }, [loadFamily]);
+
+  useEffect(() => {
+    if (familyId) {
+      void loadAccounts();
+      void loadEvents();
+    }
+  }, [familyId, loadAccounts, loadEvents]);
+
+  useEffect(() => {
+    if (!formData.event_id) {
+      setSubEvents([]);
+      setFormData((prev) => ({ ...prev, sub_event_id: '' }));
+      return;
+    }
+
+    void loadSubEvents(formData.event_id);
+  }, [formData.event_id, loadSubEvents]);
+
+  useEffect(() => {
+    if (familyId) {
+      void loadTransactions();
+    }
+  }, [familyId, loadTransactions]);
 
   const handleSuggestCategory = async () => {
     const text = (formData.description || '').trim();
@@ -208,6 +250,52 @@ export default function TransactionsPage() {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      account_id: accounts[0]?.id || '',
+      type: 'expense',
+      category: '',
+      amount: '',
+      description: '',
+      transaction_date: new Date().toISOString().split('T')[0],
+      event_id: '',
+      sub_event_id: '',
+    });
+    setSubEvents([]);
+  };
+
+  const openCreateModal = () => {
+    setEditingTransaction(null);
+    resetForm();
+    setShowModal(true);
+  };
+
+  const openEditModal = async (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    if (transaction.event_id) {
+      await loadSubEvents(transaction.event_id);
+    } else {
+      setSubEvents([]);
+    }
+    setFormData({
+      account_id: transaction.account_id || accounts[0]?.id || '',
+      type: transaction.type === 'income' ? 'income' : 'expense',
+      category: transaction.category || '',
+      amount: String(transaction.amount ?? ''),
+      description: transaction.description || '',
+      transaction_date: (transaction.transaction_date || '').slice(0, 10),
+      event_id: transaction.event_id || '',
+      sub_event_id: transaction.sub_event_id || '',
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingTransaction(null);
+    resetForm();
+  };
+
   const handleCreateTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.account_id || !formData.category || !formData.amount || !formData.transaction_date) {
@@ -216,24 +304,24 @@ export default function TransactionsPage() {
 
     try {
       setSubmitting(true);
-      await financeAPI.createTransaction(familyId, {
+      const payload = {
         account_id: formData.account_id,
         type: formData.type,
         category: formData.category,
         amount: Number(formData.amount),
         description: formData.description,
         transaction_date: formData.transaction_date,
-      });
+        event_id: formData.event_id || undefined,
+        sub_event_id: formData.sub_event_id || undefined,
+        source_type: formData.event_id ? 'event' : undefined,
+      };
+      if (editingTransaction) {
+        await financeAPI.updateTransaction(familyId, editingTransaction.id, payload);
+      } else {
+        await financeAPI.createTransaction(familyId, payload);
+      }
 
-      setShowModal(false);
-      setFormData({
-        account_id: accounts[0]?.id || '',
-        type: 'expense',
-        category: '',
-        amount: '',
-        description: '',
-        transaction_date: new Date().toISOString().split('T')[0],
-      });
+      closeModal();
       await Promise.all([loadTransactions(), loadAccounts()]);
     } catch (err) {
       console.error('Failed to create transaction', err);
@@ -324,6 +412,32 @@ export default function TransactionsPage() {
     );
   }, [filteredTransactions]);
 
+  const eventSummary = useMemo(() => {
+    return filteredTransactions.reduce(
+      (acc, tx) => {
+        if (tx.event_id && tx.type === 'expense') {
+          acc.count += 1;
+          acc.amount += Number(tx.amount || 0);
+        }
+        return acc;
+      },
+      { count: 0, amount: 0 }
+    );
+  }, [filteredTransactions]);
+
+  const eventNameById = useMemo(
+    () => new Map(events.map((event) => [event.id, event.name])),
+    [events]
+  );
+
+  const allSubEventNamesById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const subEvent of allSubEvents) {
+      map.set(subEvent.id, subEvent.name);
+    }
+    return map;
+  }, [allSubEvents]);
+
   const clearFilters = () => {
     setSearch('');
     setCategoryFilter('all');
@@ -401,7 +515,7 @@ export default function TransactionsPage() {
 
                 {userRole === 'admin' && (
                   <button
-                    onClick={() => setShowModal(true)}
+                    onClick={openCreateModal}
                     className="inline-flex h-11 items-center gap-2 ai-gradient-button text-white px-4 rounded-lg text-sm font-medium whitespace-nowrap"
                     type="button"
                   >
@@ -412,7 +526,7 @@ export default function TransactionsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-gray-500 dark:text-gray-400">Income</p>
@@ -434,6 +548,14 @@ export default function TransactionsPage() {
                 <p className={`text-xl font-bold mt-2 ${(summary.income - summary.expense) >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-orange-600 dark:text-orange-400'}`}>
                   {formatCurrency(summary.income - summary.expense)}
                 </p>
+              </div>
+
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Event-tagged Spend</p>
+                <div className="mt-2 flex items-baseline justify-between gap-3">
+                  <p className="text-xl font-bold text-violet-600 dark:text-violet-400">{formatCurrency(eventSummary.amount)}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{eventSummary.count} tagged expense{eventSummary.count === 1 ? '' : 's'}</p>
+                </div>
               </div>
             </div>
 
@@ -633,6 +755,8 @@ export default function TransactionsPage() {
                           enrichedTx.payment_method || '',
                           dateLabel,
                         ].filter(Boolean).join(' • ');
+                        const eventName = tx.event_id ? eventNameById.get(tx.event_id) ?? 'Event linked' : null;
+                        const subEventName = tx.sub_event_id ? allSubEventNamesById.get(tx.sub_event_id) ?? 'Sub-event linked' : null;
                         return (
                           <article
                             key={tx.id}
@@ -653,6 +777,16 @@ export default function TransactionsPage() {
                                     }`}>
                                       {isIncome ? 'Income' : 'Expense'}
                                     </span>
+                                    {eventName && (
+                                      <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                                        {eventName}
+                                      </span>
+                                    )}
+                                    {subEventName && (
+                                      <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                                        {subEventName}
+                                      </span>
+                                    )}
                                     <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{title}</p>
                                   </div>
 
@@ -664,6 +798,16 @@ export default function TransactionsPage() {
                                 <p className={`font-semibold text-sm ${isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                   {isIncome ? '+' : '-'}{formatCurrency(amount)}
                                 </p>
+                                {userRole === 'admin' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => void openEditModal(tx)}
+                                    className="mt-2 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition hover:bg-black/5 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
+                                    aria-label={`Edit transaction ${title}`}
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </article>
@@ -683,10 +827,12 @@ export default function TransactionsPage() {
           <div className="w-full max-w-lg rounded-xl border border-[var(--panel-border)] shadow-xl glass-black-surface">
             <form onSubmit={handleCreateTransaction} className="p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Add Transaction</h3>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
+                </h3>
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                 >
                   Close
@@ -743,6 +889,35 @@ export default function TransactionsPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <select
+                  value={formData.event_id}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, event_id: e.target.value, sub_event_id: '' }))}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">No event tag</option>
+                  {events.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.name}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={formData.sub_event_id}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, sub_event_id: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                  disabled={!formData.event_id}
+                >
+                  <option value="">No sub-event tag</option>
+                  {subEvents.map((subEvent) => (
+                    <option key={subEvent.id} value={subEvent.id}>
+                      {subEvent.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <select
                 value={formData.account_id}
                 onChange={(e) => setFormData((prev) => ({ ...prev, account_id: e.target.value }))}
@@ -768,7 +943,7 @@ export default function TransactionsPage() {
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="btn-secondary"
                 >
                   Cancel
@@ -778,7 +953,7 @@ export default function TransactionsPage() {
                   disabled={submitting}
                   className="px-4 py-2 rounded-lg ai-gradient-button text-white disabled:opacity-60"
                 >
-                  {submitting ? 'Saving...' : 'Save'}
+                  {submitting ? 'Saving...' : editingTransaction ? 'Update' : 'Save'}
                 </button>
               </div>
             </form>

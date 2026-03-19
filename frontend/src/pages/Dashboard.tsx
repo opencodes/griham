@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { householdAPI, financeAPI, Household, Transaction, Bill, Card, BankAccount } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Sparkles,
   CreditCard,
+  RefreshCw,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
@@ -49,14 +50,46 @@ export default function Dashboard() {
   const month = financeMonth?.month;
 
   useEffect(() => {
-    loadDashboardData();
-  }, [month]);
-
-  useEffect(() => {
     if (activeTab === 'finance') navigate('/finance');
   }, [activeTab, navigate]);
 
-  const loadDashboardData = async () => {
+  const getAiInsightsCacheKey = useCallback(
+    (familyId: string) => `dashboard:ai-insights:${familyId}:${month || 'all'}`,
+    [month]
+  );
+
+  const loadAiInsights = useCallback(
+    async (familyId: string, forceRefresh = false) => {
+      const cacheKey = getAiInsightsCacheKey(familyId);
+      if (!forceRefresh) {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          setAiInsights(cached);
+          setAiInsightsLoading(false);
+          return;
+        }
+      }
+
+      setAiInsightsLoading(true);
+      if (forceRefresh) setAiInsights(null);
+
+      try {
+        const insightsResult = await financeAPI.getInsights(familyId, month ?? undefined).catch(() => ({ insights: null, ai_available: false }));
+        const nextInsights = insightsResult?.insights ?? null;
+        setAiInsights(nextInsights);
+        if (nextInsights) {
+          sessionStorage.setItem(cacheKey, nextInsights);
+        } else {
+          sessionStorage.removeItem(cacheKey);
+        }
+      } finally {
+        setAiInsightsLoading(false);
+      }
+    },
+    [getAiInsightsCacheKey, month]
+  );
+
+  const loadDashboardData = useCallback(async () => {
     setIsDashboardLoading(true);
     try {
       const data = await householdAPI.list();
@@ -70,16 +103,16 @@ export default function Dashboard() {
         setCards([]);
         setSummary({ total_income: 0, total_expense: 0, balance: 0 });
         setAiInsights(null);
+        setAiInsightsLoading(false);
         setAiRiskSuggestions([]);
         return;
       }
 
       const familyId = data[0].id;
-      setAiInsightsLoading(true);
       setAiRiskSuggestionsLoading(true);
-      setAiInsights(null);
       setAiRiskSuggestions([]);
-      const [members, accountData, transactionData, billData, cardData, summaryData, insightsResult, riskResult] =
+      void loadAiInsights(familyId);
+      const [members, accountData, transactionData, billData, cardData, summaryData, riskResult] =
         await Promise.all([
           householdAPI.listMembers(familyId).catch(() => []),
           financeAPI.listAccounts(familyId).catch(() => []),
@@ -87,7 +120,6 @@ export default function Dashboard() {
           financeAPI.listBills(familyId).catch(() => []),
           financeAPI.listCards(familyId).catch(() => []),
           financeAPI.getSummary(familyId, month).catch(() => ({ total_income: 0, total_expense: 0, balance: 0 })),
-          financeAPI.getInsights(familyId, month ?? undefined).catch(() => ({ insights: null, ai_available: false })),
           financeAPI.getRiskSuggestions(familyId, month ?? undefined).catch(() => ({ risks: [], ai_available: false })),
         ]);
 
@@ -97,8 +129,6 @@ export default function Dashboard() {
       setBills(billData);
       setCards(cardData);
       setSummary(summaryData);
-      setAiInsights(insightsResult?.insights ?? null);
-      setAiInsightsLoading(false);
       setAiRiskSuggestions(Array.isArray(riskResult?.risks) ? riskResult.risks : []);
       setAiRiskSuggestionsLoading(false);
     } catch (error) {
@@ -106,7 +136,11 @@ export default function Dashboard() {
     } finally {
       setIsDashboardLoading(false);
     }
-  };
+  }, [loadAiInsights, month]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,6 +294,11 @@ export default function Dashboard() {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const handleRefetchAiInsights = async () => {
+    if (households.length === 0) return;
+    await loadAiInsights(households[0].id, true);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden app-shell">
       <Sidebar 
@@ -300,13 +339,23 @@ export default function Dashboard() {
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={() => navigate('/finance')}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg ai-gradient-button text-white text-sm font-medium shrink-0"
-                  >
-                    Open Finance Center
-                    <ArrowUpRight className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => void handleRefetchAiInsights()}
+                      disabled={aiInsightsLoading || households.length === 0}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[var(--panel-border)] text-[var(--app-fg)] text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${aiInsightsLoading ? 'animate-spin' : ''}`} />
+                      Refetch AI
+                    </button>
+                    <button
+                      onClick={() => navigate('/finance')}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg ai-gradient-button text-white text-sm font-medium shrink-0"
+                    >
+                      Open Finance Center
+                      <ArrowUpRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </section>
 

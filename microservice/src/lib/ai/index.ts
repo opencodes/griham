@@ -52,7 +52,11 @@ export async function textGeneration(
   console.log('TextGenerationOptions', JSON.stringify({
     model, inputs, options
   }));
-  return getProvider(config.aiProvider).textGeneration(model, inputs, options);
+  // return getProvider(config.aiProvider).textGeneration(model, inputs, options);
+  const provider = getProvider(config.aiProvider);
+  const out = await provider.textGeneration(model, inputs, options);
+  console.log('textGeneration output: ', out);
+  return out;
 }
 
 export async function zeroShotClassification(

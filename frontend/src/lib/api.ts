@@ -71,6 +71,9 @@ export interface Transaction {
   account_name?: string;
   bank_name?: string;
   created_by_name?: string;
+  event_id?: string | null;
+  sub_event_id?: string | null;
+  source_type?: string | null;
 }
 
 export interface TransactionSearchSpec {
@@ -127,6 +130,108 @@ export interface Asset {
   expiry_date?: string | null;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface Insurance {
+  id: string;
+  family_id: string;
+  type: 'life' | 'health' | 'vehicle' | 'term' | 'other';
+  provider: string;
+  policyName: string;
+  policyNumber: string;
+  premiumAmount: number;
+  premiumFrequency: 'monthly' | 'quarterly' | 'yearly';
+  nextDueDate?: string | null;
+  coverageAmount: number;
+  insuredMembers: string[];
+  status: 'active' | 'expired';
+}
+
+export interface Investment {
+  id: string;
+  family_id: string;
+  type: 'mutual_fund' | 'stock' | 'fd' | 'other';
+  name: string;
+  folioNumber: string;
+  sipAmount: number;
+  sipDay: number;
+  startDate: string;
+  currentValue: number;
+  investedAmount: number;
+  units: number;
+  nav: number;
+  platform?: string | null;
+  status: 'active' | 'paused' | 'closed';
+}
+
+export interface Loan {
+  id: string;
+  family_id: string;
+  name: string;
+  lender: string;
+  principalAmount: number;
+  interestRate: number;
+  tenureMonths: number;
+  emiAmount: number;
+  startDate?: string | null;
+  nextDueDate?: string | null;
+  outstandingPrincipal: number;
+  type: 'home' | 'car' | 'personal' | 'education' | 'other';
+  status: 'active' | 'closed';
+}
+
+export interface Event {
+  id: string;
+  family_id: string;
+  name: string;
+  type: 'marriage' | 'anniversary' | 'birthday' | 'other';
+  start_date: string;
+  end_date?: string | null;
+  location?: string | null;
+  total_budget: number;
+  notes?: string | null;
+  status: 'planned' | 'ongoing' | 'completed';
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SubEvent {
+  id: string;
+  event_id: string;
+  name: string;
+  date_time: string;
+  location?: string | null;
+  budget: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface EventParticipant {
+  id: string;
+  event_id: string;
+  contact_id: string;
+  role: 'guest' | 'vendor' | 'host';
+  rsvp_status: 'pending' | 'accepted' | 'declined';
+  contact?: {
+    id: string;
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  } | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface EventFinanceSummary {
+  totalBudget: number;
+  totalSpent: number;
+  remainingBudget: number;
+  bySubEvent: Array<{
+    subEventId: string | null;
+    name: string;
+    budget: number;
+    totalSpent: number;
+  }>;
 }
 
 export const authAPI = {
@@ -227,6 +332,10 @@ export const financeAPI = {
     const { data } = await api.post('/finance/transactions', { family_id: familyId, ...transactionData });
     return data.data;
   },
+  updateTransaction: async (familyId: string, transactionId: string, transactionData: Partial<Transaction>) => {
+    const { data } = await api.put(`/finance/transactions/${familyId}/${transactionId}`, transactionData);
+    return data.data;
+  },
   listTransactions: async (familyId: string, filters?: { type?: string; category?: string; month?: string }) => {
     const params = new URLSearchParams(
       Object.entries(filters ?? {}).reduce<Record<string, string>>((acc, [key, value]) => {
@@ -285,6 +394,72 @@ export const financeAPI = {
   deleteCard: async (familyId: string, cardId: string) => {
     const { data } = await api.delete(`/finance/cards/${familyId}/${cardId}`);
     return data.data;
+  },
+
+  // Insurance
+  createInsurance: async (familyId: string, payload: Partial<Insurance>) => {
+    const { data } = await api.post('/finance/insurance', { family_id: familyId, ...payload });
+    return data.data as Insurance;
+  },
+  listInsurance: async (familyId: string) => {
+    const { data } = await api.get(`/finance/insurance/${familyId}`);
+    return (data.data ?? []) as Insurance[];
+  },
+  updateInsurance: async (familyId: string, insuranceId: string, payload: Partial<Insurance>) => {
+    const { data } = await api.put(`/finance/insurance/${familyId}/${insuranceId}`, payload);
+    return data.data as Insurance;
+  },
+  deleteInsurance: async (familyId: string, insuranceId: string) => {
+    const { data } = await api.delete(`/finance/insurance/${familyId}/${insuranceId}`);
+    return data.data;
+  },
+  getInsuranceSummary: async (familyId: string) => {
+    const { data } = await api.get(`/finance/insurance/${familyId}/summary`);
+    return data.data as { totalCoverage: number; activeCount: number; premiumTotal: number };
+  },
+
+  // Investments
+  createInvestment: async (familyId: string, payload: Partial<Investment>) => {
+    const { data } = await api.post('/finance/investments', { family_id: familyId, ...payload });
+    return data.data as Investment;
+  },
+  listInvestments: async (familyId: string) => {
+    const { data } = await api.get(`/finance/investments/${familyId}`);
+    return (data.data ?? []) as Investment[];
+  },
+  updateInvestment: async (familyId: string, investmentId: string, payload: Partial<Investment>) => {
+    const { data } = await api.put(`/finance/investments/${familyId}/${investmentId}`, payload);
+    return data.data as Investment;
+  },
+  deleteInvestment: async (familyId: string, investmentId: string) => {
+    const { data } = await api.delete(`/finance/investments/${familyId}/${investmentId}`);
+    return data.data;
+  },
+  getInvestmentSummary: async (familyId: string) => {
+    const { data } = await api.get(`/finance/investments/${familyId}/summary`);
+    return data.data as { totalCurrentValue: number; totalInvested: number; totalGain: number; totalCount: number };
+  },
+
+  // Loans
+  createLoan: async (familyId: string, payload: Partial<Loan>) => {
+    const { data } = await api.post('/finance/loans', { family_id: familyId, ...payload });
+    return data.data as Loan;
+  },
+  listLoans: async (familyId: string) => {
+    const { data } = await api.get(`/finance/loans/${familyId}`);
+    return (data.data ?? []) as Loan[];
+  },
+  updateLoan: async (familyId: string, loanId: string, payload: Partial<Loan>) => {
+    const { data } = await api.put(`/finance/loans/${familyId}/${loanId}`, payload);
+    return data.data as Loan;
+  },
+  deleteLoan: async (familyId: string, loanId: string) => {
+    const { data } = await api.delete(`/finance/loans/${familyId}/${loanId}`);
+    return data.data;
+  },
+  getLoanSummary: async (familyId: string) => {
+    const { data } = await api.get(`/finance/loans/${familyId}/summary`);
+    return data.data as { totalOutstanding: number; totalEmi: number; activeCount: number };
   },
 
   // AI insights (for Dashboard and Finance Overview)
@@ -407,6 +582,58 @@ export const assetsAPI = {
   },
 };
 
+export const eventsAPI = {
+  createEvent: async (familyId: string, payload: Partial<Event>) => {
+    const { data } = await api.post('/events', { family_id: familyId, ...payload });
+    return data.data as Event;
+  },
+  listEvents: async (familyId: string, filters?: { status?: Event['status'] }) => {
+    const params = new URLSearchParams({ family_id: familyId });
+    if (filters?.status) params.set('status', filters.status);
+    const { data } = await api.get(`/events?${params.toString()}`);
+    return (data.data ?? []) as Event[];
+  },
+  getEvent: async (familyId: string, eventId: string) => {
+    const params = new URLSearchParams({ family_id: familyId });
+    const { data } = await api.get(`/events/${eventId}?${params.toString()}`);
+    return data.data as Event;
+  },
+  updateEvent: async (familyId: string, eventId: string, payload: Partial<Event>) => {
+    const params = new URLSearchParams({ family_id: familyId });
+    const { data } = await api.patch(`/events/${eventId}?${params.toString()}`, payload);
+    return data.data as Event;
+  },
+  deleteEvent: async (familyId: string, eventId: string) => {
+    const params = new URLSearchParams({ family_id: familyId });
+    const { data } = await api.delete(`/events/${eventId}?${params.toString()}`);
+    return data.data;
+  },
+  createSubEvent: async (eventId: string, payload: Partial<SubEvent>) => {
+    const { data } = await api.post(`/events/${eventId}/sub-events`, payload);
+    return data.data as SubEvent;
+  },
+  listSubEvents: async (eventId: string) => {
+    const { data } = await api.get(`/events/${eventId}/sub-events`);
+    return (data.data ?? []) as SubEvent[];
+  },
+  createParticipant: async (eventId: string, payload: Partial<EventParticipant>) => {
+    const { data } = await api.post(`/events/${eventId}/participants`, payload);
+    return data.data as EventParticipant;
+  },
+  listParticipants: async (eventId: string) => {
+    const { data } = await api.get(`/events/${eventId}/participants`);
+    return (data.data ?? []) as EventParticipant[];
+  },
+  getFinanceSummary: async (eventId: string) => {
+    const { data } = await api.get(`/events/${eventId}/finance-summary`);
+    return (data.data ?? { totalBudget: 0, totalSpent: 0, remainingBudget: 0, bySubEvent: [] }) as EventFinanceSummary;
+  },
+  getAiInsights: async (eventId: string) => {
+    const { data } = await api.get(`/events/${eventId}/ai-insights`);
+    return (data.data ?? { eventId, message: '', ai_available: false }) as { eventId: string; message: string; ai_available: boolean };
+  },
+};
+
 export interface Contact {
   id: string;
   name: string | null;
@@ -518,6 +745,14 @@ export interface Group {
   updated_at?: string;
 }
 
+export interface PromptTemplate {
+  id: string;
+  module: string;
+  label: string;
+  inputLabel: string;
+  inputPlaceholder: string;
+}
+
 export const adminAPI = {
   listUsers: async () => {
     const { data } = await api.get('/admin/users');
@@ -525,6 +760,20 @@ export const adminAPI = {
   },
   resetUserPassword: async (userId: string, newPassword: string): Promise<void> => {
     await api.put(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
+  },
+  listPrompts: async (): Promise<PromptTemplate[]> => {
+    const { data } = await api.get('/admin/ai-prompts');
+    return data.data ?? [];
+  },
+  previewPrompt: async (id: string, input: string): Promise<{ prompt: string }> => {
+    const params = new URLSearchParams();
+    if (input) params.set('input', input);
+    const { data } = await api.get(`/admin/ai-prompts/${id}/preview${params.toString() ? `?${params.toString()}` : ''}`);
+    return data.data ?? { prompt: '' };
+  },
+  testPrompt: async (promptId: string, input: string): Promise<{ prompt: string; result: string; ai_available: boolean }> => {
+    const { data } = await api.post('/admin/ai-prompts/test', { prompt_id: promptId, input });
+    return data.data ?? { prompt: '', result: '', ai_available: false };
   },
 };
 

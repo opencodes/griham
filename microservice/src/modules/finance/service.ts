@@ -2,6 +2,21 @@
  * Finance AI service: configured provider when available, rule-based fallback otherwise.
  */
 import * as ai from '../../lib/ai/index.js';
+import {
+  buildAskMonthPrompt,
+  buildCardSmsPrompt,
+  buildCashflowTipsPrompt,
+  buildCategoryInsightsPrompt,
+  buildInsightsPrompt,
+  buildInsuranceSmsPrompt,
+  buildInterpretSearchPrompt,
+  buildInvestmentSmsPrompt,
+  buildLoanSmsPrompt,
+  buildNarrativeSummaryPrompt,
+  buildRiskSuggestionsPrompt,
+  buildSavingsTipsPrompt,
+  buildTransactionSmsPrompt,
+} from '../../lib/ai/prompts/finance.js';
 
 const TEXT_MODEL = ai.getDefaultTextModel();
 const ZERO_SHOT_MODEL = ai.getDefaultZeroShotModel();
@@ -79,19 +94,17 @@ export async function answerAskMonth(
   if (!ai.isAiAvailable()) {
     return { answer: fallback, ai_available: false };
   }
-  const monthLabel = context.month ? ` for ${context.month}` : '';
-  const prompt = `You are a helpful finance assistant. Answer the user's question in 1-3 short sentences using ONLY the data below. Be concise and factual.
-Data for this month${monthLabel}:
-- Income: ₹${context.total_income.toLocaleString()}, Expenses: ₹${context.total_expense.toLocaleString()}
-- Savings rate: ${context.savings_rate}%
-- Pending bills: ${context.upcoming_bills}
-- Last month: income ₹${context.prev_income.toLocaleString()}, expenses ₹${context.prev_expense.toLocaleString()}
-Expense by category:
-${categoryLines}
-
-User question: ${q}
-
-Answer (1-3 sentences, no bullet points):`;
+  const prompt = buildAskMonthPrompt({
+    month: context.month,
+    total_income: context.total_income,
+    total_expense: context.total_expense,
+    savings_rate: context.savings_rate,
+    upcoming_bills: context.upcoming_bills,
+    prev_income: context.prev_income,
+    prev_expense: context.prev_expense,
+    categoryLines,
+    question: q,
+  });
   const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 150 });
   if (out && out.trim().length > 10) {
     return { answer: out.trim(), ai_available: true };
@@ -107,14 +120,15 @@ export async function generateNarrativeSummary(
   if (!ai.isAiAvailable()) {
     return { narrative: fallback, ai_available: false };
   }
-  const monthLabel = context.month ? ` for ${context.month}` : '';
-  const trend =
-    context.prev_expense > 0 || context.prev_income > 0
-      ? ` Last month: income ₹${context.prev_income.toLocaleString()}, expenses ₹${context.prev_expense.toLocaleString()}.`
-      : '';
-  const prompt = `Write exactly 2-3 short sentences summarizing this month's finances. Do not use bullet points.
-This month${monthLabel}: income ₹${context.total_income}, expenses ₹${context.total_expense}, savings rate ${context.savings_rate}%, ${context.upcoming_bills} pending bill(s).${trend}
-Mention income, expenses, and bills; if trend is available mention whether spending is up or down vs last month. Be concise and neutral.`;
+  const prompt = buildNarrativeSummaryPrompt({
+    month: context.month,
+    total_income: context.total_income,
+    total_expense: context.total_expense,
+    savings_rate: context.savings_rate,
+    upcoming_bills: context.upcoming_bills,
+    prev_income: context.prev_income,
+    prev_expense: context.prev_expense,
+  });
   const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 150 });
   if (out && out.trim().length > 30) {
     return { narrative: out.trim(), ai_available: true };
@@ -157,10 +171,7 @@ export async function generateCategoryInsights(
       return `${c.category}: ₹${c.amount}, ${c.percent}% of total${comp}`;
     })
     .join('\n');
-  const prompt = `For each spending category below, write ONE short sentence (e.g. "Food is 25% of expenses; above your usual" or "Transport is 12% of expenses."). Use "above your usual" if this month's % is higher than last month's, "below your usual" if lower. Keep each to under 15 words.
-Categories (this month):
-${lines}
-Reply with one sentence per category, in the same order, one per line. No numbering.`;
+  const prompt = buildCategoryInsightsPrompt({ lines });
   const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 200 });
   if (!out || out.trim().length < 5) {
     return { insights: fallbackInsights, ai_available: false };
@@ -217,12 +228,17 @@ export async function generateRiskSuggestions(
         .map((b) => `${b.due_date} ₹${b.amount}`)
         .join('; ')}${context.upcoming_bills.length > 5 ? '...' : ''}. Total pending: ${context.pending_bills_count}. Overdue: ${context.overdue_bills_count}. Bills due in 5 days: ${billsDueIn5.length}, total ₹${totalDueIn5}. Bills due in 7 days: ${billsDueIn7.length}, total ₹${totalDueIn7}. Balance: ₹${context.total_balance}. ${shortfall5 > 0 ? `Shortfall for 5-day bills: ₹${shortfall5}.` : ''} ${shortfall7 > 0 ? `Shortfall for 7-day bills: ₹${shortfall7}.` : ''}`
       : 'No pending bills.';
-  const prompt = `You are a household finance risk advisor. Given this data, suggest 2 to 5 SHORT risk alerts (one line each, no numbering). Focus on:
-- Spending or income changes vs last month (e.g. "Spending up 20% vs last month")
-- Bills and cash flow: include due-date/cash-flow tips when relevant (e.g. "3 bills due in 5 days; balance might be short by ₹X", "Consider paying Y before Z")
-- Savings rate or balance concerns
-Current month: income ₹${context.total_income}, expenses ₹${context.total_expense}, savings rate ${context.savings_rate}%, balance ₹${context.total_balance}. Previous month: income ₹${prevIncome}, expenses ₹${prevExpense}. ${incomePct != null ? `Income change: ${incomePct}% vs last month.` : ''} ${expensePct != null ? `Expense change: ${expensePct}% vs last month.` : ''} ${billsSummary}
-Reply with ONLY the risk lines, one per line, no numbers or bullets. If no real risks, reply "No additional risks."`;
+  const prompt = buildRiskSuggestionsPrompt({
+    total_income: context.total_income,
+    total_expense: context.total_expense,
+    savings_rate: context.savings_rate,
+    total_balance: context.total_balance,
+    prevIncome,
+    prevExpense,
+    incomePct,
+    expensePct,
+    billsSummary,
+  });
   const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 250 });
   if (!out || out.trim().length < 5) {
     return { risks: DEFAULT_RISK_SUGGESTIONS, ai_available: false };
@@ -283,8 +299,13 @@ export async function generateCashflowTips(
   }
 
   const billLines = context.upcoming_bills.slice(0, 6).map((b) => `${b.due_date} ₹${b.amount}`).join('; ');
-  const prompt = `Generate 1 to 3 SHORT cash-flow tips for the user. Data: Balance ₹${context.total_balance}. ${billsDueIn5.length} bills due in 5 days (total ₹${totalDueIn5}). ${shortfall5 > 0 ? `Shortfall: ₹${shortfall5}.` : ''} Bills: ${billLines}.
-Include if relevant: "N bills due in 5 days; balance might be short by ₹X" or "Consider paying Y before Z." One tip per line, no numbering.`;
+  const prompt = buildCashflowTipsPrompt({
+    total_balance: context.total_balance,
+    billsDueIn5Count: billsDueIn5.length,
+    totalDueIn5,
+    shortfall5,
+    billLines,
+  });
   const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
   if (out && out.trim().length > 10) {
     const lines = out
@@ -306,12 +327,18 @@ export async function generateInsights(context: InsightsContext): Promise<{ insi
   const accounts = context.accounts_count ?? 0;
   const transactions = context.transactions_count ?? 0;
   const cards = context.cards_count ?? 0;
-  const monthLabel = context.month ? ` for ${context.month}` : '';
-  const prompt = `Write one short paragraph (3-5 sentences) for a "Household Overview" that covers:
-1) Family: this household has ${members} member(s).
-2) Finance: total balance ${context.total_balance} INR; this month${monthLabel} income ${context.total_income} INR, expenses ${context.total_expense} INR; savings rate ${context.savings_rate}%; ${context.upcoming_bills} pending bill(s). Finance module: ${accounts} account(s), ${transactions} transaction(s) this month, ${cards} card(s).
-3) Module status: mention Finance is active with the above; briefly note that other modules (Events, Assets, Health, Contacts, Organizer, Messages) are available in the app.
-Be concise, practical, and motivating. One paragraph only.`;
+  const prompt = buildInsightsPrompt({
+    members,
+    total_balance: context.total_balance,
+    month: context.month,
+    total_income: context.total_income,
+    total_expense: context.total_expense,
+    savings_rate: context.savings_rate,
+    upcoming_bills: context.upcoming_bills,
+    accounts,
+    transactions,
+    cards,
+  });
   const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 200 });
   if (out && out.length > 20) {
     return { insights: out.trim(), ai_available: true };
@@ -329,8 +356,7 @@ export async function getSavingsTips(): Promise<{ tips: string[]; ai_available: 
   if (!ai.isAiAvailable()) {
     return { tips: DEFAULT_SAVINGS_TIPS, ai_available: false };
   }
-  const prompt =
-    'Give exactly 3 short savings tips for a household (one per line, no numbering). Focus on daily habits and subscriptions.';
+  const prompt = buildSavingsTipsPrompt();
   const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
   if (out) {
     const lines = out.split(/[\n.]/).map((s) => s.trim()).filter((s) => s.length > 10);
@@ -376,14 +402,7 @@ export async function interpretSearchQuery(
   if (ai.isAiAvailable()) {
     const today = new Date().toISOString().slice(0, 10);
     const lastWeek = getLastWeekRange();
-    const prompt = `Convert this transaction search query into a JSON object. Today is ${today}. Current month context: ${month || 'not set'}. Last week: ${lastWeek.date_from} to ${lastWeek.date_to}.
-Query: "${query}"
-
-Return ONLY a JSON object with these optional keys (use null for missing): description_contains (string, keyword to find in description/category), category (string, one category), type ("income" or "expense"), date_from (YYYY-MM-DD), date_to (YYYY-MM-DD), sort ("newest" or "oldest" or "amount_high" or "amount_low").
-Examples: "coffee last week" -> {"description_contains":"coffee","date_from":"${lastWeek.date_from}","date_to":"${lastWeek.date_to}","sort":"newest"}
-"biggest expense this month" -> {"type":"expense","sort":"amount_high"}
-"salary" -> {"description_contains":"salary","type":"income"}
-Return only the JSON, no other text.`;
+    const prompt = buildInterpretSearchPrompt({ today, month, lastWeek, query });
     const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
     if (out) {
       const jsonMatch = out.match(/\{[\s\S]*\}/);
@@ -473,7 +492,7 @@ export async function parseSmsToTransaction(smsText: string): Promise<ParsedTran
   const text = (smsText || '').trim();
   if (!text) return null;
   if (ai.isAiAvailable()) {
-    const prompt = `From this Indian bank SMS, extract: amount (number), type (income or expense), category (one word), short description, date (YYYY-MM-DD if present). Reply in one line: amount|type|category|description|date. SMS: ${text.slice(0, 400)}`;
+    const prompt = buildTransactionSmsPrompt(text);
     const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 80 });
     if (out) {
       const parts = out.split('|').map((s) => s.trim());
@@ -509,11 +528,53 @@ export interface ParsedCard {
   card_limit?: number;
 }
 
+export interface ParsedInsurance {
+  type?: 'life' | 'health' | 'vehicle' | 'term' | 'other';
+  provider?: string;
+  policyName?: string;
+  policyNumber?: string;
+  premiumAmount?: number;
+  premiumFrequency?: 'monthly' | 'quarterly' | 'yearly';
+  nextDueDate?: string;
+  coverageAmount?: number;
+  insuredMembers?: string[];
+  status?: 'active' | 'expired';
+}
+
+export interface ParsedInvestment {
+  type?: 'mutual_fund' | 'stock' | 'fd' | 'other';
+  name?: string;
+  folioNumber?: string;
+  sipAmount?: number;
+  sipDay?: number;
+  startDate?: string;
+  currentValue?: number;
+  investedAmount?: number;
+  units?: number;
+  nav?: number;
+  platform?: string;
+  status?: 'active' | 'paused' | 'closed';
+}
+
+export interface ParsedLoan {
+  name?: string;
+  lender?: string;
+  principalAmount?: number;
+  interestRate?: number;
+  tenureMonths?: number;
+  emiAmount?: number;
+  startDate?: string;
+  nextDueDate?: string;
+  outstandingPrincipal?: number;
+  type?: 'home' | 'car' | 'personal' | 'education' | 'other';
+  status?: 'active' | 'closed';
+}
+
 export async function parseSmsToCard(smsText: string): Promise<ParsedCard | null> {
   const text = (smsText || '').trim();
   if (!text) return null;
   if (ai.isAiAvailable()) {
-    const prompt = `From this bank card SMS, extract: bank name, card name, last 4 digits, card type (credit or debit), credit limit (number if present). Reply: bank|cardname|last4|type|limit. SMS: ${text.slice(0, 400)}`;
+    const prompt = buildCardSmsPrompt(text);
     const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 60 });
     if (out) {
       const parts = out.split('|').map((s) => s.trim());
@@ -539,5 +600,143 @@ export async function parseSmsToCard(smsText: string): Promise<ParsedCard | null
     last_four_digits: last_four_digits ?? undefined,
     card_type: /credit/i.test(text) ? 'credit' : 'debit',
     card_limit,
+  };
+}
+
+function extractDate(text: string): string | undefined {
+  const match = text.match(/\d{4}-\d{2}-\d{2}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4}/);
+  if (!match) return undefined;
+  const d = new Date(match[0]);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString().slice(0, 10);
+}
+
+function extractNumber(text: string, pattern: RegExp): number | undefined {
+  const match = text.match(pattern);
+  if (!match) return undefined;
+  const value = parseFloat(match[1]?.replace(/,/g, '') || '');
+  return Number.isFinite(value) ? value : undefined;
+}
+
+function pickEnumValue<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
+  const normalized = (value || '').trim().toLowerCase();
+  const match = allowed.find((item) => item === normalized);
+  return match ?? fallback;
+}
+
+export async function parseSmsToInsurance(smsText: string): Promise<ParsedInsurance | null> {
+  const text = (smsText || '').trim();
+  if (!text) return null;
+  if (ai.isAiAvailable()) {
+    const prompt = buildInsuranceSmsPrompt(text);
+    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
+    // life|LIC|119575879|||$|2026-05-12|120000|John Doe|active
+    if (out) {
+      const parts = out.split('|').map((s) => s.trim());
+      return {
+        type: pickEnumValue(parts[0], ['life', 'health', 'vehicle', 'term', 'other'] as const, 'other'),
+        provider: parts[1] || undefined,
+        policyName: parts[2] || undefined,
+        policyNumber: parts[3] || undefined,
+        premiumAmount: parseFloat(parts[4]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        premiumFrequency: pickEnumValue(parts[5], ['monthly', 'quarterly', 'yearly'] as const, 'yearly'),
+        nextDueDate: extractDate(parts[6] || ''),
+        coverageAmount: parseFloat(parts[7]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        insuredMembers: parts[8] ? parts[8].split(',').map((s) => s.trim()).filter(Boolean) : undefined,
+        status: pickEnumValue(parts[9], ['active', 'expired'] as const, 'active'),
+      };
+    }
+  }
+  const provider = text.match(/(?:lic|hdfc ergo|icici lombard|star health|niva bupa|sbi life|max life|bajaj allianz)/i)?.[0];
+  const type = /health/i.test(text) ? 'health' : /vehicle|motor|car|bike/i.test(text) ? 'vehicle' : /term/i.test(text) ? 'term' : /life/i.test(text) ? 'life' : 'other';
+  return {
+    type,
+    provider,
+    policyName: provider ? `${provider} Policy` : 'Insurance Policy',
+    policyNumber: text.match(/(?:policy|pol)\s*(?:no|number)?[:\s-]*([A-Z0-9-]{6,})/i)?.[1],
+    premiumAmount: extractNumber(text, /(?:premium|instalment|installment|amount)\D+([\d,]+(?:\.\d+)?)/i),
+    premiumFrequency: /month/i.test(text) ? 'monthly' : /quarter/i.test(text) ? 'quarterly' : 'yearly',
+    nextDueDate: extractDate(text),
+    coverageAmount: extractNumber(text, /(?:cover|coverage|sum insured)\D+([\d,]+(?:\.\d+)?)/i),
+    status: /expired|lapsed/i.test(text) ? 'expired' : 'active',
+  };
+}
+
+export async function parseSmsToInvestment(smsText: string): Promise<ParsedInvestment | null> {
+  const text = (smsText || '').trim();
+  if (!text) return null;
+  if (ai.isAiAvailable()) {
+    const prompt = buildInvestmentSmsPrompt(text);
+    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
+    if (out) {
+      const parts = out.split('|').map((s) => s.trim());
+      return {
+        type: pickEnumValue(parts[0], ['mutual_fund', 'stock', 'fd', 'other'] as const, 'other'),
+        name: parts[1] || undefined,
+        folioNumber: parts[2] || undefined,
+        sipAmount: parseFloat(parts[3]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        sipDay: parseInt(parts[4]?.replace(/\D/g, '') || '0', 10) || undefined,
+        startDate: extractDate(parts[5] || ''),
+        currentValue: parseFloat(parts[6]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        investedAmount: parseFloat(parts[7]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        units: parseFloat(parts[8]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        nav: parseFloat(parts[9]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        platform: parts[10] || undefined,
+        status: pickEnumValue(parts[11], ['active', 'paused', 'closed'] as const, 'active'),
+      };
+    }
+  }
+  return {
+    type: /fd|fixed deposit/i.test(text) ? 'fd' : /stock|share/i.test(text) ? 'stock' : /mutual|sip|folio/i.test(text) ? 'mutual_fund' : 'other',
+    name: text.match(/(?:for|in)\s+([A-Za-z0-9 .&-]{4,40})/)?.[1]?.trim(),
+    folioNumber: text.match(/folio(?:\s*no)?[:\s-]*([A-Z0-9-]+)/i)?.[1],
+    sipAmount: extractNumber(text, /(?:sip|instalment|installment|amount)\D+([\d,]+(?:\.\d+)?)/i),
+    sipDay: parseInt(text.match(/(?:sip date|on)\D+(\d{1,2})/i)?.[1] || '', 10) || undefined,
+    startDate: extractDate(text),
+    currentValue: extractNumber(text, /(?:current value|value)\D+([\d,]+(?:\.\d+)?)/i),
+    investedAmount: extractNumber(text, /(?:invested|purchase|amount invested)\D+([\d,]+(?:\.\d+)?)/i),
+    units: extractNumber(text, /units?\D+([\d,]+(?:\.\d+)?)/i),
+    nav: extractNumber(text, /nav\D+([\d,]+(?:\.\d+)?)/i),
+    platform: text.match(/(?:zerodha|groww|upstox|angel one|paytm money)/i)?.[0],
+    status: /closed/i.test(text) ? 'closed' : /paused/i.test(text) ? 'paused' : 'active',
+  };
+}
+
+export async function parseSmsToLoan(smsText: string): Promise<ParsedLoan | null> {
+  const text = (smsText || '').trim();
+  if (!text) return null;
+  if (ai.isAiAvailable()) {
+    const prompt = buildLoanSmsPrompt(text);
+    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
+    if (out) {
+      const parts = out.split('|').map((s) => s.trim());
+      return {
+        name: parts[0] || undefined,
+        lender: parts[1] || undefined,
+        principalAmount: parseFloat(parts[2]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        interestRate: parseFloat(parts[3]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        tenureMonths: parseInt(parts[4]?.replace(/\D/g, '') || '0', 10) || undefined,
+        emiAmount: parseFloat(parts[5]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        startDate: extractDate(parts[6] || ''),
+        nextDueDate: extractDate(parts[7] || ''),
+        outstandingPrincipal: parseFloat(parts[8]?.replace(/[^0-9.]/g, '') || '0') || undefined,
+        type: pickEnumValue(parts[9], ['home', 'car', 'personal', 'education', 'other'] as const, 'other'),
+        status: pickEnumValue(parts[10], ['active', 'closed'] as const, 'active'),
+      };
+    }
+  }
+  const lender = text.match(/(?:hdfc|sbi|icici|axis|bajaj finserv|tata capital|pnb|kotak)/i)?.[0];
+  return {
+    name: text.match(/(home loan|car loan|personal loan|education loan)/i)?.[0] || 'Loan',
+    lender,
+    principalAmount: extractNumber(text, /(?:principal|loan amount|sanctioned)\D+([\d,]+(?:\.\d+)?)/i),
+    interestRate: extractNumber(text, /(?:interest|roi)\D+([\d,]+(?:\.\d+)?)/i),
+    tenureMonths: parseInt(text.match(/(\d+)\s*(?:months|month|yrs|years)/i)?.[1] || '', 10) || undefined,
+    emiAmount: extractNumber(text, /(?:emi)\D+([\d,]+(?:\.\d+)?)/i),
+    startDate: extractDate(text),
+    nextDueDate: extractDate(text),
+    outstandingPrincipal: extractNumber(text, /(?:outstanding|balance principal|principal outstanding)\D+([\d,]+(?:\.\d+)?)/i),
+    type: /home/i.test(text) ? 'home' : /car/i.test(text) ? 'car' : /education/i.test(text) ? 'education' : /personal/i.test(text) ? 'personal' : 'other',
+    status: /closed/i.test(text) ? 'closed' : 'active',
   };
 }

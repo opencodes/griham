@@ -3,6 +3,7 @@ import { FamilyMemberModel } from '../../db/schemas/FamilyMember.js';
 import { FamilyModel } from '../../db/schemas/Family.js';
 import { ContactModel } from '../../db/schemas/Contact.js';
 import * as ai from '../../lib/ai/index.js';
+import { buildContactCleanupPrompt } from '../../lib/ai/prompts/contacts.js';
 
 type AuthedRequest = Request & { auth?: { userId: string } };
 
@@ -96,10 +97,7 @@ async function getAiSuggestions(
     phone: c.phone ?? '',
     email: c.email ?? '',
   }));
-  const prompt = `You are a contact cleanup assistant. Identify contacts that look like junk, corrupted, or placeholders.
-Return ONLY a JSON array of objects: [{"id":"<id>","reason":"<short reason>"}].
-Use only the provided ids. If none, return [].
-Contacts: ${JSON.stringify(payload)}`;
+  const prompt = buildContactCleanupPrompt({ payloadJson: JSON.stringify(payload) });
   const out = await ai.textGeneration(model, prompt, { max_new_tokens: 300, temperature: 0 });
   const parsed = safeParseJsonArray(out);
   const validIds = new Set(payload.map((c) => c.id));

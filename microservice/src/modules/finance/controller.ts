@@ -14,6 +14,9 @@ import {
   suggestBillCategory,
   parseSmsToTransaction,
   parseSmsToCard,
+  parseSmsToInsurance,
+  parseSmsToInvestment,
+  parseSmsToLoan,
 } from './service.js';
 import { BankAccountModel } from '../../db/schemas/BankAccount.js';
 import { TransactionModel } from '../../db/schemas/Transaction.js';
@@ -255,6 +258,54 @@ export const financeController = {
     } catch (e) {
       console.error('[finance] parseSmsCard:', e);
       res.fail('Failed to parse card SMS', 500);
+    }
+  },
+
+  async parseSmsInsurance(req: Request, res: Response): Promise<void> {
+    const body = req.body as { sms_text?: string };
+    const smsText = body?.sms_text ?? '';
+    if (!smsText.trim()) {
+      res.fail('sms_text is required', 400);
+      return;
+    }
+    try {
+      const parsed = await parseSmsToInsurance(smsText);
+      res.success(parsed ?? {});
+    } catch (e) {
+      console.error('[finance] parseSmsInsurance:', e);
+      res.fail('Failed to parse insurance SMS', 500);
+    }
+  },
+
+  async parseSmsInvestment(req: Request, res: Response): Promise<void> {
+    const body = req.body as { sms_text?: string };
+    const smsText = body?.sms_text ?? '';
+    if (!smsText.trim()) {
+      res.fail('sms_text is required', 400);
+      return;
+    }
+    try {
+      const parsed = await parseSmsToInvestment(smsText);
+      res.success(parsed ?? {});
+    } catch (e) {
+      console.error('[finance] parseSmsInvestment:', e);
+      res.fail('Failed to parse investment SMS', 500);
+    }
+  },
+
+  async parseSmsLoan(req: Request, res: Response): Promise<void> {
+    const body = req.body as { sms_text?: string };
+    const smsText = body?.sms_text ?? '';
+    if (!smsText.trim()) {
+      res.fail('sms_text is required', 400);
+      return;
+    }
+    try {
+      const parsed = await parseSmsToLoan(smsText);
+      res.success(parsed ?? {});
+    } catch (e) {
+      console.error('[finance] parseSmsLoan:', e);
+      res.fail('Failed to parse loan SMS', 500);
     }
   },
 };
