@@ -6,6 +6,11 @@ import { contactsAPI, householdAPI, type Contact as ApiContact, type ContactClea
 
 type ContactGroup = 'Family' | 'Neighbor' | 'Vendor' | 'Emergency';
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+};
+
 interface ContactItem {
   id: string;
   name: string;
@@ -97,8 +102,8 @@ export default function Contacts() {
       setIgnoredSuggestions(new Set());
       setServerSuggestions(null);
       setAiAvailable(false);
-    } catch (e: any) {
-      setLoadError(e?.message ?? 'Failed to load contacts');
+    } catch (error: unknown) {
+      setLoadError(getErrorMessage(error, 'Failed to load contacts'));
     } finally {
       setIsLoading(false);
     }
@@ -167,15 +172,15 @@ export default function Contacts() {
     ai_reason?: string;
   }
 
-  const isPhoneValid = (raw: string) => {
-    const digits = raw.replace(/\D/g, '');
-    if (!digits) return false;
-    if (raw.trim().startsWith('+')) return digits.length >= 10 && digits.length <= 15;
-    if (countryCode === 'IN') return digits.length === 10;
-    return digits.length >= 7 && digits.length <= 15;
-  };
-
   const localSuggestions = useMemo<JunkSuggestion[]>(() => {
+    const isPhoneValid = (raw: string) => {
+      const digits = raw.replace(/\D/g, '');
+      if (!digits) return false;
+      if (raw.trim().startsWith('+')) return digits.length >= 10 && digits.length <= 15;
+      if (countryCode === 'IN') return digits.length === 10;
+      return digits.length >= 7 && digits.length <= 15;
+    };
+
     const list: JunkSuggestion[] = [];
     const nameCounts = new Map<string, number>();
 
@@ -240,7 +245,7 @@ export default function Contacts() {
     if (reason === 'name_mostly_digits') return 'Name mostly digits';
     if (reason === 'email_invalid') return 'Email invalid';
     if (reason === 'ai_suspected') return 'AI suspected junk';
-    return reason.replace(/_/g, ' ');
+    return String(reason).replace(/_/g, ' ');
   };
 
   const handleIgnoreSuggestion = (id: string) => {
@@ -262,8 +267,8 @@ export default function Contacts() {
       setServerSuggestions(cleanup.suggestions);
       setAiAvailable(cleanup.ai_available);
       setIgnoredSuggestions(new Set());
-    } catch (err: any) {
-      setLoadError(err?.message ?? 'Failed to generate cleanup suggestions');
+    } catch (error: unknown) {
+      setLoadError(getErrorMessage(error, 'Failed to generate cleanup suggestions'));
       setServerSuggestions([]);
       setAiAvailable(false);
     } finally {
@@ -361,8 +366,8 @@ export default function Contacts() {
                 : c
             )
           );
-        } catch (err: any) {
-          setLoadError(err?.message ?? 'Failed to update contact');
+        } catch (error: unknown) {
+          setLoadError(getErrorMessage(error, 'Failed to update contact'));
           return;
         }
       }
@@ -410,8 +415,8 @@ export default function Contacts() {
         setShowModal(false);
       }
       setDeletingContact(null);
-    } catch (err: any) {
-      setLoadError(err?.message ?? 'Failed to delete contact');
+    } catch (error: unknown) {
+      setLoadError(getErrorMessage(error, 'Failed to delete contact'));
     }
   };
 
@@ -454,8 +459,8 @@ export default function Contacts() {
         setCleanupSuccess(null);
         cleanupSuccessTimerRef.current = null;
       }, 30000);
-    } catch (err: any) {
-      setLoadError(err?.message ?? 'Failed to cleanup contacts');
+    } catch (error: unknown) {
+      setLoadError(getErrorMessage(error, 'Failed to cleanup contacts'));
       setCleanupActiveId(null);
       setCleanupAction('');
     } finally {

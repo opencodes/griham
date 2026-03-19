@@ -27,7 +27,7 @@ export interface User {
   rbac_role_name?: string | null;
   rbac_roles?: Role[];
   rbac_permissions?: Permission[];
-  rbac_role:any
+  rbac_role?: Role | null;
 }
 
 export interface AuthResponse {
@@ -112,6 +112,21 @@ export interface Card {
   billing_date?: number;
   status: 'active' | 'inactive' | 'blocked';
   created_at: string;
+}
+
+export interface Asset {
+  id: string;
+  family_id: string;
+  asset_type: 'property' | 'vehicle' | 'gadget' | 'document';
+  name: string;
+  description?: string | null;
+  purchase_date?: string | null;
+  purchase_price: number;
+  current_value: number;
+  location?: string | null;
+  expiry_date?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const authAPI = {
@@ -213,7 +228,12 @@ export const financeAPI = {
     return data.data;
   },
   listTransactions: async (familyId: string, filters?: { type?: string; category?: string; month?: string }) => {
-    const params = new URLSearchParams(filters as any).toString();
+    const params = new URLSearchParams(
+      Object.entries(filters ?? {}).reduce<Record<string, string>>((acc, [key, value]) => {
+        if (typeof value === 'string' && value) acc[key] = value;
+        return acc;
+      }, {})
+    ).toString();
     const { data } = await api.get(`/finance/transactions/${familyId}${params ? '?' + params : ''}`);
     return data.data;
   },
@@ -346,6 +366,44 @@ export const financeAPI = {
       payload
     );
     return data;
+  },
+};
+
+export const assetsAPI = {
+  createAsset: async (familyId: string, assetData: Partial<Asset>) => {
+    const { data } = await api.post('/assets', { family_id: familyId, ...assetData });
+    return data.data as Asset;
+  },
+  listAssets: async (familyId: string, filters?: { type?: Asset['asset_type'] }) => {
+    const params = new URLSearchParams();
+    if (filters?.type) params.set('type', filters.type);
+    const qs = params.toString();
+    const { data } = await api.get(`/assets/${familyId}${qs ? `?${qs}` : ''}`);
+    return (data.data ?? []) as Asset[];
+  },
+  getAsset: async (familyId: string, assetId: string) => {
+    const { data } = await api.get(`/assets/${familyId}/${assetId}`);
+    return data.data as Asset;
+  },
+  updateAsset: async (familyId: string, assetId: string, assetData: Partial<Asset>) => {
+    const { data } = await api.put(`/assets/${familyId}/${assetId}`, assetData);
+    return data.data as Asset;
+  },
+  deleteAsset: async (familyId: string, assetId: string) => {
+    const { data } = await api.delete(`/assets/${familyId}/${assetId}`);
+    return data.data;
+  },
+  getExpiringDocuments: async (familyId: string, days = 30) => {
+    const { data } = await api.get(`/assets/${familyId}/expiring-documents?days=${days}`);
+    return (data.data ?? []) as Asset[];
+  },
+  getServiceDueVehicles: async (familyId: string, days = 30) => {
+    const { data } = await api.get(`/assets/${familyId}/vehicles/service-due?days=${days}`);
+    return (data.data ?? []) as Asset[];
+  },
+  getValuation: async (familyId: string) => {
+    const { data } = await api.get(`/assets/${familyId}/valuation`);
+    return (data.data ?? { total_value: 0, asset_count: 0 }) as { total_value: number; asset_count: number };
   },
 };
 
