@@ -257,7 +257,7 @@ export default function EventsPage() {
             <div className="rounded-xl border border-[var(--panel-border)] glass-black-surface p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Event List</h3>
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Event List</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {isLoading ? 'Loading…' : `${events.length} events • Total budget ${formatCurrency(totalPlannedBudget)}`}
                   </p>
@@ -270,11 +270,11 @@ export default function EventsPage() {
                 </div>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-0">
                 {events.map((event) => (
                   <div
                     key={event.id}
-                    className="rounded-xl border border-[var(--panel-border)] p-4 transition hover:bg-black/5 dark:hover:bg-white/10"
+                    className="p-4 transition hover:bg-black/5 dark:hover:bg-white/10 border-b border-[var(--panel-border)] last:border-b-0"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <button
@@ -310,7 +310,7 @@ export default function EventsPage() {
                         <button
                           type="button"
                           onClick={() => openEditEvent(event)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition hover:bg-black/5 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition"
                           aria-label={`Edit ${event.name}`}
                         >
                           <Pencil className="w-4 h-4" />
@@ -318,7 +318,7 @@ export default function EventsPage() {
                         <button
                           type="button"
                           onClick={() => void handleDeleteEvent(event)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20 dark:hover:text-red-300 disabled:opacity-50"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 transition disabled:opacity-50"
                           aria-label={`Delete ${event.name}`}
                           disabled={deletingEventId === event.id}
                         >

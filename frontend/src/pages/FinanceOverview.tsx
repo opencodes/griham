@@ -210,7 +210,7 @@ export default function FinanceOverview() {
               <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">Spending by category</h3>
+                  <h3 className="text-sm font-bold text-[var(--app-fg)]">Spending by category</h3>
                   {categoryInsightsLoading && <span className="text-xs text-[var(--app-fg-muted)]">Loading…</span>}
                 </div>
                 {categoryInsights.length > 0 && (
@@ -218,7 +218,7 @@ export default function FinanceOverview() {
                     {categoryInsights.slice(0, 5).map((item) => (
                       <div
                         key={item.category}
-                        className="rounded-lg border border-[var(--panel-border)] bg-black/5 dark:bg-white/5 px-2.5 py-1.5 text-xs"
+                        className="rounded-lg bg-black/5 dark:bg-white/5 px-2.5 py-1.5 text-xs"
                       >
                         <span className="font-medium text-[var(--app-fg)]">{getCategoryIcon(item.category)} {item.category}</span>
                         <span className="text-[var(--app-fg-muted)] ml-1">· {item.percent}%</span>
@@ -375,7 +375,7 @@ export default function FinanceOverview() {
             {/* Recent Transactions */}
             <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-6 glass-black-surface">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-[var(--app-fg)]">Recent Transactions</h3>
+                <h3 className="text-lg font-bold text-[var(--app-fg)]">Recent Transactions</h3>
                 <button
                   onClick={() => navigate('/finance/transactions')}
                   className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
@@ -383,7 +383,7 @@ export default function FinanceOverview() {
                   View All
                 </button>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-0">
                 {transactions.map((txn) => {
                   const enrichedTxn = txn as Transaction & {
                     merchant_name?: string | null;
@@ -406,7 +406,7 @@ export default function FinanceOverview() {
                   return (
                     <article
                       key={txn.id}
-                      className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/5 glass-black-soft"
+                      className="px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/5 border-b border-[var(--panel-border)] last:border-b-0"
                     >
                       <div className="flex items-start justify-between gap-2.5">
                         <div className="min-w-0 flex items-start gap-2.5">

@@ -2,7 +2,7 @@ import mongoose, { Model, Schema } from 'mongoose';
 import mongooseLeanVirtuals from 'mongoose-lean-virtuals';
 
 export type EventParticipantRole = 'guest' | 'vendor' | 'host';
-export type EventParticipantRsvpStatus = 'pending' | 'accepted' | 'declined';
+export type EventParticipantRsvpStatus = string;
 
 export interface IEventParticipantDoc {
   _id: string;
@@ -11,6 +11,9 @@ export interface IEventParticipantDoc {
   contact_id: string;
   role: EventParticipantRole;
   rsvp_status: EventParticipantRsvpStatus;
+  gender?: string | null;
+  age_group?: string | null;
+  gifts?: string[];
   created_at?: Date;
   updated_at?: Date;
 }
@@ -29,8 +32,13 @@ const eventParticipantSchema = new Schema<IEventParticipantDoc>(
     rsvp_status: {
       type: String,
       required: true,
-      enum: ['pending', 'accepted', 'declined'],
-      default: 'pending',
+      default: 'Pending Invitation',
+    },
+    gender: { type: String, default: null },
+    age_group: { type: String, default: null },
+    gifts: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true, id: false }

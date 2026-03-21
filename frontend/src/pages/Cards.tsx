@@ -401,7 +401,7 @@ export default function Cards() {
                             event.stopPropagation();
                             handleEdit(card);
                           }}
-                          className="h-9 w-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 bg-white/80 hover:bg-indigo-50 dark:bg-slate-900/70 dark:hover:bg-indigo-900/30"
                           aria-label="Edit card"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -411,7 +411,7 @@ export default function Cards() {
                             event.stopPropagation();
                             handleDelete(card.id);
                           }}
-                          className="h-9 w-9 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 bg-white/80 hover:bg-red-50 dark:bg-slate-900/70 dark:hover:bg-red-900/30"
                           aria-label="Delete card"
                         >
                           <Trash2 className="w-4 h-4" />

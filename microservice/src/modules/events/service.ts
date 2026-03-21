@@ -59,9 +59,31 @@ function normalizeParticipantRole(value: unknown): EventParticipantRole {
 }
 
 function normalizeRsvpStatus(value: unknown): EventParticipantRsvpStatus {
-  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
-  if (normalized === 'accepted' || normalized === 'declined') return normalized;
-  return 'pending';
+  const input = typeof value === 'string' ? value.trim() : '';
+  const normalized = input.toLowerCase().replace(/[_\s]+/g, ' ');
+  if (normalized === 'accepted' || normalized === 'invited') return 'Invited';
+  if (normalized === 'declined' || normalized === 'pending' || normalized === 'pending invitation') return 'Pending Invitation';
+  if (normalized === 'attended') return 'Attended';
+  if (input) return input;
+  return 'Pending Invitation';
+}
+
+function normalizeOptionalString(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  return normalized ? normalized : null;
+}
+
+function normalizeGifts(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const unique = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== 'string') continue;
+    const normalized = item.trim();
+    if (!normalized) continue;
+    unique.add(normalized);
+  }
+  return Array.from(unique);
 }
 
 function serializeEvent(doc: IEventDoc | (IEventDoc & { id?: string })) {
@@ -242,6 +264,9 @@ export const eventsService = {
       contact_id?: string;
       role?: string;
       rsvp_status?: string;
+      gender?: string | null;
+      age_group?: string | null;
+      gifts?: string[];
     }
   ) {
     const event = await findEventOrThrow(eventId);
@@ -260,10 +285,52 @@ export const eventsService = {
       contact_id: body.contact_id,
       role: normalizeParticipantRole(body.role),
       rsvp_status: normalizeRsvpStatus(body.rsvp_status),
+      gender: normalizeOptionalString(body.gender),
+      age_group: normalizeOptionalString(body.age_group),
+      gifts: normalizeGifts(body.gifts),
     });
 
     const participant = await EventParticipantModel.findById(id).lean();
     return participant ? serializeParticipant(participant, { ...toId(contact) }) : null;
+  },
+
+  async updateParticipant(
+    eventId: string,
+    participantId: string,
+    body: Partial<{
+      role: string;
+      rsvp_status: string;
+      gender: string | null;
+      age_group: string | null;
+      gifts: string[];
+    }>
+  ) {
+    const event = await findEventOrThrow(eventId);
+    const participant = await EventParticipantModel.findOne({ _id: participantId, event_id: eventId });
+    if (!participant) return null;
+
+    if (body.role !== undefined) participant.role = normalizeParticipantRole(body.role);
+    if (body.rsvp_status !== undefined) participant.rsvp_status = normalizeRsvpStatus(body.rsvp_status);
+    if (body.gender !== undefined) participant.gender = normalizeOptionalString(body.gender);
+    if (body.age_group !== undefined) participant.age_group = normalizeOptionalString(body.age_group);
+    if (body.gifts !== undefined) participant.gifts = normalizeGifts(body.gifts);
+
+    await participant.save();
+
+    const contact = await ContactModel.findOne({ _id: participant.contact_id, family_id: event.family_id })
+      .select('_id name phone email')
+      .lean();
+
+    return serializeParticipant(
+      participant.toObject(),
+      contact ? { ...toId(contact) } : null
+    );
+  },
+
+  async deleteParticipant(eventId: string, participantId: string) {
+    await findEventOrThrow(eventId);
+    const deleted = await EventParticipantModel.findOneAndDelete({ _id: participantId, event_id: eventId });
+    return Boolean(deleted);
   },
 
   async getFinanceSummary(eventId: string): Promise<EventFinanceSummary> {

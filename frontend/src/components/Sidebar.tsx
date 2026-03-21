@@ -1,4 +1,4 @@
-import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles, FlaskConical } from 'lucide-react';
+import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles, FlaskConical, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { canAccessModule } from '@/lib/permissions';
@@ -22,6 +22,7 @@ const navItems = [
   { id: 'contacts', label: 'Contacts', icon: ContactRound, path: '/contacts', module: 'contacts' },
   { id: 'organizer', label: 'Organizer', icon: ListTodo, path: '/organizer', module: 'organizer' },
   { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages', module: 'messages' },
+  { id: 'settings', label: 'Settings', icon: Settings, path: '/settings', module: 'events' },
 ];
 
 export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle, isCollapsed = false }: SidebarProps) {

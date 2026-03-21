@@ -389,29 +389,35 @@ export default function Dashboard() {
               <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-2 rounded-xl p-5 glass-black-surface border border-[var(--panel-border)]">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-[var(--app-fg)]">Module Pulse</h3>
+                    <h3 className="text-lg font-bold text-[var(--app-fg)]">Module Pulse</h3>
                     <span className="text-xs text-[var(--app-fg-muted)]">
                       {isDashboardLoading ? 'Refreshing...' : 'Live finance + module signals'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                  <div className="space-y-0">
                     {moduleCards.map((module) => {
                       const Icon = module.icon;
                       return (
                         <button
                           key={module.key}
                           onClick={() => navigate(module.path)}
-                          className="text-left border border-[var(--panel-border)] rounded-xl p-3.5 hover:shadow-sm hover:border-indigo-400/30 glass-black-soft transition"
+                          className="w-full text-left px-2 py-3 border-b border-[var(--panel-border)] last:border-b-0 hover:bg-black/5 dark:hover:bg-white/5 transition"
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${module.tone}`}>
-                              <Icon className="w-5 h-5" />
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${module.tone}`}>
+                                <Icon className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-[var(--app-fg)]">{module.title}</p>
+                                <p className="mt-0.5 text-xs text-[var(--app-fg-muted)]">{module.pulseText}</p>
+                              </div>
                             </div>
-                            <ArrowUpRight className="w-4 h-4 text-[var(--app-fg-muted)]" />
+                            <div className="shrink-0 text-right">
+                              <p className="text-sm font-medium text-[var(--app-fg)]">{module.primary}</p>
+                              <ArrowUpRight className="mt-1 ml-auto w-4 h-4 text-[var(--app-fg-muted)]" />
+                            </div>
                           </div>
-                          <p className="mt-3 text-sm font-semibold text-[var(--app-fg)]">{module.title}</p>
-                          <p className="mt-1 text-sm font-medium text-[var(--app-fg)]">{module.primary}</p>
-                          <p className="mt-0.5 text-xs text-[var(--app-fg-muted)]">{module.pulseText}</p>
                         </button>
                       );
                     })}
@@ -419,7 +425,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="rounded-xl p-5 glass-black-surface border border-[var(--panel-border)]">
-                  <h3 className="text-lg font-semibold text-[var(--app-fg)]">Risk Radar</h3>
+                  <h3 className="text-lg font-bold text-[var(--app-fg)]">Risk Radar</h3>
                   <p className="text-xs text-[var(--app-fg-muted)] mt-1">
                     Actionable alerts: fixed rules + AI suggestions (spending vs last month, bills vs balance).
                   </p>
@@ -431,19 +437,19 @@ export default function Dashboard() {
                       risks.map((risk, idx) => (
                         <div
                           key={idx}
-                          className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 p-2.5"
+                          className="flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-2.5"
                         >
                           <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                           <p className="text-xs text-amber-800 dark:text-amber-200">{risk}</p>
                         </div>
                       ))
                     ) : !aiRiskSuggestionsLoading ? (
-                      <div className="rounded-lg border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 p-2.5">
+                      <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-2.5">
                         <p className="text-xs text-emerald-700 dark:text-emerald-300">No major operational risks detected.</p>
                       </div>
                     ) : null}
                     {!aiInsightsLoading && aiInsights && (
-                      <div className="flex items-start gap-2 rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/20 p-2.5">
+                      <div className="flex items-start gap-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 p-2.5">
                         <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
                         <p className="text-xs text-indigo-800 dark:text-indigo-200">AI summary and recommendations are in the Household Overview above.</p>
                       </div>

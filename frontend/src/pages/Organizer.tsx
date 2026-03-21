@@ -135,15 +135,15 @@ export default function Organizer() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <CheckSquare className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Tasks</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Tasks</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {tasks.map((task) => (
                     <button
                       key={task.id}
                       type="button"
                       onClick={() => setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, done: !t.done } : t)))}
-                      className="w-full text-left rounded-lg border border-[var(--panel-border)] px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition glass-black-soft"
+                      className="w-full text-left px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition border-b border-[var(--panel-border)] last:border-b-0"
                     >
                       <p className={`text-sm font-medium ${task.done ? 'text-gray-400 line-through' : 'text-gray-800 dark:text-gray-100'}`}>{task.title}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{toDate(task.dueDate)}</p>
@@ -155,11 +155,11 @@ export default function Organizer() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <NotebookPen className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Notes</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Notes</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {notes.map((note) => (
-                    <article key={note.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
+                    <article key={note.id} className="px-3 py-2.5 border-b border-[var(--panel-border)] last:border-b-0">
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{note.title}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{note.body}</p>
                     </article>
@@ -170,15 +170,15 @@ export default function Organizer() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <ShoppingCart className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Shopping List</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Shopping List</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {shopping.map((item) => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => setShopping((prev) => prev.map((s) => (s.id === item.id ? { ...s, checked: !s.checked } : s)))}
-                      className="w-full text-left rounded-lg border border-[var(--panel-border)] px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition glass-black-soft"
+                      className="w-full text-left px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/10 transition border-b border-[var(--panel-border)] last:border-b-0"
                     >
                       <p className={`text-sm font-medium ${item.checked ? 'text-gray-400 line-through' : 'text-gray-800 dark:text-gray-100'}`}>{item.name}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{item.quantity}</p>
@@ -190,11 +190,11 @@ export default function Organizer() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <BellRing className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Reminders</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Reminders</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {reminders.map((reminder) => (
-                    <article key={reminder.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
+                    <article key={reminder.id} className="px-3 py-2.5 border-b border-[var(--panel-border)] last:border-b-0">
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{reminder.title}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{toDateTime(reminder.dateTime)}</p>
                     </article>

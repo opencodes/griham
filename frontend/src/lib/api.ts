@@ -211,7 +211,10 @@ export interface EventParticipant {
   event_id: string;
   contact_id: string;
   role: 'guest' | 'vendor' | 'host';
-  rsvp_status: 'pending' | 'accepted' | 'declined';
+  rsvp_status: string;
+  gender?: string | null;
+  age_group?: string | null;
+  gifts?: string[];
   contact?: {
     id: string;
     name?: string | null;
@@ -623,6 +626,14 @@ export const eventsAPI = {
   listParticipants: async (eventId: string) => {
     const { data } = await api.get(`/events/${eventId}/participants`);
     return (data.data ?? []) as EventParticipant[];
+  },
+  updateParticipant: async (eventId: string, participantId: string, payload: Partial<EventParticipant>) => {
+    const { data } = await api.patch(`/events/${eventId}/participants/${participantId}`, payload);
+    return data.data as EventParticipant;
+  },
+  deleteParticipant: async (eventId: string, participantId: string) => {
+    const { data } = await api.delete(`/events/${eventId}/participants/${participantId}`);
+    return data.data as { ok: boolean };
   },
   getFinanceSummary: async (eventId: string) => {
     const { data } = await api.get(`/events/${eventId}/finance-summary`);

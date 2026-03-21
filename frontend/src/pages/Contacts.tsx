@@ -584,11 +584,11 @@ export default function Contacts() {
               ) : suggestions.length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-3">No cleanup suggestions right now.</div>
               ) : (
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-0">
                   {suggestions.map((s) => (
                     <div
                       key={s.id}
-                      className={`rounded-lg border border-[var(--panel-border)] px-3 py-2 flex items-center justify-between gap-3 glass-black-soft ${
+                      className={`px-3 py-2 flex items-center justify-between gap-3 border-b border-[var(--panel-border)] last:border-b-0 ${
                         cleanupActiveId === s.id ? 'bg-amber-50/60 dark:bg-amber-900/20' : ''
                       }`}
                     >
@@ -642,7 +642,7 @@ export default function Contacts() {
 
             <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Contact Directory</h3>
+                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Contact Directory</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {isLoading ? 'Loading…' : `${sortedContacts.length} contacts`}
                 </p>
@@ -663,19 +663,19 @@ export default function Contacts() {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <div className="hidden md:grid grid-cols-12 gap-3 px-3 py-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  <div className="col-span-3">Name</div>
-                  <div className="col-span-2">Group</div>
-                  <div className="col-span-2">Relation/Role</div>
-                  <div className="col-span-2">Phone</div>
-                  <div className="col-span-2">Email</div>
-                  <div className="col-span-1 text-right">Actions</div>
+              <div className="space-y-0">
+                <div className="hidden md:grid grid-cols-12 gap-3 px-3 py-2 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b border-[var(--panel-border)]">
+                  <div className="col-span-3 font-bold">Name</div>
+                  <div className="col-span-2 font-bold">Group</div>
+                  <div className="col-span-2 font-bold">Relation/Role</div>
+                  <div className="col-span-2 font-bold">Phone</div>
+                  <div className="col-span-2 font-bold">Email</div>
+                  <div className="col-span-1 text-right font-bold">Actions</div>
                 </div>
                 {sortedContacts.map((contact) => (
                   <article
                     key={contact.id}
-                    className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/10 glass-black-soft"
+                    className="px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/10 border-b border-[var(--panel-border)] last:border-b-0"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                       <div className="col-span-3 min-w-0 flex items-center gap-2.5">

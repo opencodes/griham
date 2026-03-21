@@ -244,10 +244,10 @@ export default function LoansPage() {
                   </div>
                   {userRole === 'admin' && (
                     <div className="mt-4 flex justify-end gap-2">
-                      <button onClick={() => openEditModal(item)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--panel-border)] hover:bg-black/5 dark:hover:bg-white/10">
-                        <Pencil className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+                      <button onClick={() => openEditModal(item)} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                        <Pencil className="w-4 h-4" />
                       </button>
-                      <button onClick={() => void handleDelete(item.id)} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20">
+                      <button onClick={() => void handleDelete(item.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

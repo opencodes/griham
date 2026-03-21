@@ -252,12 +252,12 @@ export default function FamilyDetail() {
               </div>
 
               <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-6">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <Users className="w-5 h-5" />
                   Family Members ({members.length})
                 </h3>
 
-                <div className="space-y-3">
+                <div className="space-y-0">
                   {members.map((member) => {
                     const displayName = member.status === 'pending'
                       ? member.invitation_email
@@ -267,7 +267,7 @@ export default function FamilyDetail() {
                     //   : member.user_email;
 
                     return (
-                      <div key={member.id} className="flex items-center justify-between p-4 rounded-lg glass-black-soft border border-[var(--panel-border)]">
+                      <div key={member.id} className="flex items-center justify-between p-4 border-b border-[var(--panel-border)] last:border-b-0">
                         <div className="flex items-center gap-3 flex-1">
                           <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
                             {displayName?.charAt(0).toUpperCase() || 'U'}
@@ -293,7 +293,7 @@ export default function FamilyDetail() {
                           {currentUserRole === 'admin' && member.role !== 'admin' && (
                             <button
                               onClick={() => handleEdit(member)}
-                              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>

@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { DarkModeProvider } from './hooks/useDarkMode';
 import { FinanceMonthProvider } from './contexts/FinanceMonthContext';
+import { AppSettingsProvider } from './contexts/AppSettingsContext';
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
@@ -23,6 +24,7 @@ import Contacts from './pages/Contacts';
 import Organizer from './pages/Organizer';
 import Messaging from './pages/Messaging';
 import Assistant from './pages/Assistant';
+import Settings from './pages/Settings';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
 import RootGroups from './pages/RootGroups';
@@ -296,6 +298,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="events">
+              <Settings />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
@@ -305,11 +317,13 @@ function App() {
     <HashRouter>
       <DarkModeProvider>
         <AuthProvider>
-          <FinanceMonthProvider>
-            <div className="premium-shell">
-              <AppRoutes />
-            </div>
-          </FinanceMonthProvider>
+          <AppSettingsProvider>
+            <FinanceMonthProvider>
+              <div className="premium-shell">
+                <AppRoutes />
+              </div>
+            </FinanceMonthProvider>
+          </AppSettingsProvider>
         </AuthProvider>
       </DarkModeProvider>
     </HashRouter>

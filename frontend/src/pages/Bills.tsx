@@ -326,7 +326,7 @@ export default function Bills() {
                       )}
                       <button
                         onClick={() => handleDelete(bill.id)}
-                        className="px-3 py-2 border border-red-300 text-red-600 text-sm rounded-lg hover:bg-red-50"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

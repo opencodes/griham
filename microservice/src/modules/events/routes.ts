@@ -12,6 +12,8 @@ eventsRoutes.post('/:id/sub-events', eventsController.createSubEvent);
 eventsRoutes.get('/:id/sub-events', eventsController.listSubEvents);
 eventsRoutes.post('/:id/participants', eventsController.createParticipant);
 eventsRoutes.get('/:id/participants', eventsController.listParticipants);
+eventsRoutes.patch('/:id/participants/:participantId', eventsController.updateParticipant);
+eventsRoutes.delete('/:id/participants/:participantId', eventsController.removeParticipant);
 eventsRoutes.get('/:id/finance-summary', eventsController.financeSummary);
 eventsRoutes.get('/:id/ai-insights', eventsController.aiInsightPlaceholder);
 eventsRoutes.get('/:id', eventsController.get);

@@ -677,7 +677,7 @@ export default function TransactionsPage() {
               <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                  <h3 className="text-sm font-semibold text-[var(--app-fg)]">Category insights</h3>
+                  <h3 className="text-sm font-bold text-[var(--app-fg)]">Category insights</h3>
                   {categoryInsightsLoading && (
                     <span className="text-xs text-[var(--app-fg-muted)]">Loading…</span>
                   )}
@@ -689,11 +689,11 @@ export default function TransactionsPage() {
                   <p className="text-xs text-[var(--app-fg-muted)]">No expense categories this month.</p>
                 )}
                 {categoryInsights.length > 0 && (
-                  <ul className="space-y-2">
+                  <ul className="space-y-0">
                     {categoryInsights.map((item) => (
                       <li
                         key={item.category}
-                        className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-[var(--panel-border)] bg-black/5 dark:bg-white/5 px-3 py-2"
+                        className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-3 py-2 border-b border-[var(--panel-border)] last:border-b-0"
                       >
                         <span className="font-medium text-[var(--app-fg)]">{getCategoryIcon(item.category)} {item.category}</span>
                         <span className="text-xs text-[var(--app-fg-muted)]">
@@ -727,95 +727,101 @@ export default function TransactionsPage() {
             )}
 
             {!loading && !error && filteredTransactions.length > 0 && (
-              <div className="space-y-5">
-                {groupedTransactions.map(([date, txs]) => (
-                  <section key={date} className="space-y-2">
-                    <div className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-900/95 py-1.5 backdrop-blur-sm">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                        {formatDateLabel(date)}
-                      </p>
-                    </div>
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Transactions</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{filteredTransactions.length} records</p>
+                </div>
+                <div className="space-y-5">
+                  {groupedTransactions.map(([date, txs]) => (
+                    <section key={date} className="space-y-2">
+                      <div className="sticky top-0 z-10 py-1.5">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                          {formatDateLabel(date)}
+                        </p>
+                      </div>
 
-                    <div className="space-y-1.5">
-                      {txs.map((tx) => {
-                        const isIncome = tx.type === 'income';
-                        const amount = Number(tx.amount || 0);
-                        const enrichedTx = tx as Transaction & {
-                          merchant_name?: string | null;
-                          payment_method?: string | null;
-                        };
-                        const title = enrichedTx.merchant_name || tx.description || tx.category || 'Uncategorized';
-                        const txDate = new Date(tx.transaction_date);
-                        const dateLabel = Number.isNaN(txDate.getTime())
-                          ? tx.transaction_date
-                          : txDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                        const subtitle = [
-                          tx.account_name || 'Unknown account',
-                          tx.bank_name || '',
-                          enrichedTx.payment_method || '',
-                          dateLabel,
-                        ].filter(Boolean).join(' • ');
-                        const eventName = tx.event_id ? eventNameById.get(tx.event_id) ?? 'Event linked' : null;
-                        const subEventName = tx.sub_event_id ? allSubEventNamesById.get(tx.sub_event_id) ?? 'Sub-event linked' : null;
-                        return (
-                          <article
-                            key={tx.id}
-                            className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/10 glass-black-soft"
-                          >
-                            <div className="flex items-start justify-between gap-2.5">
-                              <div className="min-w-0 flex items-start gap-2.5">
-                                <div className="w-8 h-8 flex items-center justify-center text-sm shrink-0">
-                                  {getCategoryIcon(tx.category)}
-                                </div>
-
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                                      isIncome
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                                    }`}>
-                                      {isIncome ? 'Income' : 'Expense'}
-                                    </span>
-                                    {eventName && (
-                                      <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
-                                        {eventName}
-                                      </span>
-                                    )}
-                                    {subEventName && (
-                                      <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
-                                        {subEventName}
-                                      </span>
-                                    )}
-                                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{title}</p>
+                      <div className="space-y-0">
+                        {txs.map((tx) => {
+                          const isIncome = tx.type === 'income';
+                          const amount = Number(tx.amount || 0);
+                          const enrichedTx = tx as Transaction & {
+                            merchant_name?: string | null;
+                            payment_method?: string | null;
+                          };
+                          const title = enrichedTx.merchant_name || tx.description || tx.category || 'Uncategorized';
+                          const txDate = new Date(tx.transaction_date);
+                          const dateLabel = Number.isNaN(txDate.getTime())
+                            ? tx.transaction_date
+                            : txDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                          const subtitle = [
+                            tx.account_name || 'Unknown account',
+                            tx.bank_name || '',
+                            enrichedTx.payment_method || '',
+                            dateLabel,
+                          ].filter(Boolean).join(' • ');
+                          const eventName = tx.event_id ? eventNameById.get(tx.event_id) ?? 'Event linked' : null;
+                          const subEventName = tx.sub_event_id ? allSubEventNamesById.get(tx.sub_event_id) ?? 'Sub-event linked' : null;
+                          return (
+                            <article
+                              key={tx.id}
+                              className="px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/10 border-b border-[var(--panel-border)] last:border-b-0"
+                            >
+                              <div className="flex items-start justify-between gap-2.5">
+                                <div className="min-w-0 flex items-start gap-2.5">
+                                  <div className="w-8 h-8 flex items-center justify-center text-sm shrink-0">
+                                    {getCategoryIcon(tx.category)}
                                   </div>
 
-                                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">{subtitle}</p>
-                                </div>
-                              </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                                        isIncome
+                                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                          : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                      }`}>
+                                        {isIncome ? 'Income' : 'Expense'}
+                                      </span>
+                                      {eventName && (
+                                        <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                                          {eventName}
+                                        </span>
+                                      )}
+                                      {subEventName && (
+                                        <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                                          {subEventName}
+                                        </span>
+                                      )}
+                                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{title}</p>
+                                    </div>
 
-                              <div className="text-right shrink-0">
-                                <p className={`font-semibold text-sm ${isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                  {isIncome ? '+' : '-'}{formatCurrency(amount)}
-                                </p>
-                                {userRole === 'admin' && (
+                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">{subtitle}</p>
+                                  </div>
+                                </div>
+
+                                <div className="text-right shrink-0">
+                                  <p className={`font-semibold text-sm ${isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {isIncome ? '+' : '-'}{formatCurrency(amount)}
+                                  </p>
+                                  {userRole === 'admin' && (
                                   <button
                                     type="button"
                                     onClick={() => void openEditModal(tx)}
-                                    className="mt-2 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition hover:bg-black/5 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
+                                    className="mt-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition"
                                     aria-label={`Edit transaction ${title}`}
                                   >
                                     <Pencil className="w-4 h-4" />
-                                  </button>
-                                )}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ))}
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
               </div>
             )}
           </div>

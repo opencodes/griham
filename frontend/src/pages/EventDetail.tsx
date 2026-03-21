@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { contactsAPI, eventsAPI, financeAPI, householdAPI, type Contact, type Event, type EventFinanceSummary, type EventParticipant, type SubEvent, type Transaction } from '@/lib/api';
-import { ArrowLeft, CalendarDays, Clock3, IndianRupee, MapPin, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock3, IndianRupee, MapPin, Pencil, Plus, Sparkles, Trash2, User } from 'lucide-react';
 
 const PARTICIPANT_ROLES: EventParticipant['role'][] = ['guest', 'vendor', 'host'];
-const RSVP_STATUSES: EventParticipant['rsvp_status'][] = ['pending', 'accepted', 'declined'];
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-IN', {
@@ -37,6 +37,32 @@ const formatDateTime = (value?: string | null) => {
 
 const titleCase = (value: string) => value.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
+const normalizeValue = (value: string) => value.trim().toLowerCase().replace(/[_\s]+/g, ' ');
+
+const findMatchingOption = (value: string, options: string[]): string | null => {
+  const normalizedValue = normalizeValue(value);
+  return options.find((option) => normalizeValue(option) === normalizedValue) ?? null;
+};
+
+const normalizeRsvpForUi = (value: string | null | undefined, options: string[]): string => {
+  if (options.length === 0) return 'Pending Invitation';
+  if (!value) return options[0];
+  const direct = findMatchingOption(value, options);
+  if (direct) return direct;
+
+  const normalized = normalizeValue(value);
+  if (normalized === 'pending' || normalized === 'pending invitation' || normalized === 'declined') {
+    return findMatchingOption('Pending Invitation', options) ?? options[0];
+  }
+  if (normalized === 'accepted' || normalized === 'invited') {
+    return findMatchingOption('Invited', options) ?? options[0];
+  }
+  if (normalized === 'attended') {
+    return findMatchingOption('Attended', options) ?? options[0];
+  }
+  return options[0];
+};
+
 const eventTypeTone = (type: Event['type']) => {
   if (type === 'marriage') return 'bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-300';
   if (type === 'anniversary') return 'bg-pink-50 text-pink-700 dark:bg-pink-950/20 dark:text-pink-300';
@@ -57,6 +83,7 @@ const roleTone = (role: EventParticipant['role']) => {
 };
 
 export default function EventDetailPage() {
+  const { settings } = useAppSettings();
   const navigate = useNavigate();
   const { eventId = '' } = useParams();
   const [activeTab, setActiveTab] = useState('events');
@@ -89,9 +116,28 @@ export default function EventDetailPage() {
   const [participantForm, setParticipantForm] = useState({
     contact_ids: [] as string[],
     role: 'guest' as EventParticipant['role'],
-    rsvp_status: 'pending' as EventParticipant['rsvp_status'],
+    rsvp_status: 'Pending Invitation',
+    gender: '',
+    age_group: '',
+    gifts: [] as string[],
   });
   const [participantSearch, setParticipantSearch] = useState('');
+  const [editingParticipantId, setEditingParticipantId] = useState<string | null>(null);
+  const [deletingParticipantId, setDeletingParticipantId] = useState<string | null>(null);
+  const [participantEditForm, setParticipantEditForm] = useState({
+    role: 'guest' as EventParticipant['role'],
+    rsvp_status: 'Pending Invitation',
+    gender: '',
+    age_group: '',
+    gifts: [] as string[],
+  });
+
+  const rsvpOptions = settings.participantRsvpStatuses.length > 0
+    ? settings.participantRsvpStatuses
+    : ['Pending Invitation', 'Invited', 'Attended'];
+  const genderOptions = settings.participantGenders;
+  const ageGroupOptions = settings.participantAgeGroups;
+  const giftOptions = settings.participantGiftOptions;
 
   const handleMenuToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -154,6 +200,13 @@ export default function EventDetailPage() {
     void loadFamily();
   }, [eventId, loadEventDetails]);
 
+  useEffect(() => {
+    setParticipantForm((prev) => ({
+      ...prev,
+      rsvp_status: normalizeRsvpForUi(prev.rsvp_status, rsvpOptions),
+    }));
+  }, [rsvpOptions]);
+
   const transactionsBySubEvent = useMemo(() => {
     const map = new Map<string, Transaction[]>();
     for (const transaction of transactions) {
@@ -178,7 +231,10 @@ export default function EventDetailPage() {
     setParticipantForm({
       contact_ids: [],
       role: 'guest',
-      rsvp_status: 'pending',
+      rsvp_status: rsvpOptions[0] ?? 'Pending Invitation',
+      gender: '',
+      age_group: '',
+      gifts: [],
     });
     setParticipantSearch('');
   };
@@ -212,6 +268,42 @@ export default function EventDetailPage() {
         ? prev.contact_ids.filter((id) => id !== contactId)
         : [...prev.contact_ids, contactId],
     }));
+  };
+
+  const toggleParticipantGift = (gift: string) => {
+    setParticipantForm((prev) => ({
+      ...prev,
+      gifts: prev.gifts.includes(gift) ? prev.gifts.filter((item) => item !== gift) : [...prev.gifts, gift],
+    }));
+  };
+
+  const toggleEditGift = (gift: string) => {
+    setParticipantEditForm((prev) => ({
+      ...prev,
+      gifts: prev.gifts.includes(gift) ? prev.gifts.filter((item) => item !== gift) : [...prev.gifts, gift],
+    }));
+  };
+
+  const startEditingParticipant = (participant: EventParticipant) => {
+    setEditingParticipantId(participant.id);
+    setParticipantEditForm({
+      role: participant.role,
+      rsvp_status: normalizeRsvpForUi(participant.rsvp_status, rsvpOptions),
+      gender: participant.gender ?? '',
+      age_group: participant.age_group ?? '',
+      gifts: participant.gifts ?? [],
+    });
+  };
+
+  const cancelEditingParticipant = () => {
+    setEditingParticipantId(null);
+    setParticipantEditForm({
+      role: 'guest',
+      rsvp_status: rsvpOptions[0] ?? 'Pending Invitation',
+      gender: '',
+      age_group: '',
+      gifts: [],
+    });
   };
 
   const handleSaveSubEvent = async (e: React.FormEvent) => {
@@ -248,6 +340,9 @@ export default function EventDetailPage() {
             contact_id: contactId,
             role: participantForm.role,
             rsvp_status: participantForm.rsvp_status,
+            gender: participantForm.gender || undefined,
+            age_group: participantForm.age_group || undefined,
+            gifts: participantForm.gifts,
           })
         )
       );
@@ -258,6 +353,54 @@ export default function EventDetailPage() {
       console.error('Failed to save participants', saveError);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleUpdateParticipant = async (participantId: string) => {
+    if (!eventId) return;
+    setIsSaving(true);
+    try {
+      const updatedParticipant = await eventsAPI.updateParticipant(eventId, participantId, {
+        role: participantEditForm.role,
+        rsvp_status: participantEditForm.rsvp_status,
+        gender: participantEditForm.gender || null,
+        age_group: participantEditForm.age_group || null,
+        gifts: participantEditForm.gifts,
+      });
+      setParticipants((prev) =>
+        prev.map((participant) =>
+          participant.id === participantId
+            ? {
+                ...participant,
+                ...updatedParticipant,
+                contact: participant.contact ?? updatedParticipant.contact,
+              }
+            : participant
+        )
+      );
+      cancelEditingParticipant();
+    } catch (saveError) {
+      console.error('Failed to update participant', saveError);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteParticipant = async (participantId: string, participantName?: string | null) => {
+    if (!eventId) return;
+    const label = participantName?.trim() || 'this participant';
+    if (!window.confirm(`Remove ${label} from this event?`)) return;
+    setDeletingParticipantId(participantId);
+    try {
+      await eventsAPI.deleteParticipant(eventId, participantId);
+      setParticipants((prev) => prev.filter((participant) => participant.id !== participantId));
+      if (editingParticipantId === participantId) {
+        cancelEditingParticipant();
+      }
+    } catch (deleteError) {
+      console.error('Failed to delete participant', deleteError);
+    } finally {
+      setDeletingParticipantId(null);
     }
   };
 
@@ -487,47 +630,318 @@ export default function EventDetailPage() {
                       Add
                     </button>
                   </div>
-                  <div className="overflow-x-auto rounded-lg border border-[var(--panel-border)] bg-white dark:bg-white/5">
+                  <div className="overflow-hidden">
                     {participants.length > 0 && (
-                      <table className="min-w-full text-sm">
-                        <thead className="bg-black/5 dark:bg-white/5">
-                          <tr className="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            <th className="px-4 py-3 font-medium">Name</th>
-                            <th className="px-4 py-3 font-medium">Role</th>
-                            <th className="px-4 py-3 font-medium">RSVP</th>
-                            <th className="px-4 py-3 font-medium">Phone</th>
-                            <th className="px-4 py-3 font-medium">Email</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {participants.map((participant) => (
-                            <tr key={participant.id} className="border-t border-[var(--panel-border)]">
-                              <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">
-                                {participant.contact?.name || 'Unnamed contact'}
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex rounded-full px-2 py-1 text-[11px] font-medium ${roleTone(participant.role)}`}>
-                                  {titleCase(participant.role)}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className="inline-flex rounded-full px-2 py-1 text-[11px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
-                                  {titleCase(participant.rsvp_status)}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                                {participant.contact?.phone || 'NA'}
-                              </td>
-                              <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                                {participant.contact?.email || 'NA'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <>
+                        <div className="hidden lg:block">
+                          <table className="min-w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-[var(--panel-border)] text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <th className="px-4 py-3 font-bold">Participant</th>
+                                <th className="px-4 py-3 font-bold">Role</th>
+                                <th className="px-4 py-3 font-bold">RSVP</th>
+                                <th className="px-4 py-3 font-bold">Gender</th>
+                                <th className="px-4 py-3 font-bold">Age Group</th>
+                                <th className="px-4 py-3 font-bold">Gifts</th>
+                                <th className="px-4 py-3 font-bold">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {participants.map((participant) => {
+                                const isEditing = editingParticipantId === participant.id;
+                                return (
+                                  <tr key={participant.id} className="border-t border-[var(--panel-border)] align-top">
+                                    <td className="px-4 py-3 min-w-[250px]">
+                                      <div className="flex items-start gap-2.5 min-w-0">
+                                        <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0">
+                                          <User className="w-4 h-4 text-gray-500 dark:text-gray-300" />
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="font-medium text-gray-800 dark:text-gray-100">{participant.contact?.name || 'Unnamed contact'}</p>
+                                          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                            {participant.contact?.phone || 'NA'}
+                                            {participant.contact?.email ? ` • ${participant.contact.email}` : ''}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 min-w-[130px]">
+                                      {isEditing ? (
+                                        <select
+                                          value={participantEditForm.role}
+                                          onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, role: e.target.value as EventParticipant['role'] }))}
+                                          className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                          {PARTICIPANT_ROLES.map((role) => (
+                                            <option key={role} value={role}>{titleCase(role)}</option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <span className={`inline-flex rounded-full px-2 py-1 text-[11px] font-medium ${roleTone(participant.role)}`}>
+                                          {titleCase(participant.role)}
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 min-w-[150px]">
+                                      {isEditing ? (
+                                        <select
+                                          value={participantEditForm.rsvp_status}
+                                          onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, rsvp_status: e.target.value }))}
+                                          className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                          {rsvpOptions.map((status) => (
+                                            <option key={status} value={status}>{status}</option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <span className="inline-flex rounded-full px-2 py-1 text-[11px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-200">
+                                          {normalizeRsvpForUi(participant.rsvp_status, rsvpOptions)}
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 min-w-[140px]">
+                                      {isEditing ? (
+                                        <select
+                                          value={participantEditForm.gender}
+                                          onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, gender: e.target.value }))}
+                                          className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                          <option value="">Not set</option>
+                                          {genderOptions.map((gender) => (
+                                            <option key={gender} value={gender}>{gender}</option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">{participant.gender || 'Not set'}</p>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 min-w-[140px]">
+                                      {isEditing ? (
+                                        <select
+                                          value={participantEditForm.age_group}
+                                          onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, age_group: e.target.value }))}
+                                          className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                          <option value="">Not set</option>
+                                          {ageGroupOptions.map((group) => (
+                                            <option key={group} value={group}>{group}</option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">{participant.age_group || 'Not set'}</p>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 min-w-[220px]">
+                                      {isEditing ? (
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {giftOptions.map((gift) => {
+                                            const checked = participantEditForm.gifts.includes(gift);
+                                            return (
+                                              <button
+                                                key={gift}
+                                                type="button"
+                                                onClick={() => toggleEditGift(gift)}
+                                                className={`rounded-full border px-2 py-1 text-[11px] ${
+                                                  checked
+                                                    ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-950/40 dark:text-indigo-300'
+                                                    : 'border-[var(--panel-border)] bg-black/5 text-gray-600 dark:bg-white/5 dark:text-gray-300'
+                                                }`}
+                                              >
+                                                {gift}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                                          {(participant.gifts?.length ?? 0) > 0 ? participant.gifts?.join(', ') : 'None'}
+                                        </p>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 min-w-[130px]">
+                                      {!isEditing ? (
+                                        <div className="flex items-center gap-1.5">
+                                          <button
+                                            type="button"
+                                            onClick={() => startEditingParticipant(participant)}
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                                            aria-label="Edit participant"
+                                            title="Edit participant"
+                                          >
+                                            <Pencil className="w-4 h-4" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => void handleDeleteParticipant(participant.id, participant.contact?.name)}
+                                            disabled={deletingParticipantId === participant.id}
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50"
+                                            aria-label="Delete participant"
+                                            title="Delete participant"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-1.5">
+                                          <button
+                                            type="button"
+                                            onClick={() => void handleUpdateParticipant(participant.id)}
+                                            disabled={isSaving}
+                                            className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs text-white disabled:opacity-50"
+                                          >
+                                            Save
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={cancelEditingParticipant}
+                                            className="rounded-lg border border-[var(--panel-border)] px-2.5 py-1.5 text-xs text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="space-y-3 p-3 lg:hidden">
+                          {participants.map((participant) => {
+                            const isEditing = editingParticipantId === participant.id;
+                            return (
+                              <article key={`${participant.id}-mobile`} className="bg-white dark:bg-white/5 p-3 space-y-2 border-b border-[var(--panel-border)] last:border-b-0">
+                                <div className="flex items-start gap-2.5 min-w-0">
+                                  <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0">
+                                    <User className="w-4 h-4 text-gray-500 dark:text-gray-300" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{participant.contact?.name || 'Unnamed contact'}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      {participant.contact?.phone || 'NA'}
+                                      {participant.contact?.email ? ` • ${participant.contact.email}` : ''}
+                                    </p>
+                                  </div>
+                                </div>
+                                {isEditing ? (
+                                  <div className="grid grid-cols-1 gap-2">
+                                    <select
+                                      value={participantEditForm.role}
+                                      onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, role: e.target.value as EventParticipant['role'] }))}
+                                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200"
+                                    >
+                                      {PARTICIPANT_ROLES.map((role) => (
+                                        <option key={role} value={role}>{titleCase(role)}</option>
+                                      ))}
+                                    </select>
+                                    <select
+                                      value={participantEditForm.rsvp_status}
+                                      onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, rsvp_status: e.target.value }))}
+                                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200"
+                                    >
+                                      {rsvpOptions.map((status) => (
+                                        <option key={status} value={status}>{status}</option>
+                                      ))}
+                                    </select>
+                                    <select
+                                      value={participantEditForm.gender}
+                                      onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, gender: e.target.value }))}
+                                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200"
+                                    >
+                                      <option value="">Not set</option>
+                                      {genderOptions.map((gender) => (
+                                        <option key={gender} value={gender}>{gender}</option>
+                                      ))}
+                                    </select>
+                                    <select
+                                      value={participantEditForm.age_group}
+                                      onChange={(e) => setParticipantEditForm((prev) => ({ ...prev, age_group: e.target.value }))}
+                                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs text-gray-700 dark:text-gray-200"
+                                    >
+                                      <option value="">Not set</option>
+                                      {ageGroupOptions.map((group) => (
+                                        <option key={group} value={group}>{group}</option>
+                                      ))}
+                                    </select>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {giftOptions.map((gift) => {
+                                        const checked = participantEditForm.gifts.includes(gift);
+                                        return (
+                                          <button
+                                            key={gift}
+                                            type="button"
+                                            onClick={() => toggleEditGift(gift)}
+                                            className={`rounded-full border px-2 py-1 text-[11px] ${
+                                              checked
+                                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-950/40 dark:text-indigo-300'
+                                                : 'border-[var(--panel-border)] bg-black/5 text-gray-600 dark:bg-white/5 dark:text-gray-300'
+                                            }`}
+                                          >
+                                            {gift}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-300">
+                                    <p>Role: {titleCase(participant.role)}</p>
+                                    <p>RSVP: {normalizeRsvpForUi(participant.rsvp_status, rsvpOptions)}</p>
+                                    <p>Gender: {participant.gender || 'Not set'}</p>
+                                    <p>Age: {participant.age_group || 'Not set'}</p>
+                                  </div>
+                                )}
+                                {!isEditing ? (
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => startEditingParticipant(participant)}
+                                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                                      aria-label="Edit participant"
+                                      title="Edit participant"
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => void handleDeleteParticipant(participant.id, participant.contact?.name)}
+                                      disabled={deletingParticipantId === participant.id}
+                                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50"
+                                      aria-label="Delete participant"
+                                      title="Delete participant"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => void handleUpdateParticipant(participant.id)}
+                                      disabled={isSaving}
+                                      className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs text-white disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={cancelEditingParticipant}
+                                      className="rounded-lg border border-[var(--panel-border)] px-2.5 py-1.5 text-xs text-gray-700 dark:text-gray-200"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                )}
+                              </article>
+                            );
+                          })}
+                        </div>
+                      </>
                     )}
                     {participants.length === 0 && (
-                      <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                      <div className="rounded-lg border border-dashed border-[var(--panel-border)] p-6 text-center text-sm text-gray-500 dark:text-gray-400">
                         No participants linked yet.
                       </div>
                     )}
@@ -679,13 +1093,66 @@ export default function EventDetailPage() {
                   <span className="text-sm text-gray-700 dark:text-gray-200">RSVP Status</span>
                   <select
                     value={participantForm.rsvp_status}
-                    onChange={(e) => setParticipantForm((prev) => ({ ...prev, rsvp_status: e.target.value as EventParticipant['rsvp_status'] }))}
+                    onChange={(e) => setParticipantForm((prev) => ({ ...prev, rsvp_status: e.target.value }))}
                     className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    {RSVP_STATUSES.map((status) => (
-                      <option key={status} value={status}>{titleCase(status)}</option>
+                    {rsvpOptions.map((status) => (
+                      <option key={status} value={status}>{status}</option>
                     ))}
                   </select>
+                </label>
+
+                <label className="space-y-1">
+                  <span className="text-sm text-gray-700 dark:text-gray-200">Gender</span>
+                  <select
+                    value={participantForm.gender}
+                    onChange={(e) => setParticipantForm((prev) => ({ ...prev, gender: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Not set</option>
+                    {genderOptions.map((gender) => (
+                      <option key={gender} value={gender}>{gender}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="space-y-1">
+                  <span className="text-sm text-gray-700 dark:text-gray-200">Age Group</span>
+                  <select
+                    value={participantForm.age_group}
+                    onChange={(e) => setParticipantForm((prev) => ({ ...prev, age_group: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Not set</option>
+                    {ageGroupOptions.map((group) => (
+                      <option key={group} value={group}>{group}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="md:col-span-2 space-y-1">
+                  <span className="text-sm text-gray-700 dark:text-gray-200">Gifts</span>
+                  <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-2.5">
+                    <div className="flex flex-wrap gap-2">
+                      {giftOptions.map((gift) => {
+                        const checked = participantForm.gifts.includes(gift);
+                        return (
+                          <button
+                            key={gift}
+                            type="button"
+                            onClick={() => toggleParticipantGift(gift)}
+                            className={`rounded-full border px-3 py-1 text-xs ${
+                              checked
+                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-950/40 dark:text-indigo-300'
+                                : 'border-[var(--panel-border)] bg-black/5 text-gray-600 dark:bg-white/5 dark:text-gray-300'
+                            }`}
+                          >
+                            {gift}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </label>
               </div>
 

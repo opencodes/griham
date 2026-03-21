@@ -7,6 +7,7 @@ function mapServiceError(error: unknown): { status: number; message: string } {
   if (error.message === 'NAME_REQUIRED') return { status: 400, message: 'name is required' };
   if (error.message === 'CONTACT_ID_REQUIRED') return { status: 400, message: 'contact_id is required' };
   if (error.message === 'EVENT_NOT_FOUND') return { status: 404, message: 'Event not found' };
+  if (error.message === 'PARTICIPANT_NOT_FOUND') return { status: 404, message: 'Participant not found' };
   if (error.message === 'CONTACT_NOT_FOUND') return { status: 404, message: 'Contact not found for this family' };
   if (error.message === 'PARTICIPANT_EXISTS') return { status: 409, message: 'Participant already linked to this event' };
   return { status: 500, message: error.message || 'Internal server error' };
@@ -132,6 +133,40 @@ export const eventsController = {
     try {
       const list = await eventsService.listParticipants(req.params.id);
       res.success(list);
+    } catch (error) {
+      const mapped = mapServiceError(error);
+      res.fail(mapped.message, mapped.status);
+    }
+  },
+
+  async updateParticipant(req: Request, res: Response): Promise<void> {
+    try {
+      const participant = await eventsService.updateParticipant(req.params.id, req.params.participantId, req.body as {
+        role?: string;
+        rsvp_status?: string;
+        gender?: string | null;
+        age_group?: string | null;
+        gifts?: string[];
+      });
+      if (!participant) {
+        res.fail('Participant not found', 404);
+        return;
+      }
+      res.success(participant);
+    } catch (error) {
+      const mapped = mapServiceError(error);
+      res.fail(mapped.message, mapped.status);
+    }
+  },
+
+  async removeParticipant(req: Request, res: Response): Promise<void> {
+    try {
+      const deleted = await eventsService.deleteParticipant(req.params.id, req.params.participantId);
+      if (!deleted) {
+        res.fail('Participant not found', 404);
+        return;
+      }
+      res.success({ ok: true });
     } catch (error) {
       const mapped = mapServiceError(error);
       res.fail(mapped.message, mapped.status);

@@ -196,9 +196,9 @@ export default function BankAccounts() {
                       {userRole === 'admin' && (
                         <button
                           onClick={() => handleDelete(account.id)}
-                          className="text-white/80 hover:text-white"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200/70 text-red-100 hover:bg-red-500/20 hover:text-white"
                         >
-                          <Trash2 className="w-5 h-5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>

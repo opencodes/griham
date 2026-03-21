@@ -169,11 +169,11 @@ export default function Health() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <FileText className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Medical Records</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Medical Records</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {records.map((r) => (
-                    <article key={r.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
+                    <article key={r.id} className="px-3 py-2.5 border-b border-[var(--panel-border)] last:border-b-0">
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{r.title}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{r.doctor} • {r.hospital} • {toDate(r.date)}</p>
                     </article>
@@ -184,11 +184,11 @@ export default function Health() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Syringe className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Vaccinations</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Vaccinations</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {vaccinations.map((v) => (
-                    <article key={v.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
+                    <article key={v.id} className="px-3 py-2.5 border-b border-[var(--panel-border)] last:border-b-0">
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{v.name} ({v.dose})</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                         Taken: {toDate(v.takenOn)} • Next: {toDate(v.nextDoseDate)}
@@ -201,11 +201,11 @@ export default function Health() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <CalendarClock className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Appointments</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Appointments</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {appointments.map((a) => (
-                    <article key={a.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
+                    <article key={a.id} className="px-3 py-2.5 border-b border-[var(--panel-border)] last:border-b-0">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{a.doctor}</p>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -225,11 +225,11 @@ export default function Health() {
               <section className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Pill className="w-4 h-4 text-indigo-500" />
-                  <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Prescriptions</h3>
+                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Prescriptions</h3>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-0">
                   {prescriptions.map((p) => (
-                    <article key={p.id} className="rounded-lg border border-[var(--panel-border)] px-3 py-2.5 glass-black-soft">
+                    <article key={p.id} className="px-3 py-2.5 border-b border-[var(--panel-border)] last:border-b-0">
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{p.medicine}</p>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{p.dosage} • {p.duration} • {p.prescribedBy}</p>
                     </article>

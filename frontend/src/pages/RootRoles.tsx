@@ -275,10 +275,10 @@ export default function RootRoles() {
                             >
                               Permissions
                             </button>
-                            <button onClick={() => handleEditRole(r)} className="p-1.5 rounded text-[var(--app-fg-muted)] hover:bg-black/5" aria-label="Edit">
+                            <button onClick={() => handleEditRole(r)} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" aria-label="Edit">
                               <Pencil className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDeleteRole(r.id)} className="p-1.5 rounded text-red-600 hover:bg-red-500/10" aria-label="Delete">
+                            <button onClick={() => handleDeleteRole(r.id)} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30" aria-label="Delete">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </td>
