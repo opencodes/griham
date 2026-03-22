@@ -25,35 +25,39 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final effectiveTextColor = textColor ?? colorScheme.onPrimary;
+    final buttonStyle = backgroundColor != null ||
+            textColor != null ||
+            padding != null
+        ? ElevatedButton.styleFrom(
+            backgroundColor: backgroundColor,
+            foregroundColor: textColor,
+            padding: padding,
+          )
+        : null;
+
     return SizedBox(
       width: width ?? double.infinity,
       child: ElevatedButton(
         onPressed: isLoading || !isEnabled ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppColors.primary,
-          foregroundColor: textColor ?? AppColors.white,
-          padding: padding ??
-              const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md,
-              ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
+        style: buttonStyle,
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 height: 20,
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    effectiveTextColor,
+                  ),
                 ),
               )
             : Text(
                 label,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: textColor ?? AppColors.white,
+                style: theme.textTheme.labelLarge?.copyWith(
+                      color: effectiveTextColor,
                     ),
               ),
       ),
@@ -199,12 +203,14 @@ class AppLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
           ),
           if (message != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -235,6 +241,8 @@ class AppEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -281,6 +289,8 @@ class AppErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -290,13 +300,13 @@ class AppErrorWidget extends StatelessWidget {
             Icon(
               Icons.error_outline,
               size: 64,
-              color: AppColors.danger,
+              color: colorScheme.error,
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Oops!',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.danger,
+                    color: colorScheme.error,
                   ),
             ),
             const SizedBox(height: AppSpacing.sm),

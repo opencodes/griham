@@ -49,6 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isLightTheme = Theme.of(context).brightness == Brightness.light;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -65,32 +68,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [AppColors.primary, AppColors.primaryDark],
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Icon(
-                          Icons.wallet,
-                          size: 48,
-                          color: AppColors.white,
+                        child: Image.asset(
+                          isLightTheme
+                              ? 'assets/images/logo-dark.png'
+                              : 'assets/images/logo.png',
+                          fit: BoxFit.contain,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      // const SizedBox(height: AppSpacing.lg),
                       Text(
-                        'Griham Finance',
-                        style: Theme.of(context)
-                            .textTheme
-                            .displaySmall
-                            ?.copyWith(color: AppColors.primary),
+                        'Welcome Back',
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(color: colorScheme.primary),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        'Manage Your Finances',
+                        'Manage Your Home Activities',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -126,23 +122,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.dangerLight,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.danger),
+                        border: Border.all(color: colorScheme.error),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
-                            color: AppColors.danger,
+                            color: colorScheme.error,
                             size: 20,
                           ),
                           const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Text(
                               _errorMessage!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: AppColors.danger),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: colorScheme.error),
                             ),
                           ),
                         ],
@@ -161,9 +155,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: Text(
                       'Forgot Password?',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: AppColors.primary),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ),
                 ),

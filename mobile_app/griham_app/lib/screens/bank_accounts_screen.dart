@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/theme.dart';
 import '../providers/finance_provider.dart';
 
 class BankAccountsScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class BankAccountsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
-    final bankAccounts = financeProvider.bankAccounts;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -36,8 +37,8 @@ class BankAccountsScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          gradient: const LinearGradient(
-                            colors: [Colors.blue, Colors.teal],
+                          gradient: LinearGradient(
+                            colors: [colorScheme.primary, AppColors.primaryDark],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -56,8 +57,8 @@ class BankAccountsScreen extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               '**** **** **** ${account.accountNumber.substring(account.accountNumber.length - 4)}',
-                              style: const TextStyle(
-                                color: Colors.white70,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.75),
                                 fontSize: 16,
                               ),
                             ),
@@ -75,8 +76,8 @@ class BankAccountsScreen extends StatelessWidget {
                                 ),
                                 Text(
                                   account.accountHolderName,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.75),
                                     fontStyle: FontStyle.italic,
                                   ),
                                 ),

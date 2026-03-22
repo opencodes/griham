@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/theme.dart';
 import '../providers/finance_provider.dart';
 
 class BillsScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class BillsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
-    final bills = financeProvider.bills;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -28,6 +29,11 @@ class BillsScreen extends StatelessWidget {
                     final bill = financeProvider.bills[index];
                     final isPaid = bill.status == 'paid';
                     final isOverdue = !isPaid && bill.dueDate.isBefore(DateTime.now());
+                    final statusColor = isPaid
+                        ? AppColors.success
+                        : isOverdue
+                            ? colorScheme.error
+                            : colorScheme.secondary;
 
                     return Card(
                       elevation: 4,
@@ -39,11 +45,7 @@ class BillsScreen extends StatelessWidget {
                         contentPadding: const EdgeInsets.all(16),
                         leading: Icon(
                           Icons.receipt,
-                          color: isPaid
-                              ? Colors.green
-                              : isOverdue
-                                  ? Colors.red
-                                  : Colors.orange,
+                          color: statusColor,
                         ),
                         title: Text(
                           bill.billerName,
@@ -68,11 +70,7 @@ class BillsScreen extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: isPaid
-                                    ? Colors.green.withOpacity(0.2)
-                                    : isOverdue
-                                        ? Colors.red.withOpacity(0.2)
-                                        : Colors.orange.withOpacity(0.2),
+                                color: statusColor.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -82,11 +80,7 @@ class BillsScreen extends StatelessWidget {
                                         ? 'Overdue'
                                         : 'Pending',
                                 style: TextStyle(
-                                  color: isPaid
-                                      ? Colors.green
-                                      : isOverdue
-                                          ? Colors.red
-                                          : Colors.orange,
+                                  color: statusColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

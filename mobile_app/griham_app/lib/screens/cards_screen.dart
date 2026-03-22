@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/theme.dart';
 import '../providers/finance_provider.dart';
 
 class CardsScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class CardsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
-    final cards = financeProvider.cards;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final totalIncome = financeProvider.transactions
       .where((t) => t.type.toLowerCase() == 'income')
@@ -44,8 +45,8 @@ class CardsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                           gradient: LinearGradient(
                             colors: card.cardType == 'credit'
-                                ? [Colors.purple, Colors.indigo]
-                                : [Colors.blue, Colors.cyan],
+                                ? [colorScheme.secondary, AppColors.warning]
+                                : [colorScheme.primary, AppColors.primaryDark],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -64,7 +65,9 @@ class CardsScreen extends StatelessWidget {
                             children: [
                               Text(
                                 '**** **** **** ${card.cardNumber.substring(card.cardNumber.length - 4)}',
-                                style: const TextStyle(color: Colors.white70),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                ),
                               ),
                               const SizedBox(height: 6),
                               Text(

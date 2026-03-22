@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../config/theme.dart';
 import '../providers/finance_provider.dart';
 import 'sms_platform_mobile.dart'
     if (dart.library.html) 'sms_platform_stub.dart';
@@ -85,13 +86,14 @@ class _SmsListScreenState extends State<SmsListScreen> {
   }
 
   void _showResultSnackbar(SmsProcessResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     final Color backgroundColor;
     if (result.success && result.duplicate) {
-      backgroundColor = Colors.orange;
+      backgroundColor = colorScheme.secondary;
     } else if (result.success) {
-      backgroundColor = Colors.green;
+      backgroundColor = AppColors.success;
     } else {
-      backgroundColor = Colors.red;
+      backgroundColor = colorScheme.error;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -156,13 +158,13 @@ class _SmsListScreenState extends State<SmsListScreen> {
         _removeSms(message);
       },
       background: _dismissBackground(
-        color: Colors.green,
+        color: AppColors.success,
         icon: Icons.check_circle_outline,
         alignment: Alignment.centerLeft,
         label: 'Process',
       ),
       secondaryBackground: _dismissBackground(
-        color: Colors.red,
+        color: Theme.of(context).colorScheme.error,
         icon: Icons.delete_outline,
         alignment: Alignment.centerRight,
         label: 'Dismiss',
@@ -239,18 +241,24 @@ class _SmsListScreenState extends State<SmsListScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.mark_email_read_outlined, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
+            Icon(
+              Icons.mark_email_read_outlined,
+              size: 64,
+              color: colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
             Text(
               'No new financial SMS found.\nTry again after receiving a bank transaction message.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: Colors.grey),
+              style: TextStyle(fontSize: 15, color: colorScheme.outline),
             ),
           ],
         ),

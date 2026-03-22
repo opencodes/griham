@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/theme.dart';
 import '../providers/finance_provider.dart';
 
 class TransactionsScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class TransactionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
-    final transactions = financeProvider.transactions;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -27,6 +28,8 @@ class TransactionsScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final transaction = financeProvider.transactions[index];
                     final isIncome = transaction.type == 'income';
+                    final amountColor =
+                        isIncome ? AppColors.success : colorScheme.error;
 
                     return Card(
                       elevation: 2,
@@ -38,7 +41,7 @@ class TransactionsScreen extends StatelessWidget {
                         contentPadding: const EdgeInsets.all(16),
                         leading: Icon(
                           isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-                          color: isIncome ? Colors.green : Colors.red,
+                          color: amountColor,
                         ),
                         title: Text(
                           transaction.description,
@@ -48,7 +51,7 @@ class TransactionsScreen extends StatelessWidget {
                         trailing: Text(
                           '${isIncome ? '+' : '-'}₹${transaction.amount}',
                           style: TextStyle(
-                            color: isIncome ? Colors.green : Colors.red,
+                            color: amountColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),

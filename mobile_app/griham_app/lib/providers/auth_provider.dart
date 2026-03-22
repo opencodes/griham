@@ -9,10 +9,12 @@ class AuthProvider with ChangeNotifier {
   User? _user;
   String? _token;
   bool _isAuthenticated = false;
+  bool _isInitialized = false;
 
   User? get user => _user;
   String? get token => _token;
   bool get isAuthenticated => _isAuthenticated;
+  bool get isInitialized => _isInitialized;
 
   AuthProvider() {
     _loadToken();
@@ -36,8 +38,13 @@ class AuthProvider with ChangeNotifier {
           email: savedUserEmail,
         );
       }
+      _isInitialized = true;
       notifyListeners();
+      return;
     }
+
+    _isInitialized = true;
+    notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {

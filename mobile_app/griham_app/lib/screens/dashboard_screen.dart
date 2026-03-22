@@ -571,11 +571,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SizedBox(height: AppSpacing.md),
           AppButton(
             label: 'Logout',
-            onPressed: () {
-              authProvider.logout();
-              Navigator.of(context).pushReplacementNamed('/login');
+            onPressed: () async {
+              await authProvider.logout();
             },
-            backgroundColor: AppColors.danger,
           ),
         ],
       ),
