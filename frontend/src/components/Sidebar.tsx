@@ -4,8 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { canAccessModule } from '@/lib/permissions';
 
 interface SidebarProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
   mobileOpen: boolean;
   onMobileToggle: () => void;
   isCollapsed?: boolean;
@@ -25,7 +25,7 @@ const navItems = [
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings', module: 'events' },
 ];
 
-export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle, isCollapsed = false }: SidebarProps) {
+export function Sidebar({ mobileOpen, onMobileToggle, isCollapsed = false }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,15 +78,12 @@ export function Sidebar({ activeTab, onTabChange, mobileOpen, onMobileToggle, is
         <nav className="flex-1 px-3 py-4 space-y-1">
           {items.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  if (item.path !== location.pathname) {
-                    navigate(item.path);
-                  }
-                  onTabChange(item.id);
+                  navigate(item.path);
                   if (mobileOpen) onMobileToggle();
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border border-transparent ${

@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { householdAPI, financeAPI, Household, Transaction, Bill, Card, BankAccount } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useFinanceMonthOptional } from '@/contexts/FinanceMonthContext';
-import { canAccessModule, hasPermission } from '@/lib/permissions';
+import { canAccessModule } from '@/lib/permissions';
 import {
-  Plus,
+
   Users,
   Wallet,
   Calendar,
@@ -27,7 +27,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const financeMonth = useFinanceMonthOptional();
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [households, setHouseholds] = useState<Household[]>([]);
@@ -49,9 +48,7 @@ export default function Dashboard() {
 
   const month = financeMonth?.month;
 
-  useEffect(() => {
-    if (activeTab === 'finance') navigate('/finance');
-  }, [activeTab, navigate]);
+
 
   const getAiInsightsCacheKey = useCallback(
     (familyId: string) => `dashboard:ai-insights:${familyId}:${month || 'all'}`,
@@ -301,9 +298,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen overflow-hidden app-shell">
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
+      <Sidebar
         mobileOpen={mobileMenuOpen}
         onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
         isCollapsed={sidebarCollapsed}
@@ -313,7 +308,7 @@ export default function Dashboard() {
         <Header onMobileMenuToggle={handleMenuToggle} />
 
         <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
-          {activeTab === 'dashboard' && (
+
             <div className="space-y-6">
               <section className="relative overflow-hidden rounded-2xl hero-ai-card p-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -490,69 +485,7 @@ export default function Dashboard() {
                 Note: Finance and Family metrics are live. Other module cards currently show module-level operational snapshot values.
               </p>
             </div>
-          )}
 
-          {activeTab === 'family' && canAccessModule(user, 'family') && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-[var(--app-fg)]">My Family</h2>
-                  <p className="text-[var(--app-fg-muted)] mt-1">Manage your family</p>
-                </div>
-                {households.length === 0 && hasPermission(user, 'family', 'create') && (
-                  <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Create Family
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {households.map((household) => (
-                  <div
-                    key={household.id} 
-                    onClick={() => navigate(`/families/${household.id}`)}
-                    className="rounded-xl shadow-sm border border-[var(--panel-border)] p-6 hover:shadow-md glass-black-surface transition cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-[var(--app-fg)] mb-2">{household.name}</h3>
-                    <p className="text-sm text-[var(--app-fg-muted)] mb-4 line-clamp-2">
-                      {household.address || 'No address'}
-                    </p>
-                    <p className="text-xs text-[var(--app-fg-muted)]">
-                      Created {new Date(household.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-
-                {households.length === 0 && (
-                  <div className="col-span-full text-center py-12">
-                    <Users className="w-16 h-16 text-[var(--app-fg-muted)] mx-auto mb-4" />
-                    <p className="text-[var(--app-fg-muted)] mb-2">No family yet</p>
-                    <p className="text-sm text-[var(--app-fg-muted)]">Create your first family to get started</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab !== 'dashboard' && activeTab !== 'family' && activeTab !== 'finance' && (
-            <div className="text-center py-12">
-              <p className="text-[var(--app-fg)] text-lg">Coming soon...</p>
-              <p className="text-sm text-[var(--app-fg-muted)] mt-2">This module will be available in Phase 2</p>
-            </div>
-          )}
-
-          {activeTab === 'finance' && (
-            <div className="text-center py-12">
-              <p className="text-[var(--app-fg)] text-lg">Redirecting to Finance...</p>
-            </div>
-          )}
         </main>
       </div>
 
