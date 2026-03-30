@@ -139,7 +139,18 @@ Return only the JSON, no other text.`;
 }
 
 export function buildTransactionSmsPrompt(text: string): string {
-  return `From this Indian bank SMS, extract: amount (number), type (income or expense), category (one word), short description, date (YYYY-MM-DD if present). Reply in one line: amount|type|category|description|date. SMS: ${text.slice(0, 400)}`;
+  return `From this Indian bank SMS, extract: amount (number), type (income or expense), category (one word), short description, date (YYYY-MM-DD if present), payment source (account or card), and the last 4 digits of the account/card number if present.
+
+Rules:
+- payment source must be exactly "account", "card", or "unknown"
+- last 4 digits must contain only 4 digits, or be blank if not present
+- Keep category to one short word
+- Keep description short
+
+Reply in one line using EXACTLY 7 pipe-separated fields in this order:
+amount|type|category|description|date|payment_source|last4
+
+SMS: ${text.slice(0, 400)}`;
 }
 
 export function buildCardSmsPrompt(text: string): string {

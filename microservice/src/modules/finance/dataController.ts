@@ -133,10 +133,18 @@ export const financeDataController = {
   // Transactions
   async listTransactions(req: Request, res: Response): Promise<void> {
     const { familyId } = req.params;
-    const { type, category, month } = req.query as { type?: string; category?: string; month?: string };
+    const { type, category, month, account_id, card_id } = req.query as {
+      type?: string;
+      category?: string;
+      month?: string;
+      account_id?: string;
+      card_id?: string;
+    };
     const filter: Record<string, unknown> = { family_id: familyId };
     if (type) filter.type = type;
     if (category) filter.category = category;
+    if (account_id) filter.account_id = account_id;
+    if (card_id) filter.card_id = card_id;
     if (month) {
       const [y, m] = month.split('-').map(Number);
       filter.transaction_date = {
@@ -166,7 +174,8 @@ export const financeDataController = {
     const userId = req.auth?.userId ?? '';
     const body = req.body as {
       family_id?: string;
-      account_id?: string;
+      account_id?: string | null;
+      card_id?: string | null;
       type?: 'income' | 'expense';
       category?: string;
       amount?: number;
@@ -186,7 +195,8 @@ export const financeDataController = {
     await TransactionModel.create({
       _id: id,
       family_id,
-      account_id: body.account_id ?? (await BankAccountModel.findOne({ family_id }).select('_id').then((a) => a?._id)) ?? '',
+      account_id: body.account_id ?? (await BankAccountModel.findOne({ family_id }).select('_id').then((a) => a?._id)) ?? null,
+      card_id: body.card_id ?? null,
       type: body.type ?? 'expense',
       category: body.category ?? 'Other',
       amount: Number(body.amount) ?? 0,
@@ -214,7 +224,8 @@ export const financeDataController = {
     }
 
     const body = req.body as Partial<{
-      account_id: string;
+      account_id: string | null;
+      card_id: string | null;
       type: 'income' | 'expense';
       category: string;
       amount: number | string;
@@ -225,7 +236,8 @@ export const financeDataController = {
       source_type: string | null;
     }>;
 
-    if (body.account_id !== undefined) transaction.account_id = body.account_id || transaction.account_id;
+    if (body.account_id !== undefined) transaction.account_id = body.account_id || null;
+    if (body.card_id !== undefined) transaction.card_id = body.card_id || null;
     if (body.type !== undefined) transaction.type = body.type;
     if (body.category !== undefined) transaction.category = body.category || transaction.category;
     if (body.amount !== undefined) transaction.amount = Number(body.amount) || 0;

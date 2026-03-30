@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import * as ai from '../../lib/ai/index.js';
+import { buildTransactionSmsPrompt } from '../../lib/ai/prompts/finance.js';
 import { getInsightsContext, getRiskSuggestionsContext, getCategoryInsightsContext, getNarrativeSummaryContext, getAskMonthContext } from './aggregate.js';
 import {
   generateInsights,
@@ -21,6 +22,7 @@ import {
 } from './service.js';
 import { AiModel } from '../../db/schemas/AiModel.js';
 import { BankAccountModel } from '../../db/schemas/BankAccount.js';
+import { CardModel } from '../../db/schemas/Card.js';
 import { TransactionModel } from '../../db/schemas/Transaction.js';
 
 type AuthRequest = Request & { auth?: { userId: string } };
@@ -45,6 +47,58 @@ function getParseAuditMetadata(parsed: unknown): {
     modelUsed,
     accuracy: hasValidAmount ? (aiAvailable ? 0.9 : 0.6) : 0,
     status: hasValidAmount ? 'parsed' : 'invalid',
+  };
+}
+
+function normalizeLastFourDigits(value: string | null | undefined): string | null {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  return digits.length >= 4 ? digits.slice(-4) : null;
+}
+
+function inferPaymentSource(text: string, parsedSource?: 'account' | 'card' | 'unknown'): 'account' | 'card' | 'unknown' {
+  if (parsedSource === 'account' || parsedSource === 'card') return parsedSource;
+  if (/\b(card|credit card|debit card)\b/i.test(text)) return 'card';
+  if (/\b(a\/c|acct|account)\b/i.test(text)) return 'account';
+  return 'unknown';
+}
+
+async function findLinkedPaymentSource(familyId: string, smsText: string, parsed: {
+  payment_source?: 'account' | 'card' | 'unknown';
+  last_four_digits?: string;
+}) {
+  const last4 = normalizeLastFourDigits(parsed.last_four_digits);
+  const preferredSource = inferPaymentSource(smsText, parsed.payment_source);
+  const [accounts, cards] = await Promise.all([
+    BankAccountModel.find({ family_id: familyId }).select('_id account_number account_name bank_name').lean(),
+    CardModel.find({ family_id: familyId }).select('_id last_four_digits card_name bank_name card_type').lean(),
+  ]);
+
+  const matchedAccount = last4
+    ? accounts.find((account) => normalizeLastFourDigits(account.account_number) === last4) ?? null
+    : null;
+  const matchedCard = last4
+    ? cards.find((card) => normalizeLastFourDigits(card.last_four_digits) === last4) ?? null
+    : null;
+
+  if (preferredSource === 'account' && matchedAccount) {
+    return { accounts, matchedAccount, matchedCard: null, paymentMethod: 'account' as const, matchedLast4: last4 };
+  }
+  if (preferredSource === 'card' && matchedCard) {
+    return { accounts, matchedAccount: null, matchedCard, paymentMethod: 'card' as const, matchedLast4: last4 };
+  }
+  if (matchedAccount) {
+    return { accounts, matchedAccount, matchedCard: null, paymentMethod: 'account' as const, matchedLast4: last4 };
+  }
+  if (matchedCard) {
+    return { accounts, matchedAccount: null, matchedCard, paymentMethod: 'card' as const, matchedLast4: last4 };
+  }
+
+  return {
+    accounts,
+    matchedAccount: null,
+    matchedCard: null,
+    paymentMethod: preferredSource === 'account' || preferredSource === 'card' ? preferredSource : null,
+    matchedLast4: last4,
   };
 }
 
@@ -217,6 +271,70 @@ export const financeController = {
     }
   },
 
+  async smsParseHistory(req: AuthRequest, res: Response): Promise<void> {
+    const familyId = req.params.familyId as string;
+    const limitParam = Number(req.query.limit);
+    const limit = Number.isFinite(limitParam)
+      ? Math.min(Math.max(Math.trunc(limitParam), 1), 100)
+      : 25;
+
+    if (!familyId) {
+      res.fail('familyId required', 400);
+      return;
+    }
+
+    try {
+      const rows = await AiModel.find({ family_id: familyId, parse_type: 'transaction_sms' })
+        .sort({ date: -1, _id: -1 })
+        .limit(limit)
+        .lean({ virtuals: true });
+
+      res.success(rows.map((row) => {
+        const output = row.output && typeof row.output === 'object'
+          ? row.output as Record<string, unknown>
+          : null;
+        return {
+          id: row._id,
+          family_id: row.family_id,
+          input_text: row.input_text,
+          model_used: row.model_used,
+          output,
+          date: row.date instanceof Date ? row.date.toISOString() : row.date,
+          accuracy: row.accuracy,
+          status: row.status,
+          parse_type: row.parse_type,
+          transaction_id: row.transaction_id,
+          created_by: row.created_by,
+          amount: typeof output?.amount === 'number' ? output.amount : null,
+          category: typeof output?.category === 'string' ? output.category : null,
+          type: typeof output?.type === 'string' ? output.type : null,
+          description: typeof output?.description === 'string' ? output.description : null,
+        };
+      }));
+    } catch (e) {
+      console.error('[finance] smsParseHistory:', e);
+      res.fail('Failed to load SMS parse history', 500);
+    }
+  },
+
+  async smsParsePrompt(req: Request, res: Response): Promise<void> {
+    const sampleInput = typeof req.query.input === 'string' && req.query.input.trim()
+      ? req.query.input.trim()
+      : 'Your A/c XX1234 debited with Rs.5000 on 2026-03-18 at Amazon. Avl Bal Rs.45000';
+
+    try {
+      res.success({
+        prompt_id: 'finance.sms-transaction',
+        label: 'Finance SMS Transaction Parser',
+        prompt: buildTransactionSmsPrompt(sampleInput),
+        sample_input: sampleInput,
+      });
+    } catch (e) {
+      console.error('[finance] smsParsePrompt:', e);
+      res.fail('Failed to load SMS parse prompt', 500);
+    }
+  },
+
   async parseSms(req: AuthRequest, res: Response): Promise<void> {
     const familyId = req.params.familyId as string;
     const body = req.body as { sms_text?: string };
@@ -251,18 +369,33 @@ export const financeController = {
         return;
       }
 
-      const accounts = await BankAccountModel.find({ family_id: familyId }).limit(1).lean();
-      const accountId = accounts[0]?._id;
-      if (!accountId || !userId) {
+      const link = await findLinkedPaymentSource(familyId, smsText, parsed);
+      const fallbackAccountId = link.paymentMethod === 'card'
+        ? null
+        : link.accounts[0]?._id ?? null;
+      const accountId = link.matchedAccount?._id ?? fallbackAccountId;
+      const cardId = link.matchedCard?._id ?? null;
+      const linkedPaymentSource = cardId
+        ? 'card'
+        : accountId
+          ? 'account'
+          : null;
+      if ((!accountId && !cardId) || !userId) {
         await AiModel.updateOne(
           { _id: auditId },
           { $set: { status: 'transaction_pending' } }
         );
         res.success({
-          parsed,
+          parsed: {
+            ...parsed,
+            linked_account_id: accountId,
+            linked_card_id: cardId,
+            linked_payment_source: linkedPaymentSource,
+            matched_last_four_digits: link.matchedLast4,
+          },
           created: false,
           ai_model_id: auditId,
-          message: 'Add a bank account and ensure you are logged in to auto-create the transaction.',
+          message: 'Add a matching bank account or card and ensure you are logged in to auto-create the transaction.',
         });
         return;
       }
@@ -275,18 +408,32 @@ export const financeController = {
         _id: id,
         family_id: familyId,
         account_id: accountId,
+        card_id: cardId,
         type: parsed.type,
         category: parsed.category,
         amount: parsed.amount,
         description: parsed.description ?? null,
         transaction_date: transactionDate,
         created_by: userId,
+        payment_method: linkedPaymentSource,
+        source_type: 'sms_parse',
       });
       await AiModel.updateOne(
         { _id: auditId },
         { $set: { status: 'transaction_created', transaction_id: id } }
       );
-      res.success({ parsed, created: true, transaction_id: id, ai_model_id: auditId });
+      res.success({
+        parsed: {
+          ...parsed,
+          linked_account_id: accountId,
+          linked_card_id: cardId,
+          linked_payment_source: linkedPaymentSource,
+          matched_last_four_digits: link.matchedLast4,
+        },
+        created: true,
+        transaction_id: id,
+        ai_model_id: auditId,
+      });
     } catch (e) {
       console.error('[finance] parseSms:', e);
       res.fail('Failed to parse SMS', 500);

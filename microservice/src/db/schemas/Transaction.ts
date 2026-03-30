@@ -5,7 +5,8 @@ export interface ITransactionDoc {
   _id: string;
   id?: string;
   family_id: string;
-  account_id: string;
+  account_id: string | null;
+  card_id: string | null;
   type: 'income' | 'expense';
   category: string;
   amount: number;
@@ -27,7 +28,8 @@ const transactionSchema = new Schema<ITransactionDoc>(
   {
     _id: { type: String, required: true },
     family_id: { type: String, required: true, ref: 'Family' },
-    account_id: { type: String, required: true, ref: 'BankAccount' },
+    account_id: { type: String, default: null, ref: 'BankAccount' },
+    card_id: { type: String, default: null, ref: 'Card' },
     type: { type: String, required: true, enum: ['income', 'expense'] },
     category: { type: String, required: true },
     amount: { type: Number, required: true },

@@ -62,14 +62,14 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
         </div>
         <div>
           <h2 className="text-xl font-bold text-[var(--app-fg)]">AI SMS Parser</h2>
-          <p className="text-sm text-[var(--app-fg-muted)]">Paste bank SMS to auto-add transactions</p>
+          <p className="text-sm text-[var(--app-fg-muted)]">Paste bank SMS to auto-add transactions and match saved account/card details</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <textarea
-            placeholder="Paste your bank SMS here...&#10;&#10;Example: Your A/c XX1234 debited with Rs.5000 on 23-Feb-26. Spent at Amazon. Avl Bal: Rs.45000"
+            placeholder="Paste your bank SMS here...&#10;&#10;Example: Your card XX1234 was used for Rs.5000 on 23-Feb-26 at Amazon. Or: Your A/c XX1234 debited with Rs.5000. Avl Bal: Rs.45000"
             value={smsText}
             onChange={(e) => setSmsText(e.target.value)}
             required
@@ -113,7 +113,7 @@ export default function AIWidget({ familyId, onTransactionAdded }: AIWidgetProps
 
       <div className="mt-4 p-3 ai-gradient-note rounded-lg">
         <p className="text-xs text-[var(--app-fg)]">
-          <strong>💡 Tip:</strong> Works with most bank SMS formats. AI extracts amount, date, category, and description automatically.
+          <strong>💡 Tip:</strong> Works with most bank SMS formats. AI extracts amount, date, category, description, and tries to link account/card last 4 digits automatically.
         </p>
       </div>
     </div>

@@ -78,7 +78,7 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
             </div>
 
             <p className="text-sm text-[var(--app-fg-muted)] mb-4">
-              Paste your bank SMS and AI will automatically extract transaction details.
+              Paste your bank SMS and AI will extract the transaction details, detect whether it used an account or card, and try to match the last 4 digits to your saved records.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -87,7 +87,7 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
                   SMS Text
                 </label>
                 <textarea
-                  placeholder="e.g., Your A/c XX1234 debited with Rs.5000 on 23-Feb-26. Spent at Amazon. Avl Bal: Rs.45000"
+                  placeholder="e.g., Your card XX1234 was used for Rs.5000 at Amazon on 23-Feb-26. Or: Your A/c XX1234 debited with Rs.5000. Avl Bal: Rs.45000"
                   value={smsText}
                   onChange={(e) => setSmsText(e.target.value)}
                   required
@@ -106,6 +106,7 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
               <div className="ai-gradient-note rounded-lg p-3">
                 <p className="text-xs text-[var(--app-fg)]">
                   <strong>Tip:</strong> Works best with bank transaction SMS containing amount, date, and merchant/category info.
+                  Include the SMS exactly as received so the parser can match account/card last 4 digits.
                 </p>
               </div>
 

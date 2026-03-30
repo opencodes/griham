@@ -188,14 +188,29 @@ export default function BankAccounts() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {accounts.map((account) => (
-                <div key={account.id} className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
+                <div
+                  key={account.id}
+                  className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white relative overflow-hidden cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/finance/accounts/${account.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      navigate(`/finance/accounts/${account.id}`);
+                    }
+                  }}
+                >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16" />
                   <div className="relative">
                     <div className="flex justify-between items-start mb-4">
                       <Wallet className="w-8 h-8" />
                       {userRole === 'admin' && (
                         <button
-                          onClick={() => handleDelete(account.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDelete(account.id);
+                          }}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200/70 text-red-100 hover:bg-red-500/20 hover:text-white"
                         >
                           <Trash2 className="w-4 h-4" />

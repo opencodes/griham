@@ -61,7 +61,8 @@ export interface BankAccount {
 export interface Transaction {
   id: string;
   family_id: string;
-  account_id: string;
+  account_id: string | null;
+  card_id?: string | null;
   type: string;
   category: string;
   amount: number;
@@ -85,11 +86,58 @@ export interface TransactionSearchSpec {
   sort?: 'newest' | 'oldest' | 'amount_high' | 'amount_low';
 }
 
+export interface TransactionListFilters {
+  type?: string;
+  category?: string;
+  month?: string;
+  account_id?: string;
+  card_id?: string;
+}
+
 export interface CategoryInsightItem {
   category: string;
   amount: number;
   percent: number;
   summary: string;
+}
+
+export interface SmsParseHistoryRecord {
+  id: string;
+  family_id: string;
+  input_text: string;
+  model_used: string;
+  output: Record<string, unknown> | null;
+  date: string;
+  accuracy: number | null;
+  status: 'parsed' | 'invalid' | 'transaction_created' | 'transaction_pending';
+  parse_type: 'transaction_sms';
+  transaction_id: string | null;
+  created_by: string | null;
+  amount: number | null;
+  category: string | null;
+  type: string | null;
+  description: string | null;
+}
+
+export interface ParsedSmsTransaction {
+  amount?: number;
+  type?: 'income' | 'expense';
+  category?: string;
+  description?: string;
+  transaction_date?: string;
+  payment_source?: 'account' | 'card' | 'unknown';
+  last_four_digits?: string;
+  linked_account_id?: string | null;
+  linked_card_id?: string | null;
+  linked_payment_source?: 'account' | 'card' | null;
+  matched_last_four_digits?: string | null;
+}
+
+export interface SmsParsePromptResponse {
+  prompt_id: string;
+  label: string;
+  prompt: string;
+  sample_input: string;
 }
 
 export interface Bill {
@@ -339,7 +387,7 @@ export const financeAPI = {
     const { data } = await api.put(`/finance/transactions/${familyId}/${transactionId}`, transactionData);
     return data.data;
   },
-  listTransactions: async (familyId: string, filters?: { type?: string; category?: string; month?: string }) => {
+  listTransactions: async (familyId: string, filters?: TransactionListFilters) => {
     const params = new URLSearchParams(
       Object.entries(filters ?? {}).reduce<Record<string, string>>((acc, [key, value]) => {
         if (typeof value === 'string' && value) acc[key] = value;
@@ -544,6 +592,19 @@ export const financeAPI = {
       payload
     );
     return data;
+  },
+  getSmsParseHistory: async (familyId: string, limit = 25): Promise<SmsParseHistoryRecord[]> => {
+    const params = new URLSearchParams();
+    params.set('limit', String(limit));
+    const { data } = await api.get(`/finance/ai/parse-sms-history/${familyId}?${params.toString()}`);
+    return (data.data ?? []) as SmsParseHistoryRecord[];
+  },
+  getSmsParsePrompt: async (familyId: string, input?: string): Promise<SmsParsePromptResponse> => {
+    const params = new URLSearchParams();
+    if (input && input.trim()) params.set('input', input.trim());
+    const qs = params.toString();
+    const { data } = await api.get(`/finance/ai/parse-sms-prompt/${familyId}${qs ? `?${qs}` : ''}`);
+    return (data.data ?? { prompt_id: 'finance.sms-transaction', label: 'Finance SMS Transaction Parser', prompt: '', sample_input: '' }) as SmsParsePromptResponse;
   },
 };
 

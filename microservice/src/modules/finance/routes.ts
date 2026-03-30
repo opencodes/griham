@@ -65,6 +65,8 @@ financeRoutes.post('/ai/interpret-search/:familyId', financeController.interpret
 financeRoutes.get('/ai/savings-tips/:familyId', financeController.savingsTips);
 financeRoutes.post('/ai/suggest-category/:familyId', financeController.suggestCategory);
 financeRoutes.post('/ai/suggest-bill-category/:familyId', financeController.suggestBillCategory);
+financeRoutes.get('/ai/parse-sms-history/:familyId', financeController.smsParseHistory);
+financeRoutes.get('/ai/parse-sms-prompt/:familyId', financeController.smsParsePrompt);
 financeRoutes.post('/ai/parse-sms/:familyId', financeController.parseSms);
 financeRoutes.post('/ai/parse-sms-card/:familyId', financeController.parseSmsCard);
 financeRoutes.post('/ai/parse-sms-insurance/:familyId', financeController.parseSmsInsurance);

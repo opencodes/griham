@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import FamilyDetail from './pages/FamilyDetail';
 import FinanceOverview from './pages/FinanceOverview';
 import BankAccounts from './pages/BankAccounts';
+import AccountDetails from './pages/AccountDetails';
 import Transactions from './pages/Transactions';
 import Bills from './pages/Bills';
 import Cards from './pages/Cards';
@@ -156,6 +157,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <PermissionRoute moduleKey="finance">
               <BankAccounts />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/finance/accounts/:accountId"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="finance">
+              <AccountDetails />
             </PermissionRoute>
           </ProtectedRoute>
         }

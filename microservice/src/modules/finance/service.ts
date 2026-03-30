@@ -486,6 +486,8 @@ export interface ParsedTransaction {
   category: string;
   description?: string;
   transaction_date?: string;
+  payment_source?: 'account' | 'card' | 'unknown';
+  last_four_digits?: string;
 }
 
 export async function parseSmsToTransaction(smsText: string): Promise<ParsedTransaction | null> {
@@ -493,7 +495,7 @@ export async function parseSmsToTransaction(smsText: string): Promise<ParsedTran
   if (!text) return null;
   if (ai.isAiAvailable()) {
     const prompt = buildTransactionSmsPrompt(text);
-    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 80 });
+    const out = await ai.textGeneration(TEXT_MODEL, prompt, { max_new_tokens: 120 });
     if (out) {
       const parts = out.split('|').map((s) => s.trim());
       const amount = parseFloat(parts[0]?.replace(/[^0-9.-]/g, '') || '0') || 0;
@@ -501,8 +503,10 @@ export async function parseSmsToTransaction(smsText: string): Promise<ParsedTran
       const category = parts[2] || 'Other';
       const description = parts[3] || text.slice(0, 100);
       const transaction_date = parts[4]?.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+      const payment_source = parts[5] === 'account' || parts[5] === 'card' ? parts[5] : 'unknown';
+      const last_four_digits = parts[6]?.replace(/\D/g, '').slice(-4) || undefined;
       if (amount > 0) {
-        return { amount, type, category, description, transaction_date };
+        return { amount, type, category, description, transaction_date, payment_source, last_four_digits };
       }
     }
   }
@@ -517,7 +521,23 @@ export async function parseSmsToTransaction(smsText: string): Promise<ParsedTran
     const d = new Date(dateMatch[0]);
     if (!Number.isNaN(d.getTime())) transaction_date = d.toISOString().slice(0, 10);
   }
-  return { amount, type, category: categoryRes.category, description: text.slice(0, 120), transaction_date };
+  const lastFourMatch = text.match(/(?:a\/c|acct|account|card)[^0-9]{0,12}(?:xx|x{2,}|\*{2,}|ending)?\s*([0-9]{4})/i)
+    || text.match(/(?:ending|ends? with|last\s*4|last four)[^0-9]{0,8}([0-9]{4})/i)
+    || text.match(/\b([0-9]{4})\b(?!.*\b[0-9]{4}\b)/);
+  const payment_source: 'account' | 'card' | 'unknown' = /\b(card|credit card|debit card)\b/i.test(text)
+    ? 'card'
+    : /\b(a\/c|acct|account)\b/i.test(text)
+      ? 'account'
+      : 'unknown';
+  return {
+    amount,
+    type,
+    category: categoryRes.category,
+    description: text.slice(0, 120),
+    transaction_date,
+    payment_source,
+    last_four_digits: lastFourMatch?.[1],
+  };
 }
 
 export interface ParsedCard {

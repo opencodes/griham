@@ -87,32 +87,10 @@ export default function Cards() {
     return cardGradients[hash];
   };
 
-  const matchesCard = (card: Card, tx: Transaction) => {
-    const needle = [
-      card.card_name,
-      card.bank_name,
-      card.last_four_digits
-    ]
-      .filter(Boolean)
-      .map((s) => s.toLowerCase());
-
-    if (needle.length === 0) return false;
-    const hay = [
-      tx.description,
-      tx.bank_name,
-      tx.account_name
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
-
-    return needle.some((n) => hay.includes(n));
-  };
-
   const getCardSpend = (card: Card) => {
     const total = transactions.reduce((sum, tx) => {
       if (tx.type !== 'expense') return sum;
-      if (!matchesCard(card, tx)) return sum;
+      if (tx.card_id !== card.id) return sum;
       return sum + (tx.amount || 0);
     }, 0);
     return total;

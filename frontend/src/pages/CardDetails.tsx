@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CreditCard } from 'lucide-react';
+import { ArrowLeft, CreditCard, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, Card, Transaction } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
@@ -72,28 +72,6 @@ const formatDate = (value?: string) => {
   return date.toLocaleDateString();
 };
 
-const matchesCard = (card: Card, tx: Transaction) => {
-  const needle = [
-    card.card_name,
-    card.bank_name,
-    card.last_four_digits
-  ]
-    .filter(Boolean)
-    .map((s) => s.toLowerCase());
-
-  if (needle.length === 0) return false;
-  const hay = [
-    tx.description,
-    tx.bank_name,
-    tx.account_name
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  return needle.some((n) => hay.includes(n));
-};
-
 export default function CardDetails() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -105,7 +83,6 @@ export default function CardDetails() {
   const [card, setCard] = useState<Card | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [onlyMatches, setOnlyMatches] = useState(false);
 
   useEffect(() => {
     loadFamily();
@@ -137,7 +114,7 @@ export default function CardDetails() {
     try {
       const [cards, tx] = await Promise.all([
         financeAPI.listCards(familyId),
-        financeAPI.listTransactions(familyId)
+        financeAPI.listTransactions(familyId, { card_id: cardId })
       ]);
       const target = cards.find((c: Card) => c.id === cardId) || null;
       setCard(target);
@@ -149,11 +126,7 @@ export default function CardDetails() {
     }
   };
 
-  const filteredTransactions = useMemo(() => {
-    if (!card) return transactions;
-    if (!onlyMatches) return transactions;
-    return transactions.filter((tx) => matchesCard(card, tx));
-  }, [transactions, card, onlyMatches]);
+  const filteredTransactions = useMemo(() => transactions, [transactions]);
 
   const totalSpend = useMemo(() => {
     return filteredTransactions.reduce((sum, tx) => {
@@ -281,17 +254,18 @@ export default function CardDetails() {
                 <div>
                   <h3 className="text-lg font-semibold text-[var(--app-fg)]">Transactions</h3>
                   <p className="text-sm text-[var(--app-fg-muted)]">
-                    {onlyMatches ? 'Showing likely card transactions.' : 'Showing all family transactions.'}
+                    Showing transactions linked to this card.
                   </p>
                 </div>
-                <label className="flex items-center gap-2 text-sm text-[var(--app-fg)]">
-                  <input
-                    type="checkbox"
-                    checked={onlyMatches}
-                    onChange={(e) => setOnlyMatches(e.target.checked)}
-                  />
-                  Only show likely matches
-                </label>
+                <button
+                  type="button"
+                  onClick={() => void loadCardAndTransactions()}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-2 self-start rounded-lg border border-[var(--panel-border)] px-3 py-2 text-sm font-medium text-[var(--app-fg)] hover:bg-black/5 disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-white/10"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
               </div>
 
               <div className="overflow-x-auto">
