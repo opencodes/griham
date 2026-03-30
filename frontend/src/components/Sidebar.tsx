@@ -1,7 +1,7 @@
-import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles, FlaskConical, Settings } from 'lucide-react';
+import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles, FlaskConical, Settings, History } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { canAccessModule } from '@/lib/permissions';
+import { canAccessModule, isAdminUser } from '@/lib/permissions';
 
 interface SidebarProps {
   activeTab?: string;
@@ -38,6 +38,11 @@ export function Sidebar({ mobileOpen, onMobileToggle, isCollapsed = false }: Sid
   const items = user?.role === 'root'
     ? rootNavItems
     : navItems.filter((item) => item.module === 'dashboard' || canAccessModule(user, item.module));
+  const finalItems = user?.role === 'root'
+    ? items
+    : isAdminUser(user)
+      ? [...items, { id: 'ai-usage', label: 'AI Usage', icon: History, path: '/ai-usage', module: 'dashboard' }]
+      : items;
 
   const getInitials = (name: string) => {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -76,7 +81,7 @@ export function Sidebar({ mobileOpen, onMobileToggle, isCollapsed = false }: Sid
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {items.map((item) => {
+          {finalItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
             return (

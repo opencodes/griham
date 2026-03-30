@@ -25,11 +25,12 @@ import Organizer from './pages/Organizer';
 import Messaging from './pages/Messaging';
 import Assistant from './pages/Assistant';
 import Settings from './pages/Settings';
+import AIUsage from './pages/AIUsage';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
 import RootGroups from './pages/RootGroups';
 import RootPromptLab from './pages/RootPromptLab';
-import { canAccessModule } from './lib/permissions';
+import { canAccessModule, isAdminUser } from './lib/permissions';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -49,6 +50,15 @@ function PermissionRoute({ children, moduleKey }: { children: React.ReactNode; m
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
   if (!canAccessModule(user, moduleKey)) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" />;
+  if (!isAdminUser(user)) {
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;
@@ -305,6 +315,16 @@ function AppRoutes() {
             <PermissionRoute moduleKey="events">
               <Settings />
             </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-usage"
+        element={
+          <ProtectedRoute>
+            <AdminRoute>
+              <AIUsage />
+            </AdminRoute>
           </ProtectedRoute>
         }
       />

@@ -30,3 +30,13 @@ export function canAccessModule(user: User | null, moduleKey: string): boolean {
   const perms = user.rbac_permissions ?? [];
   return perms.some((p) => prefixes.some((prefix) => p.resource === prefix || p.resource.startsWith(`${prefix}.`)));
 }
+
+export function isAdminUser(user: User | null): boolean {
+  if (!user) return false;
+  return (
+    user.role === 'admin'
+    || user.rbac_role_name === 'admin'
+    || user.rbac_roles?.some((role) => role.name === 'admin') === true
+    || user.rbac_role?.name === 'admin'
+  );
+}

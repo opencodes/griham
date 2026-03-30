@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { householdAPI, financeAPI, Household, Transaction, Bill, Card, BankAccount } from '@/lib/api';
+import { getSmsParseHistory, type SmsParseHistoryItem } from '@/lib/aiUsage';
 import { useAuth } from '@/hooks/useAuth';
 import { useFinanceMonthOptional } from '@/contexts/FinanceMonthContext';
-import { canAccessModule } from '@/lib/permissions';
+import { canAccessModule, isAdminUser } from '@/lib/permissions';
 import {
 
   Users,
@@ -19,6 +20,9 @@ import {
   Sparkles,
   CreditCard,
   RefreshCw,
+  History,
+  CheckCircle2,
+  Clock3,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
@@ -45,6 +49,7 @@ export default function Dashboard() {
   const [aiInsightsLoading, setAiInsightsLoading] = useState(false);
   const [aiRiskSuggestions, setAiRiskSuggestions] = useState<string[]>([]);
   const [aiRiskSuggestionsLoading, setAiRiskSuggestionsLoading] = useState(false);
+  const [smsParseHistory, setSmsParseHistory] = useState<SmsParseHistoryItem[]>([]);
 
   const month = financeMonth?.month;
 
@@ -138,6 +143,10 @@ export default function Dashboard() {
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
+
+  useEffect(() => {
+    setSmsParseHistory(getSmsParseHistory());
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,7 +303,12 @@ export default function Dashboard() {
   const handleRefetchAiInsights = async () => {
     if (households.length === 0) return;
     await loadAiInsights(households[0].id, true);
+    setSmsParseHistory(getSmsParseHistory());
   };
+
+  const showAdminAiUsage = isAdminUser(user);
+  const successfulSmsParses = smsParseHistory.filter((item) => item.created).length;
+  const pendingSmsParses = smsParseHistory.length - successfulSmsParses;
 
   return (
     <div className="flex h-screen overflow-hidden app-shell">
@@ -452,6 +466,93 @@ export default function Dashboard() {
                   </div>
                 </div>
               </section>
+
+              {showAdminAiUsage && (
+                <section className="rounded-xl p-5 glass-black-surface border border-[var(--panel-border)]">
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-medium text-[var(--app-fg-muted)]">
+                        <History className="w-3.5 h-3.5" />
+                        Admin AI Usage
+                      </div>
+                      <h3 className="mt-3 text-lg font-bold text-[var(--app-fg)]">Parse SMS History</h3>
+                      <p className="mt-1 text-sm text-[var(--app-fg-muted)]">
+                        Recent transaction SMS parses captured on this device for quick admin review.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 shrink-0">
+                      <div className="rounded-lg border border-[var(--panel-border)] px-4 py-3">
+                        <p className="text-xs text-[var(--app-fg-muted)]">Total Parses</p>
+                        <p className="mt-1 text-xl font-bold text-[var(--app-fg)]">{smsParseHistory.length}</p>
+                      </div>
+                      <div className="rounded-lg border border-[var(--panel-border)] px-4 py-3">
+                        <p className="text-xs text-[var(--app-fg-muted)]">Transactions Added</p>
+                        <p className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">{successfulSmsParses}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3">
+                      <p className="text-xs uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Success Rate</p>
+                      <p className="mt-1 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                        {smsParseHistory.length > 0 ? `${Math.round((successfulSmsParses / smsParseHistory.length) * 100)}% of recent parses created transactions` : 'No recent parse attempts yet'}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3">
+                      <p className="text-xs uppercase tracking-wide text-amber-700 dark:text-amber-300">Needs Review</p>
+                      <p className="mt-1 text-sm font-semibold text-amber-800 dark:text-amber-200">
+                        {pendingSmsParses} parse{pendingSmsParses === 1 ? '' : 's'} pending account/login completion.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 space-y-3">
+                    {smsParseHistory.length > 0 ? (
+                      smsParseHistory.slice(0, 5).map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 rounded-xl border border-[var(--panel-border)] px-4 py-3"
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              {item.created ? (
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                              ) : (
+                                <Clock3 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                              )}
+                              <p className="text-sm font-semibold text-[var(--app-fg)]">
+                                {item.category || 'Uncategorized'}{item.amount ? ` • Rs.${item.amount}` : ''}
+                              </p>
+                            </div>
+                            <p className="mt-1 text-xs text-[var(--app-fg-muted)] line-clamp-2">
+                              {item.inputPreview || 'SMS preview unavailable'}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="rounded-full bg-black/5 dark:bg-white/10 px-2.5 py-1 text-[var(--app-fg-muted)]">
+                              {item.type || 'unknown'}
+                            </span>
+                            <span className={`rounded-full px-2.5 py-1 ${item.created ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'}`}>
+                              {item.created ? 'Transaction added' : 'Pending review'}
+                            </span>
+                            <span className="text-[var(--app-fg-muted)]">
+                              {new Date(item.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-[var(--panel-border)] px-4 py-6 text-center">
+                        <p className="text-sm font-medium text-[var(--app-fg)]">No parse history yet</p>
+                        <p className="mt-1 text-xs text-[var(--app-fg-muted)]">
+                          Use the finance SMS parser and recent admin AI usage will show up here.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
 
               <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {canAccessModule(user, 'family') && (

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MessageSquare, Sparkles, X } from 'lucide-react';
 import api from '@/lib/api';
+import { recordSmsParseHistory } from '@/lib/aiUsage';
 
 interface SMSParserProps {
   familyId: string;
@@ -19,8 +20,22 @@ export default function SMSParser({ familyId, onSuccess }: SMSParserProps) {
     setError('');
 
     try {
-      await api.post(`/finance/ai/parse-sms/${familyId}`, {
+      const { data } = await api.post(`/finance/ai/parse-sms/${familyId}`, {
         sms_text: smsText
+      });
+      const response = data.data ?? {};
+      const parsed = response.parsed ?? {};
+      recordSmsParseHistory({
+        id: response.ai_model_id ?? `${familyId}-${Date.now()}`,
+        familyId,
+        createdAt: new Date().toISOString(),
+        inputPreview: smsText.trim().slice(0, 96),
+        amount: typeof parsed.amount === 'number' ? parsed.amount : null,
+        category: typeof parsed.category === 'string' ? parsed.category : null,
+        type: typeof parsed.type === 'string' ? parsed.type : null,
+        created: Boolean(response.created),
+        transactionId: typeof response.transaction_id === 'string' ? response.transaction_id : null,
+        aiModelId: typeof response.ai_model_id === 'string' ? response.ai_model_id : null,
       });
 
       setShowModal(false);
