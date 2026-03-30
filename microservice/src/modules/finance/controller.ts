@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import * as ai from '../../lib/ai/index.js';
 import { getInsightsContext, getRiskSuggestionsContext, getCategoryInsightsContext, getNarrativeSummaryContext, getAskMonthContext } from './aggregate.js';
 import {
   generateInsights,
@@ -18,10 +19,34 @@ import {
   parseSmsToInvestment,
   parseSmsToLoan,
 } from './service.js';
+import { AiModel } from '../../db/schemas/AiModel.js';
 import { BankAccountModel } from '../../db/schemas/BankAccount.js';
 import { TransactionModel } from '../../db/schemas/Transaction.js';
 
 type AuthRequest = Request & { auth?: { userId: string } };
+
+function getParseAuditMetadata(parsed: unknown): {
+  modelUsed: string;
+  accuracy: number | null;
+  status: 'parsed' | 'invalid';
+} {
+  const aiAvailable = ai.isAiAvailable();
+  const modelUsed = aiAvailable
+    ? `${ai.getActiveProvider()}:${ai.getDefaultTextModel()}`
+    : 'rule_based_fallback';
+  const parsedRecord = parsed && typeof parsed === 'object'
+    ? parsed as { amount?: unknown }
+    : null;
+  const hasValidAmount =
+    typeof parsedRecord?.amount === 'number'
+    && parsedRecord.amount > 0;
+
+  return {
+    modelUsed,
+    accuracy: hasValidAmount ? (aiAvailable ? 0.9 : 0.6) : 0,
+    status: hasValidAmount ? 'parsed' : 'invalid',
+  };
+}
 
 export const financeController = {
   async insights(req: Request, res: Response): Promise<void> {
@@ -205,6 +230,22 @@ export const financeController = {
 
     try {
       const parsed = await parseSmsToTransaction(smsText);
+      const auditMeta = getParseAuditMetadata(parsed);
+      const auditId = uuidv4();
+      await AiModel.create({
+        _id: auditId,
+        family_id: familyId,
+        created_by: userId ?? null,
+        input_text: smsText,
+        model_used: auditMeta.modelUsed,
+        output: parsed ? JSON.parse(JSON.stringify(parsed)) : null,
+        date: new Date(),
+        accuracy: auditMeta.accuracy,
+        status: auditMeta.status,
+        parse_type: 'transaction_sms',
+        transaction_id: null,
+      });
+
       if (!parsed || parsed.amount <= 0) {
         res.fail('Could not extract a valid transaction from the SMS', 400);
         return;
@@ -213,9 +254,14 @@ export const financeController = {
       const accounts = await BankAccountModel.find({ family_id: familyId }).limit(1).lean();
       const accountId = accounts[0]?._id;
       if (!accountId || !userId) {
+        await AiModel.updateOne(
+          { _id: auditId },
+          { $set: { status: 'transaction_pending' } }
+        );
         res.success({
           parsed,
           created: false,
+          ai_model_id: auditId,
           message: 'Add a bank account and ensure you are logged in to auto-create the transaction.',
         });
         return;
@@ -236,7 +282,11 @@ export const financeController = {
         transaction_date: transactionDate,
         created_by: userId,
       });
-      res.success({ parsed, created: true, transaction_id: id });
+      await AiModel.updateOne(
+        { _id: auditId },
+        { $set: { status: 'transaction_created', transaction_id: id } }
+      );
+      res.success({ parsed, created: true, transaction_id: id, ai_model_id: auditId });
     } catch (e) {
       console.error('[finance] parseSms:', e);
       res.fail('Failed to parse SMS', 500);
