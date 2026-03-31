@@ -11,6 +11,7 @@ export interface ICardDoc {
   last_four_digits: string;
   card_limit: number | null;
   billing_date: number | null;
+  background_color: string | null;
   status: 'active' | 'inactive' | 'blocked';
   created_at?: Date;
   updated_at?: Date;
@@ -26,6 +27,7 @@ const cardSchema = new Schema<ICardDoc>(
     last_four_digits: { type: String, required: true },
     card_limit: { type: Number, default: null },
     billing_date: { type: Number, default: null },
+    background_color: { type: String, default: null },
     status: { type: String, default: 'active', enum: ['active', 'inactive', 'blocked'] },
   },
   { timestamps: true, id: false }

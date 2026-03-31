@@ -95,6 +95,7 @@ export default function EventDetailPage() {
   const [subEvents, setSubEvents] = useState<SubEvent[]>([]);
   const [participants, setParticipants] = useState<EventParticipant[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [detailTab, setDetailTab] = useState<'functions' | 'finance' | 'participants'>('functions');
   const [financeSummary, setFinanceSummary] = useState<EventFinanceSummary>({
     totalBudget: 0,
     totalSpent: 0,
@@ -417,19 +418,19 @@ export default function EventDetailPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={handleMenuToggle} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-4">
+        <main className="flex-1 px-3 md:px-5 py-3 overflow-y-auto">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0">
                 <button
                   onClick={() => navigate('/events')}
-                  className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface"
+                  className="icon-button glass-black-surface shrink-0"
                 >
-                  <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                  <ArrowLeft className="w-4.5 h-4.5 text-[var(--app-fg)]" />
                 </button>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{event?.name || 'Event Details'}</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <div className="min-w-0">
+                  <h2 className="text-[1.375rem] font-bold text-gray-800 dark:text-gray-100 truncate">{event?.name || 'Event Details'}</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     Dedicated event view for functions, participants, and finance details.
                   </p>
                 </div>
@@ -438,7 +439,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => familyId && eventId && void loadEventDetails(familyId, eventId)}
-                  className="px-3 py-2 rounded-lg border border-[var(--panel-border)] text-sm text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10"
+                  className="px-3 py-2 rounded-lg border border-[var(--panel-border)] text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10"
                 >
                   Refresh
                 </button>
@@ -459,7 +460,7 @@ export default function EventDetailPage() {
 
             {!isLoading && event && (
               <>
-                <section className="rounded-xl border border-[var(--panel-border)] glass-black-surface p-5">
+                <section className="rounded-xl border border-[var(--panel-border)] glass-black-surface p-4">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -480,7 +481,7 @@ export default function EventDetailPage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-[280px]">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 min-w-[280px]">
                       <div className="rounded-lg bg-white dark:bg-white/5 border border-[var(--panel-border)] p-3">
                         <p className="text-xs text-gray-500 dark:text-gray-400">Budget</p>
                         <p className="mt-1 text-lg font-semibold text-gray-800 dark:text-gray-100">{formatCurrency(financeSummary.totalBudget)}</p>
@@ -496,7 +497,7 @@ export default function EventDetailPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-[var(--panel-border)] bg-white dark:bg-white/5 p-4">
+                  <div className="mt-3 rounded-xl border border-[var(--panel-border)] bg-white dark:bg-white/5 p-3.5">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-lg ai-gradient-icon flex items-center justify-center shrink-0">
                         <Sparkles className="w-5 h-5 text-white" />
@@ -511,7 +512,35 @@ export default function EventDetailPage() {
                   </div>
                 </section>
 
-                <section className="rounded-xl border border-[var(--panel-border)] glass-black-surface p-5">
+                <section className="rounded-xl border border-[var(--panel-border)] glass-black-surface overflow-hidden">
+                  <div className="border-b border-[var(--panel-border)] px-3 pt-3">
+                    <div className="flex gap-1.5 overflow-x-auto">
+                      {[
+                        { key: 'functions', label: `Functions (${subEvents.length})` },
+                        { key: 'finance', label: `Finance (${transactions.length})` },
+                        { key: 'participants', label: `Participants (${participants.length})` },
+                      ].map((tab) => (
+                        <button
+                          key={tab.key}
+                          type="button"
+                          onClick={() => setDetailTab(tab.key as 'functions' | 'finance' | 'participants')}
+                          className={`shrink-0 rounded-t-lg border border-b-0 px-3 py-2 text-xs font-semibold transition-colors ${
+                            detailTab === tab.key
+                              ? 'bg-[var(--panel-bg)] text-[var(--primary-text)] border-[var(--panel-border)] shadow-sm'
+                              : 'bg-[var(--surface-muted)] text-[var(--app-fg-muted)] border-transparent hover:text-[var(--app-fg)] hover:bg-[var(--surface-subtle)]'
+                          }`}
+                          style={detailTab === tab.key ? {
+                            boxShadow: 'inset 0 2px 0 var(--primary), 0 -1px 0 var(--panel-bg)',
+                          } : undefined}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {detailTab === 'functions' && (
+                  <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h4 className="text-base font-semibold text-gray-800 dark:text-gray-100">Functions</h4>
@@ -526,11 +555,11 @@ export default function EventDetailPage() {
                       Add
                     </button>
                   </div>
-                  <div className="space-y-3">
+                    <div className="space-y-2.5">
                     {subEvents.map((subEvent) => {
                       const spend = financeSummary.bySubEvent.find((item) => item.subEventId === subEvent.id)?.totalSpent ?? 0;
                       return (
-                        <article key={subEvent.id} className="rounded-lg border border-[var(--panel-border)] bg-white dark:bg-white/5 p-4">
+                        <article key={subEvent.id} className="rounded-lg border border-[var(--panel-border)] bg-white dark:bg-white/5 p-3.5">
                           <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                             <div className="min-w-0">
                               <p className="font-medium text-gray-800 dark:text-gray-100">{subEvent.name}</p>
@@ -559,9 +588,11 @@ export default function EventDetailPage() {
                       </div>
                     )}
                   </div>
-                </section>
+                  </div>
+                  )}
 
-                <section className="rounded-xl border border-[var(--panel-border)] glass-black-surface p-5">
+                  {detailTab === 'finance' && (
+                  <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h4 className="text-base font-semibold text-gray-800 dark:text-gray-100">Spend by Function</h4>
@@ -569,7 +600,7 @@ export default function EventDetailPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {financeSummary.bySubEvent.map((item) => (
                       <div key={item.subEventId ?? 'general'} className="rounded-lg border border-[var(--panel-border)] bg-white dark:bg-white/5 p-3">
                         <div className="flex items-center justify-between gap-3">
@@ -612,9 +643,11 @@ export default function EventDetailPage() {
                       </div>
                     )}
                   </div>
-                </section>
+                  </div>
+                  )}
 
-                <section className="rounded-xl border border-[var(--panel-border)] glass-black-surface p-5">
+                  {detailTab === 'participants' && (
+                  <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h4 className="text-base font-semibold text-gray-800 dark:text-gray-100">Participants</h4>
@@ -946,6 +979,8 @@ export default function EventDetailPage() {
                       </div>
                     )}
                   </div>
+                  </div>
+                  )}
                 </section>
               </>
             )}

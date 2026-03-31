@@ -19,6 +19,24 @@ if (theme === 'blue') {
 // Start Mirage mock API in development when no real API URL is set.
 // Leave VITE_API_URL unset to use the mock; set it to use a real backend.
 if (import.meta.env.DEV && !import.meta.env.VITE_API_URL) {
+  const patchPretenderGlobals = () => {
+    const target = window as Window & typeof globalThis
+    const fetchValue = target.fetch?.bind(target)
+
+    if (fetchValue) {
+      try {
+        Object.defineProperty(target, 'fetch', {
+          configurable: true,
+          writable: true,
+          value: fetchValue,
+        })
+      } catch {
+        // Ignore and let Mirage try; some runtimes already allow reassignment.
+      }
+    }
+  }
+
+  patchPretenderGlobals()
   makeServer()
 }
 

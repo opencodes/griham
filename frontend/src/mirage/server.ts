@@ -13,9 +13,18 @@ const db = {
     user_email: string | null; user_phone: string | null; full_name: string | null;
   }>,
   accounts: [] as Array<{ id: string; family_id: string; account_name: string; account_number?: string; bank_name: string; account_type: string; balance: number; currency: string }>,
-  transactions: [] as Array<{ id: string; family_id: string; account_id: string; type: string; category: string; amount: number; description?: string; transaction_date: string; created_by: string; account_name?: string; bank_name?: string; created_by_name?: string }>,
+  transactions: [] as Array<{ id: string; family_id: string; account_id: string | null; card_id?: string | null; type: string; category: string; amount: number; description?: string; transaction_date: string; created_by: string; account_name?: string; bank_name?: string; created_by_name?: string; event_id?: string | null; sub_event_id?: string | null; source_type?: string | null }>,
   bills: [] as Array<{ id: string; family_id: string; bill_name: string; category: string; amount: number; due_date: string; is_recurring: boolean; recurrence_pattern?: string; status: string }>,
-  cards: [] as Array<{ id: string; family_id: string; card_type: 'credit' | 'debit'; bank_name: string; card_name: string; last_four_digits: string; card_limit?: number; billing_date?: number; status: 'active' | 'inactive' | 'blocked'; created_at: string }>,
+  cards: [] as Array<{ id: string; family_id: string; card_type: 'credit' | 'debit'; bank_name: string; card_name: string; last_four_digits: string; card_limit?: number; billing_date?: number; background_color?: string | null; status: 'active' | 'inactive' | 'blocked'; created_at: string }>,
+  insurance: [] as Array<{ id: string; family_id: string; type: string; provider: string; policyName: string; policyNumber: string; premiumAmount: number; premiumFrequency: string; nextDueDate?: string | null; coverageAmount: number; insuredMembers: string[]; status: string }>,
+  investments: [] as Array<{ id: string; family_id: string; type: string; name: string; folioNumber: string; sipAmount: number; sipDay: number; startDate: string; currentValue: number; investedAmount: number; units: number; nav: number; platform?: string | null; status: string }>,
+  loans: [] as Array<{ id: string; family_id: string; name: string; lender: string; principalAmount: number; interestRate: number; tenureMonths: number; emiAmount: number; startDate?: string | null; nextDueDate?: string | null; outstandingPrincipal: number; type: string; status: string }>,
+  assets: [] as Array<{ id: string; family_id: string; asset_type: string; name: string; description?: string | null; purchase_date?: string | null; purchase_price: number; current_value: number; location?: string | null; expiry_date?: string | null; created_at?: string; updated_at?: string }>,
+  events: [] as Array<{ id: string; family_id: string; name: string; type: string; start_date: string; end_date?: string | null; location?: string | null; total_budget: number; notes?: string | null; status: string; created_at?: string; updated_at?: string }>,
+  sub_events: [] as Array<{ id: string; event_id: string; name: string; date_time: string; location?: string | null; budget: number; created_at?: string; updated_at?: string }>,
+  event_participants: [] as Array<{ id: string; event_id: string; contact_id: string; role: 'guest' | 'vendor' | 'host'; rsvp_status: string; gender?: string | null; age_group?: string | null; gifts?: string[]; created_at?: string; updated_at?: string }>,
+  contacts: [] as Array<{ id: string; family_id: string; name: string | null; phone: string | null; phone_ext: string | null; phone_number: string | null; phone_norm: string | null; email?: string | null; last_synced_at?: string | null }>,
+  sms_history: [] as Array<{ id: string; family_id: string; input_text: string; model_used: string; output: Record<string, unknown> | null; date: string; accuracy: number | null; status: string; parse_type: string; transaction_id: string | null; created_by: string | null; amount: number | null; category: string | null; type: string | null; description: string | null }>,
   roles: [] as Array<{ id: string; name: string; description?: string; created_at: string; updated_at: string }>,
   permissions: [] as Array<{ id: string; name: string; resource: string; action: string; description?: string; created_at: string; updated_at: string }>,
   groups: [] as Array<{ id: string; name: string; description?: string; created_at: string; updated_at: string }>,
@@ -38,6 +47,38 @@ const SEED_IDS = {
 
 function issueToken(userId: string) {
   return `mock-jwt:${userId}:${uid()}`;
+}
+
+const promptTemplates = [
+  {
+    id: 'finance.sms-transaction',
+    module: 'finance',
+    label: 'Finance SMS Transaction Parser',
+    inputLabel: 'SMS Text',
+    inputPlaceholder: 'Your A/c XX1234 debited...'
+  },
+  {
+    id: 'finance.sms-card',
+    module: 'finance',
+    label: 'Finance SMS Card Parser',
+    inputLabel: 'Card SMS',
+    inputPlaceholder: 'Your HDFC credit card ending 1234...'
+  }
+];
+
+function parseCurrencyAmount(input: string): number | null {
+  const match = input.match(/(?:rs\.?|inr)?\s*([0-9][0-9,]*\.?[0-9]*)/i);
+  if (!match) return null;
+  return Number(match[1].replace(/,/g, ''));
+}
+
+function normalizePhone(value: string | null | undefined) {
+  if (!value) return null;
+  return value.replace(/\D/g, '') || null;
+}
+
+function matchesText(value: string | null | undefined, query: string) {
+  return (value || '').toLowerCase().includes(query.toLowerCase());
 }
 
 function getUserFromRequest(request: { requestHeaders: Record<string, string | undefined> }) {
@@ -152,8 +193,118 @@ function seed() {
     last_four_digits: '8899',
     card_limit: 100000,
     billing_date: 15,
+    background_color: '#1d4ed8',
     status: 'active',
     created_at: now,
+  });
+  db.insurance.push({
+    id: uid(),
+    family_id: familyId,
+    type: 'health',
+    provider: 'Mock Insurance',
+    policyName: 'Family Floater',
+    policyNumber: 'POL-1001',
+    premiumAmount: 18000,
+    premiumFrequency: 'yearly',
+    nextDueDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    coverageAmount: 500000,
+    insuredMembers: ['Admin User'],
+    status: 'active',
+  });
+  db.investments.push({
+    id: uid(),
+    family_id: familyId,
+    type: 'mutual_fund',
+    name: 'Index Fund',
+    folioNumber: 'FOLIO-1001',
+    sipAmount: 5000,
+    sipDay: 10,
+    startDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    currentValue: 62000,
+    investedAmount: 55000,
+    units: 420.5,
+    nav: 147.45,
+    platform: 'Mock Grow',
+    status: 'active',
+  });
+  db.loans.push({
+    id: uid(),
+    family_id: familyId,
+    name: 'Car Loan',
+    lender: 'Mock Bank',
+    principalAmount: 600000,
+    interestRate: 9.1,
+    tenureMonths: 60,
+    emiAmount: 12500,
+    startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    nextDueDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    outstandingPrincipal: 410000,
+    type: 'car',
+    status: 'active',
+  });
+  db.assets.push({
+    id: uid(),
+    family_id: familyId,
+    asset_type: 'document',
+    name: 'Vehicle Insurance Policy',
+    description: 'Annual insurance document',
+    purchase_date: null,
+    purchase_price: 0,
+    current_value: 0,
+    location: 'Locker',
+    expiry_date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    created_at: now,
+    updated_at: now,
+  });
+  const eventId = uid();
+  db.events.push({
+    id: eventId,
+    family_id: familyId,
+    name: 'Family Wedding',
+    type: 'marriage',
+    start_date: new Date(Date.now() + 40 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    end_date: new Date(Date.now() + 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    location: 'Jaipur',
+    total_budget: 750000,
+    notes: 'Mock event for local development',
+    status: 'planned',
+    created_at: now,
+    updated_at: now,
+  });
+  const subEventId = uid();
+  db.sub_events.push({
+    id: subEventId,
+    event_id: eventId,
+    name: 'Sangeet',
+    date_time: new Date(Date.now() + 41 * 24 * 60 * 60 * 1000).toISOString(),
+    location: 'Banquet Hall',
+    budget: 150000,
+    created_at: now,
+    updated_at: now,
+  });
+  const contactId = uid();
+  db.contacts.push({
+    id: contactId,
+    family_id: familyId,
+    name: 'Rahul Sharma',
+    phone: '+91 9876543210',
+    phone_ext: null,
+    phone_number: '9876543210',
+    phone_norm: '919876543210',
+    email: 'rahul@example.com',
+    last_synced_at: now,
+  });
+  db.event_participants.push({
+    id: uid(),
+    event_id: eventId,
+    contact_id: contactId,
+    role: 'guest',
+    rsvp_status: 'pending',
+    gender: 'male',
+    age_group: 'adult',
+    gifts: [],
+    created_at: now,
+    updated_at: now,
   });
 
   // ----- RBAC seed: roles and permissions aligned with real API (admin = full access)
@@ -617,6 +768,8 @@ export function makeServer({ environment = 'development' } = {}) {
         const q = request.queryParams;
         if (q?.type) list = list.filter((t) => t.type === q.type);
         if (q?.category) list = list.filter((t) => t.category === q.category);
+        if (q?.account_id) list = list.filter((t) => t.account_id === q.account_id);
+        if (q?.card_id) list = list.filter((t) => t.card_id === q.card_id);
         if (q?.month) {
           const [y, m] = (q.month as string).split('-').map(Number);
           const start = new Date(y, m - 1, 1).toISOString().slice(0, 10);
@@ -660,6 +813,13 @@ export function makeServer({ environment = 'development' } = {}) {
           created_by_name: user?.full_name,
         };
         db.transactions.push(tx);
+        return { data: tx };
+      });
+
+      this.put('/finance/transactions/:familyId/:transactionId', (_schema, request) => {
+        const tx = db.transactions.find((t) => t.id === request.params.transactionId && t.family_id === request.params.familyId);
+        if (!tx) return new Response(404, {}, { message: 'Not found' });
+        Object.assign(tx, JSON.parse(request.requestBody));
         return { data: tx };
       });
 
@@ -729,6 +889,7 @@ export function makeServer({ environment = 'development' } = {}) {
           last_four_digits: body.last_four_digits ?? '0000',
           card_limit: body.card_limit,
           billing_date: body.billing_date,
+          background_color: body.background_color ?? null,
           status: (body.status ?? 'active') as 'active' | 'inactive' | 'blocked',
           created_at: new Date().toISOString(),
         };
@@ -747,6 +908,162 @@ export function makeServer({ environment = 'development' } = {}) {
         const i = db.cards.findIndex((c) => c.id === request.params.cardId && c.family_id === request.params.familyId);
         if (i === -1) return new Response(404, {}, { message: 'Not found' });
         db.cards.splice(i, 1);
+        return { data: { ok: true } };
+      });
+
+      // ----- Finance: Insurance -----
+      this.get('/finance/insurance/:familyId', (_schema, request) => {
+        return { data: db.insurance.filter((item) => item.family_id === request.params.familyId) };
+      });
+
+      this.get('/finance/insurance/:familyId/summary', (_schema, request) => {
+        const list = db.insurance.filter((item) => item.family_id === request.params.familyId && item.status === 'active');
+        return {
+          data: {
+            totalCoverage: list.reduce((sum, item) => sum + Number(item.coverageAmount || 0), 0),
+            activeCount: list.length,
+            premiumTotal: list.reduce((sum, item) => sum + Number(item.premiumAmount || 0), 0)
+          }
+        };
+      });
+
+      this.post('/finance/insurance', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const item = {
+          id: uid(),
+          family_id: body.family_id,
+          type: body.type ?? 'other',
+          provider: body.provider ?? 'Provider',
+          policyName: body.policyName ?? 'Policy',
+          policyNumber: body.policyNumber ?? `POL-${uid().slice(-6)}`,
+          premiumAmount: Number(body.premiumAmount) || 0,
+          premiumFrequency: body.premiumFrequency ?? 'yearly',
+          nextDueDate: body.nextDueDate ?? null,
+          coverageAmount: Number(body.coverageAmount) || 0,
+          insuredMembers: Array.isArray(body.insuredMembers) ? body.insuredMembers : [],
+          status: body.status ?? 'active',
+        };
+        db.insurance.push(item);
+        return { data: item };
+      });
+
+      this.put('/finance/insurance/:familyId/:insuranceId', (_schema, request) => {
+        const item = db.insurance.find((entry) => entry.id === request.params.insuranceId && entry.family_id === request.params.familyId);
+        if (!item) return new Response(404, {}, { message: 'Not found' });
+        Object.assign(item, JSON.parse(request.requestBody));
+        return { data: item };
+      });
+
+      this.delete('/finance/insurance/:familyId/:insuranceId', (_schema, request) => {
+        const index = db.insurance.findIndex((entry) => entry.id === request.params.insuranceId && entry.family_id === request.params.familyId);
+        if (index === -1) return new Response(404, {}, { message: 'Not found' });
+        db.insurance.splice(index, 1);
+        return { data: { ok: true } };
+      });
+
+      // ----- Finance: Investments -----
+      this.get('/finance/investments/:familyId', (_schema, request) => {
+        return { data: db.investments.filter((item) => item.family_id === request.params.familyId) };
+      });
+
+      this.get('/finance/investments/:familyId/summary', (_schema, request) => {
+        const list = db.investments.filter((item) => item.family_id === request.params.familyId);
+        const totalCurrentValue = list.reduce((sum, item) => sum + Number(item.currentValue || 0), 0);
+        const totalInvested = list.reduce((sum, item) => sum + Number(item.investedAmount || 0), 0);
+        return {
+          data: {
+            totalCurrentValue,
+            totalInvested,
+            totalGain: totalCurrentValue - totalInvested,
+            totalCount: list.length
+          }
+        };
+      });
+
+      this.post('/finance/investments', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const item = {
+          id: uid(),
+          family_id: body.family_id,
+          type: body.type ?? 'other',
+          name: body.name ?? 'Investment',
+          folioNumber: body.folioNumber ?? `FOLIO-${uid().slice(-6)}`,
+          sipAmount: Number(body.sipAmount) || 0,
+          sipDay: Number(body.sipDay) || 1,
+          startDate: body.startDate ?? new Date().toISOString().slice(0, 10),
+          currentValue: Number(body.currentValue) || 0,
+          investedAmount: Number(body.investedAmount) || 0,
+          units: Number(body.units) || 0,
+          nav: Number(body.nav) || 0,
+          platform: body.platform ?? null,
+          status: body.status ?? 'active',
+        };
+        db.investments.push(item);
+        return { data: item };
+      });
+
+      this.put('/finance/investments/:familyId/:investmentId', (_schema, request) => {
+        const item = db.investments.find((entry) => entry.id === request.params.investmentId && entry.family_id === request.params.familyId);
+        if (!item) return new Response(404, {}, { message: 'Not found' });
+        Object.assign(item, JSON.parse(request.requestBody));
+        return { data: item };
+      });
+
+      this.delete('/finance/investments/:familyId/:investmentId', (_schema, request) => {
+        const index = db.investments.findIndex((entry) => entry.id === request.params.investmentId && entry.family_id === request.params.familyId);
+        if (index === -1) return new Response(404, {}, { message: 'Not found' });
+        db.investments.splice(index, 1);
+        return { data: { ok: true } };
+      });
+
+      // ----- Finance: Loans -----
+      this.get('/finance/loans/:familyId', (_schema, request) => {
+        return { data: db.loans.filter((item) => item.family_id === request.params.familyId) };
+      });
+
+      this.get('/finance/loans/:familyId/summary', (_schema, request) => {
+        const list = db.loans.filter((item) => item.family_id === request.params.familyId && item.status === 'active');
+        return {
+          data: {
+            totalOutstanding: list.reduce((sum, item) => sum + Number(item.outstandingPrincipal || 0), 0),
+            totalEmi: list.reduce((sum, item) => sum + Number(item.emiAmount || 0), 0),
+            activeCount: list.length
+          }
+        };
+      });
+
+      this.post('/finance/loans', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const item = {
+          id: uid(),
+          family_id: body.family_id,
+          name: body.name ?? 'Loan',
+          lender: body.lender ?? 'Lender',
+          principalAmount: Number(body.principalAmount) || 0,
+          interestRate: Number(body.interestRate) || 0,
+          tenureMonths: Number(body.tenureMonths) || 0,
+          emiAmount: Number(body.emiAmount) || 0,
+          startDate: body.startDate ?? null,
+          nextDueDate: body.nextDueDate ?? null,
+          outstandingPrincipal: Number(body.outstandingPrincipal) || 0,
+          type: body.type ?? 'other',
+          status: body.status ?? 'active',
+        };
+        db.loans.push(item);
+        return { data: item };
+      });
+
+      this.put('/finance/loans/:familyId/:loanId', (_schema, request) => {
+        const item = db.loans.find((entry) => entry.id === request.params.loanId && entry.family_id === request.params.familyId);
+        if (!item) return new Response(404, {}, { message: 'Not found' });
+        Object.assign(item, JSON.parse(request.requestBody));
+        return { data: item };
+      });
+
+      this.delete('/finance/loans/:familyId/:loanId', (_schema, request) => {
+        const index = db.loans.findIndex((entry) => entry.id === request.params.loanId && entry.family_id === request.params.familyId);
+        if (index === -1) return new Response(404, {}, { message: 'Not found' });
+        db.loans.splice(index, 1);
         return { data: { ok: true } };
       });
 
@@ -939,7 +1256,7 @@ export function makeServer({ environment = 'development' } = {}) {
           'Set a monthly cap for discretionary spending.',
           'Review subscriptions and cancel unused ones.',
         ];
-        return { data: { tips, ai_available: true } };
+        return { tips, ai_available: true };
       });
 
       this.post('/finance/ai/suggest-category/:familyId', (_schema, request) => {
@@ -961,10 +1278,10 @@ export function makeServer({ environment = 'development' } = {}) {
         ];
         for (const { keywords, category, type } of categories) {
           if (keywords.some((k) => desc.includes(k))) {
-            return { data: { category, type } };
+            return { category, type };
           }
         }
-        return { data: { category: 'Other', type: 'expense' } };
+        return { category: 'Other', type: 'expense' };
       });
 
       this.post('/finance/ai/suggest-bill-category/:familyId', (_schema, request) => {
@@ -983,10 +1300,505 @@ export function makeServer({ environment = 'development' } = {}) {
         ];
         for (const { keywords, category } of billCategories) {
           if (keywords.some((k) => name.includes(k))) {
-            return { data: { category } };
+            return { category };
           }
         }
-        return { data: { category: 'Other' } };
+        return { category: 'Other' };
+      });
+
+      this.get('/finance/ai/parse-sms-history/:familyId', (_schema, request) => {
+        const limit = Number(request.queryParams.limit || 25);
+        const list = db.sms_history
+          .filter((item) => item.family_id === request.params.familyId)
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .slice(0, Number.isFinite(limit) ? limit : 25);
+        return { data: list };
+      });
+
+      this.get('/finance/ai/parse-sms-prompt/:familyId', (_schema, request) => {
+        const input = typeof request.queryParams.input === 'string' ? request.queryParams.input : '';
+        return {
+          data: {
+            prompt_id: 'finance.sms-transaction',
+            label: 'Finance SMS Transaction Parser',
+            prompt: `Extract amount, type, category, description, date, payment source, and last 4 digits from this SMS.\nInput: ${input || 'Your A/c XX1234 debited by Rs.500 at Store.'}`,
+            sample_input: input || 'Your A/c XX1234 debited by Rs.500 at Store.'
+          }
+        };
+      });
+
+      this.post('/finance/ai/parse-sms/:familyId', (_schema, request) => {
+        const body = JSON.parse(request.requestBody || '{}');
+        const text = String(body.sms_text || '');
+        const amount = parseCurrencyAmount(text);
+        const isIncome = /\b(credited|salary|deposit|received)\b/i.test(text);
+        const paymentSource = /\b(card|credit card|debit card)\b/i.test(text) ? 'card' : /\b(a\/c|acct|account)\b/i.test(text) ? 'account' : 'unknown';
+        const lastFour = text.match(/(?:xx|x{2,}|\*{2,}|ending)\s*([0-9]{4})/i)?.[1]
+          || text.match(/\b([0-9]{4})\b/)?.[1]
+          || '';
+        const category = /amazon|flipkart|shopping/i.test(text)
+          ? 'Shopping'
+          : /swiggy|zomato|restaurant|food/i.test(text)
+            ? 'Food'
+            : /electric|water|gas|internet|broadband/i.test(text)
+              ? 'Utilities'
+              : isIncome
+                ? 'Salary'
+                : 'Other';
+        const description = text.trim().slice(0, 80) || 'SMS transaction';
+        const familyId = request.params.familyId;
+        const user = db.users[0];
+        const matchedAccount = paymentSource === 'account'
+          ? db.accounts.find((account) => account.family_id === familyId && (account.account_number || '').includes(lastFour))
+          : null;
+        const matchedCard = paymentSource === 'card'
+          ? db.cards.find((card) => card.family_id === familyId && card.last_four_digits === lastFour)
+          : null;
+        const transactionId = uid();
+        const transaction = {
+          id: transactionId,
+          family_id: familyId,
+          account_id: matchedAccount?.id ?? db.accounts[0]?.id ?? null,
+          card_id: matchedCard?.id ?? null,
+          type: isIncome ? 'income' : 'expense',
+          category,
+          amount: amount ?? 0,
+          description,
+          transaction_date: new Date().toISOString().slice(0, 10),
+          created_by: user?.id ?? uid(),
+          created_by_name: user?.full_name ?? 'Admin User',
+        };
+        db.transactions.push(transaction);
+
+        const historyRecord = {
+          id: uid(),
+          family_id: familyId,
+          input_text: text,
+          model_used: 'mirage-mock',
+          output: transaction,
+          date: new Date().toISOString(),
+          accuracy: 0.92,
+          status: 'transaction_created',
+          parse_type: 'transaction_sms',
+          transaction_id: transactionId,
+          created_by: user?.id ?? null,
+          amount: transaction.amount,
+          category: transaction.category,
+          type: transaction.type,
+          description: transaction.description
+        };
+        db.sms_history.unshift(historyRecord);
+
+        return {
+          data: {
+            parsed: {
+              amount: transaction.amount,
+              type: transaction.type,
+              category: transaction.category,
+              description: transaction.description,
+              transaction_date: transaction.transaction_date,
+              payment_source: paymentSource,
+              last_four_digits: lastFour,
+              linked_account_id: transaction.account_id,
+              linked_card_id: transaction.card_id,
+              linked_payment_source: matchedCard ? 'card' : matchedAccount ? 'account' : null,
+              matched_last_four_digits: lastFour || null
+            },
+            created: true,
+            transaction_id: transactionId,
+            ai_model_id: historyRecord.id
+          }
+        };
+      });
+
+      this.post('/finance/ai/parse-sms-card/:familyId', (_schema, request) => {
+        const body = JSON.parse(request.requestBody || '{}');
+        const text = String(body.sms_text || '');
+        return {
+          data: {
+            bank_name: /hdfc/i.test(text) ? 'HDFC Bank' : /icici/i.test(text) ? 'ICICI Bank' : 'Mock Bank',
+            card_name: /platinum/i.test(text) ? 'Platinum Card' : /regalia/i.test(text) ? 'Regalia' : 'Card',
+            last_four_digits: text.match(/([0-9]{4})/)?.[1] ?? '0000',
+            card_type: /debit/i.test(text) ? 'debit' : 'credit',
+            card_limit: parseCurrencyAmount(text)
+          }
+        };
+      });
+
+      this.post('/finance/ai/parse-sms-insurance/:familyId', (_schema, request) => {
+        const text = String(JSON.parse(request.requestBody || '{}').sms_text || '');
+        return {
+          data: {
+            type: /health/i.test(text) ? 'health' : /life/i.test(text) ? 'life' : 'other',
+            provider: /hdfc/i.test(text) ? 'HDFC Ergo' : 'Mock Insurance',
+            policyName: 'Policy',
+            policyNumber: text.match(/[A-Z0-9-]{6,}/)?.[0] ?? 'POL-1001',
+            premiumAmount: parseCurrencyAmount(text) ?? 0,
+            premiumFrequency: 'yearly',
+            nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+            coverageAmount: 500000,
+            insuredMembers: [],
+            status: 'active'
+          }
+        };
+      });
+
+      this.post('/finance/ai/parse-sms-investment/:familyId', (_schema, request) => {
+        const text = String(JSON.parse(request.requestBody || '{}').sms_text || '');
+        return {
+          data: {
+            type: /fd/i.test(text) ? 'fd' : /stock/i.test(text) ? 'stock' : 'mutual_fund',
+            name: /nippon/i.test(text) ? 'Nippon India Fund' : 'Investment',
+            folioNumber: text.match(/[A-Z0-9-]{6,}/)?.[0] ?? 'FOLIO-1001',
+            sipAmount: parseCurrencyAmount(text) ?? 0,
+            sipDay: 10,
+            startDate: new Date().toISOString().slice(0, 10),
+            currentValue: parseCurrencyAmount(text) ?? 0,
+            investedAmount: parseCurrencyAmount(text) ?? 0,
+            units: 0,
+            nav: 0,
+            platform: 'Mock Grow',
+            status: 'active'
+          }
+        };
+      });
+
+      this.post('/finance/ai/parse-sms-loan/:familyId', (_schema, request) => {
+        const text = String(JSON.parse(request.requestBody || '{}').sms_text || '');
+        return {
+          data: {
+            name: /home/i.test(text) ? 'Home Loan' : 'Loan',
+            lender: /sbi/i.test(text) ? 'SBI' : 'Mock Bank',
+            principalAmount: parseCurrencyAmount(text) ?? 0,
+            interestRate: 9.5,
+            tenureMonths: 60,
+            emiAmount: parseCurrencyAmount(text) ?? 0,
+            startDate: new Date().toISOString().slice(0, 10),
+            nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+            outstandingPrincipal: parseCurrencyAmount(text) ?? 0,
+            type: /home/i.test(text) ? 'home' : /car/i.test(text) ? 'car' : 'other',
+            status: 'active'
+          }
+        };
+      });
+
+      // ----- Assets -----
+      this.get('/assets/:familyId/expiring-documents', (_schema, request) => {
+        const days = Number(request.queryParams.days || 30);
+        const cutoff = Date.now() + days * 24 * 60 * 60 * 1000;
+        const list = db.assets.filter((item) =>
+          item.family_id === request.params.familyId
+          && item.asset_type === 'document'
+          && item.expiry_date
+          && new Date(item.expiry_date).getTime() <= cutoff
+        );
+        return { data: list };
+      });
+
+      this.get('/assets/:familyId/vehicles/service-due', (_schema, request) => {
+        const days = Number(request.queryParams.days || 30);
+        const cutoff = Date.now() + days * 24 * 60 * 60 * 1000;
+        const list = db.assets.filter((item) =>
+          item.family_id === request.params.familyId
+          && item.asset_type === 'vehicle'
+          && item.expiry_date
+          && new Date(item.expiry_date).getTime() <= cutoff
+        );
+        return { data: list };
+      });
+
+      this.get('/assets/:familyId/valuation', (_schema, request) => {
+        const list = db.assets.filter((item) => item.family_id === request.params.familyId);
+        return {
+          data: {
+            total_value: list.reduce((sum, item) => sum + Number(item.current_value || 0), 0),
+            asset_count: list.length
+          }
+        };
+      });
+
+      this.get('/assets/:familyId/:assetId', (_schema, request) => {
+        const asset = db.assets.find((item) => item.id === request.params.assetId && item.family_id === request.params.familyId);
+        if (!asset) return new Response(404, {}, { message: 'Not found' });
+        return { data: asset };
+      });
+
+      this.get('/assets/:familyId', (_schema, request) => {
+        let list = db.assets.filter((item) => item.family_id === request.params.familyId);
+        if (request.queryParams.type) list = list.filter((item) => item.asset_type === request.queryParams.type);
+        return { data: list };
+      });
+
+      this.post('/assets', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const asset = {
+          id: uid(),
+          family_id: body.family_id,
+          asset_type: body.asset_type ?? 'other',
+          name: body.name ?? 'Asset',
+          description: body.description ?? null,
+          purchase_date: body.purchase_date ?? null,
+          purchase_price: Number(body.purchase_price) || 0,
+          current_value: Number(body.current_value) || 0,
+          location: body.location ?? null,
+          expiry_date: body.expiry_date ?? null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        db.assets.push(asset);
+        return { data: asset };
+      });
+
+      this.put('/assets/:familyId/:assetId', (_schema, request) => {
+        const asset = db.assets.find((item) => item.id === request.params.assetId && item.family_id === request.params.familyId);
+        if (!asset) return new Response(404, {}, { message: 'Not found' });
+        Object.assign(asset, JSON.parse(request.requestBody), { updated_at: new Date().toISOString() });
+        return { data: asset };
+      });
+
+      this.delete('/assets/:familyId/:assetId', (_schema, request) => {
+        const index = db.assets.findIndex((item) => item.id === request.params.assetId && item.family_id === request.params.familyId);
+        if (index === -1) return new Response(404, {}, { message: 'Not found' });
+        db.assets.splice(index, 1);
+        return { data: { ok: true } };
+      });
+
+      // ----- Events -----
+      this.get('/events', (_schema, request) => {
+        const familyId = request.queryParams.family_id;
+        let list = familyId ? db.events.filter((item) => item.family_id === familyId) : [...db.events];
+        if (request.queryParams.status) list = list.filter((item) => item.status === request.queryParams.status);
+        return { data: list };
+      });
+
+      this.post('/events', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const event = {
+          id: uid(),
+          family_id: body.family_id,
+          name: body.name ?? 'Event',
+          type: body.type ?? 'other',
+          start_date: body.start_date ?? new Date().toISOString().slice(0, 10),
+          end_date: body.end_date ?? null,
+          location: body.location ?? null,
+          total_budget: Number(body.total_budget) || 0,
+          notes: body.notes ?? null,
+          status: body.status ?? 'planned',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        db.events.push(event);
+        return { data: event };
+      });
+
+      this.get('/events/:eventId', (_schema, request) => {
+        const familyId = request.queryParams.family_id;
+        const event = db.events.find((item) => item.id === request.params.eventId && (!familyId || item.family_id === familyId));
+        if (!event) return new Response(404, {}, { message: 'Not found' });
+        return { data: event };
+      });
+
+      this.patch('/events/:eventId', (_schema, request) => {
+        const familyId = request.queryParams.family_id;
+        const event = db.events.find((item) => item.id === request.params.eventId && (!familyId || item.family_id === familyId));
+        if (!event) return new Response(404, {}, { message: 'Not found' });
+        Object.assign(event, JSON.parse(request.requestBody), { updated_at: new Date().toISOString() });
+        return { data: event };
+      });
+
+      this.delete('/events/:eventId', (_schema, request) => {
+        const familyId = request.queryParams.family_id;
+        const index = db.events.findIndex((item) => item.id === request.params.eventId && (!familyId || item.family_id === familyId));
+        if (index === -1) return new Response(404, {}, { message: 'Not found' });
+        db.sub_events = db.sub_events.filter((item) => item.event_id !== request.params.eventId);
+        db.event_participants = db.event_participants.filter((item) => item.event_id !== request.params.eventId);
+        db.events.splice(index, 1);
+        return { data: { ok: true } };
+      });
+
+      this.get('/events/:eventId/sub-events', (_schema, request) => {
+        return { data: db.sub_events.filter((item) => item.event_id === request.params.eventId) };
+      });
+
+      this.post('/events/:eventId/sub-events', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const item = {
+          id: uid(),
+          event_id: request.params.eventId,
+          name: body.name ?? 'Sub Event',
+          date_time: body.date_time ?? new Date().toISOString(),
+          location: body.location ?? null,
+          budget: Number(body.budget) || 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        db.sub_events.push(item);
+        return { data: item };
+      });
+
+      this.get('/events/:eventId/participants', (_schema, request) => {
+        return {
+          data: db.event_participants
+            .filter((item) => item.event_id === request.params.eventId)
+            .map((item) => ({
+              ...item,
+              contact: db.contacts.find((contact) => contact.id === item.contact_id) ?? null
+            }))
+        };
+      });
+
+      this.post('/events/:eventId/participants', (_schema, request) => {
+        const body = JSON.parse(request.requestBody);
+        const item = {
+          id: uid(),
+          event_id: request.params.eventId,
+          contact_id: body.contact_id ?? '',
+          role: body.role ?? 'guest',
+          rsvp_status: body.rsvp_status ?? 'pending',
+          gender: body.gender ?? null,
+          age_group: body.age_group ?? null,
+          gifts: Array.isArray(body.gifts) ? body.gifts : [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        db.event_participants.push(item);
+        return { data: item };
+      });
+
+      this.patch('/events/:eventId/participants/:participantId', (_schema, request) => {
+        const item = db.event_participants.find((entry) => entry.id === request.params.participantId && entry.event_id === request.params.eventId);
+        if (!item) return new Response(404, {}, { message: 'Not found' });
+        Object.assign(item, JSON.parse(request.requestBody), { updated_at: new Date().toISOString() });
+        return { data: item };
+      });
+
+      this.delete('/events/:eventId/participants/:participantId', (_schema, request) => {
+        const index = db.event_participants.findIndex((entry) => entry.id === request.params.participantId && entry.event_id === request.params.eventId);
+        if (index === -1) return new Response(404, {}, { message: 'Not found' });
+        db.event_participants.splice(index, 1);
+        return { data: { ok: true } };
+      });
+
+      this.get('/events/:eventId/finance-summary', (_schema, request) => {
+        const event = db.events.find((entry) => entry.id === request.params.eventId);
+        if (!event) return new Response(404, {}, { message: 'Not found' });
+        const eventTransactions = db.transactions.filter((item) => item.event_id === request.params.eventId);
+        const bySubEvent = db.sub_events
+          .filter((item) => item.event_id === request.params.eventId)
+          .map((item) => ({
+            subEventId: item.id,
+            name: item.name,
+            budget: item.budget,
+            totalSpent: eventTransactions
+              .filter((tx) => tx.sub_event_id === item.id && tx.type === 'expense')
+              .reduce((sum, tx) => sum + Number(tx.amount || 0), 0)
+          }));
+        const totalSpent = eventTransactions
+          .filter((item) => item.type === 'expense')
+          .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+        return {
+          data: {
+            totalBudget: Number(event.total_budget || 0),
+            totalSpent,
+            remainingBudget: Number(event.total_budget || 0) - totalSpent,
+            bySubEvent
+          }
+        };
+      });
+
+      this.get('/events/:eventId/ai-insights', (_schema, request) => {
+        const event = db.events.find((entry) => entry.id === request.params.eventId);
+        if (!event) return new Response(404, {}, { message: 'Not found' });
+        return {
+          data: {
+            eventId: event.id,
+            message: `${event.name} is on track. Review vendor allocations and participant RSVPs for smoother planning.`,
+            ai_available: true
+          }
+        };
+      });
+
+      // ----- Contacts -----
+      this.get('/contacts/:familyId/summary', (_schema, request) => {
+        const list = db.contacts.filter((item) => item.family_id === request.params.familyId);
+        return { data: { total: list.length, last_synced_at: list[0]?.last_synced_at ?? null } };
+      });
+
+      this.get('/contacts/:familyId/cleanup-suggestions', (_schema, request) => {
+        const suggestions = db.contacts
+          .filter((item) => item.family_id === request.params.familyId)
+          .filter((item, index, list) => list.findIndex((other) => other.phone_norm === item.phone_norm && item.phone_norm) !== index)
+          .map((item) => ({ id: item.id, reasons: ['Duplicate phone number'], ai_reason: 'Same normalized phone detected.' }));
+        return { data: { suggestions, ai_available: true, ai_used: false } };
+      });
+
+      this.post('/contacts/:familyId/cleanup-apply', (_schema, request) => {
+        const duplicates = db.contacts
+          .filter((item) => item.family_id === request.params.familyId)
+          .filter((item, index, list) => list.findIndex((other) => other.phone_norm === item.phone_norm && item.phone_norm) !== index);
+        const ids = duplicates.map((item) => item.id);
+        const reasons = Object.fromEntries(ids.map((id) => [id, ['Duplicate phone number']]));
+        db.contacts = db.contacts.filter((item) => !ids.includes(item.id));
+        return { data: { deleted: ids.length, ids, reasons } };
+      });
+
+      this.get('/contacts/:familyId', (_schema, request) => {
+        let list = db.contacts.filter((item) => item.family_id === request.params.familyId);
+        const q = typeof request.queryParams.q === 'string' ? request.queryParams.q.trim() : '';
+        if (q) {
+          list = list.filter((item) =>
+            matchesText(item.name, q) || matchesText(item.phone, q) || matchesText(item.email, q)
+          );
+        }
+        const limit = Number(request.queryParams.limit || 0);
+        if (Number.isFinite(limit) && limit > 0) list = list.slice(0, limit);
+        return { data: list };
+      });
+
+      this.patch('/contacts/:id', (_schema, request) => {
+        const contact = db.contacts.find((item) => item.id === request.params.id);
+        if (!contact) return new Response(404, {}, { message: 'Not found' });
+        const body = JSON.parse(request.requestBody);
+        Object.assign(contact, body, {
+          phone_number: normalizePhone(body.phone ?? contact.phone),
+          phone_norm: normalizePhone(body.phone ?? contact.phone),
+          last_synced_at: new Date().toISOString()
+        });
+        return { data: contact };
+      });
+
+      this.delete('/contacts/:id', (_schema, request) => {
+        const index = db.contacts.findIndex((item) => item.id === request.params.id);
+        if (index === -1) return new Response(404, {}, { message: 'Not found' });
+        db.contacts.splice(index, 1);
+        return { data: { id: request.params.id } };
+      });
+
+      // ----- Admin AI Prompts -----
+      this.get('/admin/ai-prompts', (_schema, request) => {
+        if (requireRoot(request)) return requireRoot(request) as Response;
+        return { data: promptTemplates };
+      });
+
+      this.get('/admin/ai-prompts/:id/preview', (_schema, request) => {
+        if (requireRoot(request)) return requireRoot(request) as Response;
+        const template = promptTemplates.find((item) => item.id === request.params.id);
+        if (!template) return new Response(404, {}, { message: 'Not found' });
+        const input = typeof request.queryParams.input === 'string' ? request.queryParams.input : template.inputPlaceholder;
+        return { data: { prompt: `[${template.label}] ${input}` } };
+      });
+
+      this.post('/admin/ai-prompts/test', (_schema, request) => {
+        if (requireRoot(request)) return requireRoot(request) as Response;
+        const body = JSON.parse(request.requestBody || '{}');
+        const template = promptTemplates.find((item) => item.id === body.prompt_id);
+        return {
+          data: {
+            prompt: `[${template?.label ?? 'Unknown Prompt'}] ${body.input ?? ''}`,
+            result: 'Mirage mock result generated successfully.',
+            ai_available: true
+          }
+        };
       });
     },
   });

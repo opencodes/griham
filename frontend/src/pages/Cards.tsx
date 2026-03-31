@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, Card, Transaction } from '@/lib/api';
+import { CARD_COLOR_PRESETS } from '@/lib/cardAppearance';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import CardSMSParser from '@/components/CardSMSParser';
-import { CreditCard, Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react';
+import { CreditCard, Plus, X, ArrowLeft } from 'lucide-react';
+import { CardDetailsPanel } from '@/components/CardDetailsPanel';
 
 type CardFormState = {
   card_type: 'credit' | 'debit';
@@ -14,6 +16,7 @@ type CardFormState = {
   last_four_digits: string;
   card_limit: string;
   billing_date: string;
+  background_color: string;
   status: 'active' | 'inactive' | 'blocked';
 };
 
@@ -27,76 +30,22 @@ export default function Cards() {
   const [userRole, setUserRole] = useState<string>('');
   const [cards, setCards] = useState<Card[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [selectedTransactions, setSelectedTransactions] = useState<Transaction[]>([]);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const isValidHexColor = (value: string) => /^#[0-9a-f]{6}$/i.test(value.trim());
+  const getSafeBackgroundColor = (value?: string | null) =>
+    value && isValidHexColor(value) ? value : CARD_COLOR_PRESETS[0];
 
-  const bankGradientMap: Record<string, string> = {
-    hdfc: 'bg-gradient-to-br from-blue-600 to-indigo-700',
-    icici: 'bg-gradient-to-br from-orange-500 to-rose-700',
-    sbi: 'bg-gradient-to-br from-sky-600 to-cyan-500',
-    axis: 'bg-gradient-to-br from-red-600 to-rose-700',
-    kotak: 'bg-gradient-to-br from-emerald-600 to-teal-700',
-    yes: 'bg-gradient-to-br from-lime-600 to-green-700',
-    pnb: 'bg-gradient-to-br from-amber-500 to-orange-700',
-    indusind: 'bg-gradient-to-br from-purple-600 to-fuchsia-700',
-    baroda: 'bg-gradient-to-br from-red-600 to-orange-600',
-    canara: 'bg-gradient-to-br from-blue-500 to-sky-700',
-    idfc: 'bg-gradient-to-br from-rose-600 to-pink-700',
-    federal: 'bg-gradient-to-br from-slate-600 to-zinc-700',
-    rbl: 'bg-gradient-to-br from-fuchsia-600 to-purple-700',
-    hsbc: 'bg-gradient-to-br from-red-600 to-pink-700',
-    citi: 'bg-gradient-to-br from-sky-600 to-blue-700',
-    amex: 'bg-gradient-to-br from-emerald-600 to-green-700'
+  const formatCardTabLabel = (card: Card) => {
+    const bank = (card.bank_name || 'Card').trim().split(/\s+/)[0];
+    return `${bank} - XXXX${card.last_four_digits}`;
   };
 
-  const cardGradients = [
-    'bg-gradient-to-br from-blue-600 to-cyan-700',
-    'bg-gradient-to-br from-emerald-600 to-teal-700',
-    'bg-gradient-to-br from-amber-500 to-orange-700',
-    'bg-gradient-to-br from-rose-600 to-pink-700',
-    'bg-gradient-to-br from-indigo-600 to-sky-700',
-    'bg-gradient-to-br from-lime-600 to-green-700',
-    'bg-gradient-to-br from-fuchsia-600 to-purple-700',
-    'bg-gradient-to-br from-slate-600 to-zinc-700'
-  ];
-
-  const normalizeBankName = (value: string) =>
-    value
-      .toLowerCase()
-      .replace(/bank/g, '')
-      .replace(/[^a-z0-9]/g, '');
-
-  const getCardGradient = (bankName: string | undefined, cardType: Card['card_type']) => {
-    const name = bankName?.trim();
-    if (!name) {
-      return cardType === 'credit'
-        ? 'bg-gradient-to-br from-purple-600 to-indigo-700'
-        : 'bg-gradient-to-br from-blue-600 to-cyan-700';
-    }
-
-    const normalized = normalizeBankName(name);
-    for (const [key, gradient] of Object.entries(bankGradientMap)) {
-      if (normalized.includes(key)) return gradient;
-    }
-
-    let hash = 0;
-    for (let i = 0; i < name.length; i += 1) {
-      hash = (hash * 31 + name.charCodeAt(i)) % cardGradients.length;
-    }
-    return cardGradients[hash];
-  };
-
-  const getCardSpend = (card: Card) => {
-    const total = transactions.reduce((sum, tx) => {
-      if (tx.type !== 'expense') return sum;
-      if (tx.card_id !== card.id) return sum;
-      return sum + (tx.amount || 0);
-    }, 0);
-    return total;
-  };
-
-  const summary = (() => {
+  const summary = useMemo(() => {
     const totalSpending = transactions.reduce((sum, tx) => {
       if (tx.type === 'expense') return sum + (tx.amount || 0);
       return sum;
@@ -125,7 +74,7 @@ export default function Cards() {
       totalLimit,
       avgSpend
     };
-  })();
+  }, [cards, transactions]);
 
   const suggestedBankNames = (() => {
     const map = new Map<string, string>();
@@ -159,6 +108,7 @@ export default function Cards() {
     last_four_digits: '',
     card_limit: '',
     billing_date: '',
+    background_color: CARD_COLOR_PRESETS[0],
     status: 'active'
   });
 
@@ -171,6 +121,25 @@ export default function Cards() {
       loadCards();
     }
   }, [familyId]);
+
+  useEffect(() => {
+    if (cards.length === 0) {
+      setSelectedCardId('');
+      setSelectedTransactions([]);
+      return;
+    }
+
+    const selectedExists = cards.some((card) => card.id === selectedCardId);
+    if (!selectedExists) {
+      setSelectedCardId(cards[0].id);
+    }
+  }, [cards, selectedCardId]);
+
+  useEffect(() => {
+    if (familyId && selectedCardId) {
+      void loadSelectedCardTransactions(selectedCardId);
+    }
+  }, [familyId, selectedCardId]);
 
   const loadFamily = async () => {
     try {
@@ -199,6 +168,19 @@ export default function Cards() {
     }
   };
 
+  const loadSelectedCardTransactions = async (cardId: string) => {
+    setDetailsLoading(true);
+    try {
+      const tx = await financeAPI.listTransactions(familyId, { card_id: cardId });
+      setSelectedTransactions(tx);
+    } catch (error) {
+      console.error('Failed to load card transactions', error);
+      setSelectedTransactions([]);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -206,6 +188,7 @@ export default function Cards() {
     try {
       const cardData: Partial<Card> = {
         ...formData,
+        background_color: isValidHexColor(formData.background_color) ? formData.background_color : null,
         card_limit: formData.card_limit ? parseFloat(formData.card_limit) : undefined,
         billing_date: formData.billing_date ? parseInt(formData.billing_date) : undefined
       };
@@ -235,6 +218,7 @@ export default function Cards() {
       last_four_digits: card.last_four_digits,
       card_limit: card.card_limit?.toString() || '',
       billing_date: card.billing_date?.toString() || '',
+      background_color: getSafeBackgroundColor(card.background_color),
       status: card.status
     });
     setShowModal(true);
@@ -259,6 +243,7 @@ export default function Cards() {
       last_four_digits: '',
       card_limit: '',
       billing_date: '',
+      background_color: CARD_COLOR_PRESETS[0],
       status: 'active'
     });
     setEditingCard(null);
@@ -268,6 +253,8 @@ export default function Cards() {
     setMobileMenuOpen(!mobileMenuOpen);
     setSidebarCollapsed(!sidebarCollapsed);
   };
+
+  const selectedCard = cards.find((card) => card.id === selectedCardId) ?? null;
 
   return (
     <div className="flex h-screen overflow-hidden app-shell">
@@ -282,18 +269,18 @@ export default function Cards() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={handleMenuToggle} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
+        <main className="flex-1 px-3 md:px-5 py-3 overflow-y-auto">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={() => navigate('/finance')}
-                className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface"
+                className="icon-button glass-black-surface"
               >
-                <ArrowLeft className="w-5 h-5 text-[var(--app-fg)]" />
+                <ArrowLeft className="w-4.5 h-4.5 text-[var(--app-fg)]" />
               </button>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-[var(--app-fg)]">My Cards</h2>
-                <p className="text-[var(--app-fg-muted)] mt-1">{cards.length} cards</p>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[1.375rem] font-bold text-[var(--app-fg)] tracking-tight">My Cards</h2>
+                <p className="text-xs text-[var(--app-fg-muted)] mt-0.5">{cards.length} cards</p>
               </div>
               {userRole === 'admin' && (
                 <button
@@ -301,149 +288,91 @@ export default function Cards() {
                     resetForm();
                     setShowModal(true);
                   }}
-                  className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 ai-gradient-button text-white px-4 rounded-lg font-medium"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4.5 h-4.5" />
                   Add Card
                 </button>
               )}
             </div>
 
-            <div className="premium-panel rounded-2xl border border-[var(--panel-border)] p-5">
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 text-sm">
-                <div>
-                  <p className="text-[var(--app-fg-muted)]">Total Spending</p>
-                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+            <div className="premium-panel rounded-xl border border-[var(--panel-border)] p-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 text-sm">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Total Spending</p>
+                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
                     ₹{summary.totalSpending.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-[var(--app-fg-muted)]">Total Payments</p>
-                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Total Payments</p>
+                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
                     ₹{summary.totalPayments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-[var(--app-fg-muted)]">Statement Due (This Month)</p>
-                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Statement Due</p>
+                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
                     ₹{summary.statementDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-[var(--app-fg-muted)]">Active Cards</p>
-                  <p className="text-lg font-semibold text-[var(--app-fg)]">{summary.activeCards}</p>
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Active Cards</p>
+                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">{summary.activeCards}</p>
                 </div>
-                <div>
-                  <p className="text-[var(--app-fg-muted)]">Total Credit Limit</p>
-                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Total Credit Limit</p>
+                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
                     ₹{summary.totalLimit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-[var(--app-fg-muted)]">Avg Spend / Card</p>
-                  <p className="text-lg font-semibold text-[var(--app-fg)]">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Avg Spend / Card</p>
+                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
                     ₹{summary.avgSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {cards.map((card) => (
-                <div key={card.id} className="space-y-3">
-                  <div
-                    className={`relative overflow-hidden rounded-2xl text-white shadow-xl ${getCardGradient(
-                      card.bank_name,
-                      card.card_type
-                    )}`}
-                    style={{ aspectRatio: '1.586', minHeight: '200px' }}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => navigate(`/finance/cards/${card.id}`)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        navigate(`/finance/cards/${card.id}`);
-                      }
-                    }}
-                  >
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute -top-14 -right-10 h-36 w-36 rounded-full bg-white/20 blur-3xl" />
-                      <div className="absolute bottom-0 left-0 h-24 w-24 rounded-full bg-black/20 blur-2xl" />
-                    </div>
+            <div className="rounded-xl border border-[var(--panel-border)] p-3 glass-black-surface">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-[var(--app-fg)]">Card Tabs</h3>
+                <p className="text-[11px] text-[var(--app-fg-muted)] mt-0.5">Choose a card tab to view details and transactions below.</p>
+              </div>
 
-                    {userRole === 'admin' && (
-                      <div className="absolute top-4 right-4 flex gap-2">
-                        <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleEdit(card);
-                          }}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 bg-white/80 hover:bg-indigo-50 dark:bg-slate-900/70 dark:hover:bg-indigo-900/30"
-                          aria-label="Edit card"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleDelete(card.id);
-                          }}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 bg-white/80 hover:bg-red-50 dark:bg-slate-900/70 dark:hover:bg-red-900/30"
-                          aria-label="Delete card"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="relative p-6 h-full flex flex-col justify-between">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <p className="text-[11px] uppercase tracking-[0.18em] text-white/80">
-                            {card.bank_name || 'Bank'}
-                          </p>
-                          <p className="text-sm font-semibold truncate">{card.card_name || 'Card'}</p>
-                        </div>
-                        <span className="text-[10px] uppercase bg-white/20 px-2 py-1 rounded">
-                          {card.card_type}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="h-9 w-12 rounded-md bg-white/25 border border-white/30 shadow-inner">
-                          <div className="h-full w-full rounded-md bg-gradient-to-br from-white/30 to-transparent" />
-                        </div>
-                        <CreditCard className="w-10 h-10 opacity-70" />
-                      </div>
-
-                      <div className="flex items-end justify-between gap-4">
-                        <p className="text-base font-mono tracking-[0.28em]">•••• {card.last_four_digits}</p>
-                        <div className="text-right text-[11px] text-white/80 space-y-1">
-                          {card.card_limit && (
-                            <div>
-                              <p className="uppercase tracking-[0.12em]">Limit</p>
-                              <p className="text-[12px] font-semibold text-white">
-                                ₹{parseFloat(card.card_limit.toString()).toFixed(2)}
-                              </p>
-                            </div>
-                          )}
-                          {card.billing_date && (
-                            <p>Bill {card.billing_date} / month</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between px-1 text-sm text-[var(--app-fg-muted)]">
-                    <span>Card wise spend</span>
-                    <span className="font-semibold text-[var(--app-fg)]">
-                      ₹{getCardSpend(card).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
+              {cards.length > 0 && (
+                <div className="border-b border-[var(--panel-border)] mb-3">
+                  <div className="flex gap-1.5 overflow-x-auto pb-0">
+                    {cards.map((card) => (
+                      <button
+                        key={card.id}
+                        type="button"
+                        onClick={() => setSelectedCardId(card.id)}
+                        className={`shrink-0 rounded-t-lg border border-b-0 px-3 py-2 text-sm font-medium transition-colors ${
+                          selectedCardId === card.id
+                            ? 'bg-[var(--panel-bg)] text-[var(--primary-text)] border-[var(--panel-border)] shadow-sm relative'
+                            : 'bg-[var(--surface-muted)] text-[var(--app-fg-muted)] border-transparent hover:text-[var(--app-fg)] hover:bg-[var(--surface-subtle)]'
+                        }`}
+                        style={selectedCardId === card.id ? {
+                          boxShadow: 'inset 0 2px 0 var(--primary), 0 -1px 0 var(--panel-bg)',
+                        } : undefined}
+                      >
+                        <span className="whitespace-nowrap">{formatCardTabLabel(card)}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              <CardDetailsPanel
+                card={selectedCard}
+                transactions={selectedTransactions}
+                isLoading={detailsLoading}
+                onRefresh={() => selectedCardId ? loadSelectedCardTransactions(selectedCardId) : undefined}
+                onEdit={userRole === 'admin' ? handleEdit : undefined}
+                onDelete={userRole === 'admin' ? handleDelete : undefined}
+              />
             </div>
 
             {cards.length === 0 && (
@@ -482,6 +411,7 @@ export default function Cards() {
                     last_four_digits: parsed.last_four_digits || '',
                     card_limit: parsed.card_limit?.toString() || '',
                     billing_date: '',
+                    background_color: getSafeBackgroundColor(formData.background_color),
                     status: 'active'
                   });
                 }}
@@ -547,6 +477,38 @@ export default function Cards() {
                   placeholder="1234"
                   className="input-theme"
                 />
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Background</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={getSafeBackgroundColor(formData.background_color)}
+                    onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                    className="h-11 w-14 cursor-pointer rounded-md border border-[var(--panel-border)] bg-transparent p-1"
+                    aria-label="Choose card background color"
+                  />
+                  <input
+                    type="text"
+                    value={formData.background_color}
+                    onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                    placeholder="#1d4ed8"
+                    className="input-theme"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {CARD_COLOR_PRESETS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, background_color: color })}
+                      className={`h-8 w-8 rounded-full border-2 ${formData.background_color === color ? 'border-white ring-2 ring-[var(--brand-primary)]' : 'border-white/40'}`}
+                      style={{ backgroundColor: color }}
+                      aria-label={`Use ${color} for card background`}
+                    />
+                  ))}
+                </div>
               </div>
 
               {formData.card_type === 'credit' && (

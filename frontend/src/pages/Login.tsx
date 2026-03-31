@@ -140,7 +140,7 @@ export default function Login() {
                 setEmail('');
                 setPassword('');
               }}
-              className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="text-sm text-primary-600 dark:text-primary-400 hover:underline font-medium"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>

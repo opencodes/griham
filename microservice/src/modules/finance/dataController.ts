@@ -368,6 +368,7 @@ export const financeDataController = {
       last_four_digits?: string;
       card_limit?: number;
       billing_date?: number;
+      background_color?: string | null;
       status?: string;
     };
     const family_id = body.family_id;
@@ -385,6 +386,7 @@ export const financeDataController = {
       last_four_digits: body.last_four_digits ?? '0000',
       card_limit: body.card_limit ?? null,
       billing_date: body.billing_date ?? null,
+      background_color: body.background_color?.trim() || null,
       status: (body.status as 'active' | 'inactive' | 'blocked') ?? 'active',
     });
     const card = await CardModel.findById(id).lean();
@@ -398,13 +400,14 @@ export const financeDataController = {
       res.fail('Card not found', 404);
       return;
     }
-    const body = req.body as Partial<{ card_type: string; bank_name: string; card_name: string; last_four_digits: string; card_limit: number; billing_date: number; status: string }>;
+    const body = req.body as Partial<{ card_type: string; bank_name: string; card_name: string; last_four_digits: string; card_limit: number | null; billing_date: number | null; background_color: string | null; status: string }>;
     if (body.card_type !== undefined) card.card_type = body.card_type as 'credit' | 'debit';
     if (body.bank_name !== undefined) card.bank_name = body.bank_name;
     if (body.card_name !== undefined) card.card_name = body.card_name;
     if (body.last_four_digits !== undefined) card.last_four_digits = body.last_four_digits;
     if (body.card_limit !== undefined) card.card_limit = body.card_limit;
     if (body.billing_date !== undefined) card.billing_date = body.billing_date;
+    if (body.background_color !== undefined) card.background_color = body.background_color?.trim() || null;
     if (body.status !== undefined) card.status = body.status as 'active' | 'inactive' | 'blocked';
     await card.save();
     res.success(toId(card.toObject()));

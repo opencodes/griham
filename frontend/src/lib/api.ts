@@ -161,6 +161,7 @@ export interface Card {
   last_four_digits: string;
   card_limit?: number;
   billing_date?: number;
+  background_color?: string | null;
   status: 'active' | 'inactive' | 'blocked';
   created_at: string;
 }

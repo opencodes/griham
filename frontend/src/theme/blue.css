@@ -9,7 +9,7 @@
  */
 
 /* ---------------------------------------------------------------------------
-   Raw palette (use in components or for gradients with restraint)
+   Raw palette
    --------------------------------------------------------------------------- */
 html.theme-blue {
   /* Primary palette */
@@ -24,6 +24,13 @@ html.theme-blue {
   /* Accent – use sparingly, not as text */
   --accent-magenta: #FF007F;
   --accent-orange: #FF9000;
+
+  /* Override primary token for blue theme */
+  --primary: var(--medium-blue);
+  --primary-hover: #084bc9;
+  --primary-light: rgba(10, 96, 255, 0.10);
+  --primary-ring: rgba(10, 96, 255, 0.35);
+  --primary-text: var(--medium-blue);
 }
 
 /* ---------------------------------------------------------------------------
@@ -31,74 +38,89 @@ html.theme-blue {
    --------------------------------------------------------------------------- */
 html.theme-blue {
   color-scheme: light;
-  --app-fg: var(--midnight-blue);
-  --app-fg-muted: #3d5a80;
+  --app-fg: #0f1e33;         /* slightly lighter than midnight for readability */
+  --app-fg-muted: #48647f;
+  --app-fg-subtle: #7a95ae;
   --input-bg: var(--blue-white);
-  --input-border: rgba(7, 24, 45, 0.18);
+  --input-border: rgba(7, 24, 45, 0.14);
   --input-text: var(--midnight-blue);
-  --input-placeholder: #5c7a9e;
-  --input-focus-ring: rgba(10, 96, 255, 0.35);
-  --alert-error-bg: rgba(255, 0, 127, 0.08);
-  --alert-error-border: rgba(255, 0, 127, 0.35);
+  --input-placeholder: #8da4bd;
+  --input-focus-ring: rgba(10, 96, 255, 0.30);
+  --alert-error-bg: rgba(255, 0, 127, 0.06);
+  --alert-error-border: rgba(255, 0, 127, 0.25);
   --alert-error-text: #b8005c;
-  --alert-success-bg: rgba(2, 200, 255, 0.08);
-  --alert-success-border: rgba(2, 200, 255, 0.4);
+  --alert-success-bg: rgba(2, 200, 255, 0.06);
+  --alert-success-border: rgba(2, 200, 255, 0.30);
   --alert-success-text: #018aa3;
   --app-bg: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.98) 0%,
-      rgba(248, 250, 253, 0.99) 45%,
-      rgba(240, 245, 252, 1) 100%
-    ),
-    radial-gradient(circle at 8% 10%, rgba(255, 255, 255, 0.7), transparent 36%),
-    radial-gradient(circle at 88% 0%, rgba(2, 200, 255, 0.06), transparent 32%);
-  --panel-bg: rgba(255, 255, 255, 0.9);
-  --panel-border: rgba(7, 24, 45, 0.12);
-  --panel-shadow: 0 18px 42px -24px rgba(7, 24, 45, 0.12);
+      155deg,
+      #ffffff 0%,
+      #f7f9fc 40%,
+      #eef3f9 100%
+  );
+  --panel-bg: rgba(255, 255, 255, 0.92);
+  --panel-border: rgba(7, 24, 45, 0.08);
+  --panel-shadow: 0 1px 3px rgba(7, 24, 45, 0.04), 0 8px 28px -8px rgba(7, 24, 45, 0.07);
+  --panel-shadow-lg: 0 4px 8px -2px rgba(7, 24, 45, 0.06), 0 16px 44px -12px rgba(7, 24, 45, 0.10);
 }
 
 /* Primary / CTA – Medium Blue (accessible on White) */
 html.theme-blue .input-theme:focus {
   border-color: var(--medium-blue);
-  box-shadow: 0 0 0 2px var(--input-focus-ring);
+  box-shadow: 0 0 0 3px var(--input-focus-ring);
 }
 
 html.theme-blue .btn-secondary:hover:not(:disabled) {
-  background: rgba(7, 24, 45, 0.06);
+  background: rgba(7, 24, 45, 0.04);
 }
 
 /* Glass / panels – light */
 html.theme-blue .glass-black-surface,
 html.theme-blue .premium-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(7, 24, 45, 0.14);
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(7, 24, 45, 0.08);
   box-shadow: var(--panel-shadow);
+  backdrop-filter: saturate(140%) blur(12px);
+}
+html.theme-blue .glass-black-surface:hover {
+  box-shadow: var(--panel-shadow-lg);
 }
 
 html.theme-blue .glass-black-soft {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(7, 24, 45, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(7, 24, 45, 0.08);
 }
 
 /* Hero / feature card – restrained gradient from palette */
 html.theme-blue .hero-ai-card {
-  border-color: rgba(7, 24, 45, 0.1);
+  border-color: rgba(7, 24, 45, 0.06);
+  border-radius: var(--radius-lg);
   background: linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.95) 0%,
       rgba(240, 248, 255, 0.96) 50%,
       rgba(255, 255, 255, 0.95) 100%
     ),
-    radial-gradient(circle at 80% 20%, rgba(2, 200, 255, 0.08), transparent 40%),
-    radial-gradient(circle at 20% 80%, rgba(10, 96, 255, 0.06), transparent 40%);
+    radial-gradient(circle at 80% 20%, rgba(2, 200, 255, 0.06), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(10, 96, 255, 0.04), transparent 40%);
 }
 
-/* Primary button – Medium Blue (not accent-only) */
+/* Hero wallpaper – subtle tint */
+html.theme-blue .hero-ai-wallpaper {
+  background:
+    radial-gradient(circle at 12% 86%, rgba(2, 200, 255, 0.12), transparent 42%),
+    radial-gradient(circle at 80% 20%, rgba(10, 96, 255, 0.08), transparent 46%);
+}
+
+/* Primary button – Medium Blue */
 html.theme-blue .ai-gradient-button {
-  border-color: rgba(255, 255, 255, 0.3);
+  border: none;
   color: var(--blue-white);
   background: linear-gradient(135deg, var(--medium-blue) 0%, #084bc9 50%, var(--blue-accent) 100%);
-  box-shadow: 0 12px 28px -14px rgba(10, 96, 255, 0.45);
+  box-shadow: 0 4px 18px -6px rgba(10, 96, 255, 0.45);
+}
+html.theme-blue .ai-gradient-button:hover:not(:disabled) {
+  box-shadow: 0 6px 22px -4px rgba(10, 96, 255, 0.55);
 }
 
 html.theme-blue .ai-gradient-icon {
@@ -106,84 +128,110 @@ html.theme-blue .ai-gradient-icon {
 }
 
 html.theme-blue .ai-gradient-note {
-  border-color: rgba(10, 96, 255, 0.2);
+  border-color: rgba(10, 96, 255, 0.15);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 255, 0.98) 100%);
 }
 
 /* Scrollbar */
 html.theme-blue * {
-  scrollbar-color: rgba(7, 24, 45, 0.25) transparent;
+  scrollbar-color: rgba(7, 24, 45, 0.18) transparent;
+}
+html.theme-blue *::-webkit-scrollbar-thumb {
+  background: rgba(7, 24, 45, 0.18);
+}
+html.theme-blue *::-webkit-scrollbar-thumb:hover {
+  background: rgba(7, 24, 45, 0.32);
 }
 
-html.theme-blue *::-webkit-scrollbar-thumb {
-  background: rgba(7, 24, 45, 0.25);
+/* Focus ring override for blue theme */
+html.theme-blue .focus\:ring-indigo-500:focus,
+html.theme-blue .focus\:ring-2:focus {
+  --tw-ring-color: rgba(10, 96, 255, 0.35) !important;
 }
 
 /* ---------------------------------------------------------------------------
    Dark mode – anchored in Midnight Blue (~70%), text White
-   (App toggles .dark on document.documentElement via useDarkMode)
    --------------------------------------------------------------------------- */
 html.theme-blue.dark {
   color-scheme: dark;
-  --app-fg: var(--blue-white);
-  --app-fg-muted: rgba(255, 255, 255, 0.7);
+  --app-fg: rgba(255, 255, 255, 0.95);
+  --app-fg-muted: rgba(255, 255, 255, 0.60);
+  --app-fg-subtle: rgba(255, 255, 255, 0.40);
   --input-bg: rgba(7, 24, 45, 0.85);
-  --input-border: rgba(255, 255, 255, 0.18);
+  --input-border: rgba(255, 255, 255, 0.12);
   --input-text: var(--blue-white);
-  --input-placeholder: rgba(255, 255, 255, 0.5);
-  --input-focus-ring: rgba(2, 200, 255, 0.4);
-  --alert-error-bg: rgba(255, 0, 127, 0.15);
-  --alert-error-border: rgba(255, 0, 127, 0.4);
+  --input-placeholder: rgba(255, 255, 255, 0.40);
+  --input-focus-ring: rgba(2, 200, 255, 0.35);
+  --alert-error-bg: rgba(255, 0, 127, 0.12);
+  --alert-error-border: rgba(255, 0, 127, 0.30);
   --alert-error-text: #ff6bab;
-  --alert-success-bg: rgba(2, 200, 255, 0.12);
-  --alert-success-border: rgba(2, 200, 255, 0.35);
+  --alert-success-bg: rgba(2, 200, 255, 0.10);
+  --alert-success-border: rgba(2, 200, 255, 0.30);
   --alert-success-text: #67e0ff;
   --app-bg: linear-gradient(
-      145deg,
-      var(--midnight-blue) 0%,
-      #0a2342 45%,
+      155deg,
+      #050e1a 0%,
+      #0a1e38 45%,
       #0d1526 100%
     ),
-    radial-gradient(circle at 12% 8%, rgba(2, 200, 255, 0.12), transparent 34%),
-    radial-gradient(circle at 88% 0%, rgba(10, 96, 255, 0.08), transparent 30%);
-  --panel-bg: rgba(7, 24, 45, 0.88);
-  --panel-border: rgba(255, 255, 255, 0.1);
-  --panel-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.6);
+    radial-gradient(circle at 12% 8%, rgba(2, 200, 255, 0.08), transparent 34%),
+    radial-gradient(circle at 88% 0%, rgba(10, 96, 255, 0.05), transparent 30%);
+  --panel-bg: rgba(7, 24, 45, 0.90);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 32px -8px rgba(0, 0, 0, 0.5);
+  --panel-shadow-lg: 0 4px 8px -2px rgba(0, 0, 0, 0.35), 0 16px 48px -12px rgba(0, 0, 0, 0.6);
+
+  --primary-light: rgba(2, 200, 255, 0.12);
+  --primary-text: var(--blue-accent);
 }
 
 html.theme-blue.dark .btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 html.theme-blue.dark .glass-black-surface,
 html.theme-blue.dark .premium-panel {
-  background: linear-gradient(160deg, rgba(7, 24, 45, 0.95), rgba(10, 30, 55, 0.92));
+  background: linear-gradient(160deg, rgba(7, 24, 45, 0.96), rgba(12, 32, 58, 0.94));
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(14px) saturate(130%);
+}
+html.theme-blue.dark .glass-black-surface:hover {
+  box-shadow: var(--panel-shadow-lg);
   border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 18px 48px -28px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 html.theme-blue.dark .glass-black-soft {
-  background: rgba(7, 24, 45, 0.7);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(7, 24, 45, 0.72);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 html.theme-blue.dark .hero-ai-card {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.08);
   background: linear-gradient(
       135deg,
       rgba(7, 24, 45, 0.98) 0%,
       rgba(12, 35, 65, 0.98) 50%,
       rgba(7, 24, 45, 0.98) 100%
     ),
-    radial-gradient(circle at 80% 20%, rgba(2, 200, 255, 0.1), transparent 40%),
-    radial-gradient(circle at 20% 80%, rgba(10, 96, 255, 0.08), transparent 40%);
+    radial-gradient(circle at 80% 20%, rgba(2, 200, 255, 0.06), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(10, 96, 255, 0.04), transparent 40%);
+}
+
+html.theme-blue.dark .hero-ai-wallpaper {
+  background:
+    radial-gradient(circle at 12% 86%, rgba(2, 200, 255, 0.08), transparent 42%),
+    radial-gradient(circle at 80% 20%, rgba(10, 96, 255, 0.06), transparent 46%);
 }
 
 html.theme-blue.dark .ai-gradient-button {
-  border-color: rgba(255, 255, 255, 0.25);
+  border: none;
   color: var(--blue-white);
   background: linear-gradient(135deg, var(--medium-blue) 0%, var(--blue-accent) 100%);
-  box-shadow: 0 12px 28px -14px rgba(2, 200, 255, 0.35);
+  box-shadow: 0 4px 18px -6px rgba(2, 200, 255, 0.35);
+}
+html.theme-blue.dark .ai-gradient-button:hover:not(:disabled) {
+  box-shadow: 0 6px 22px -4px rgba(2, 200, 255, 0.45);
 }
 
 html.theme-blue.dark .ai-gradient-icon {
@@ -191,14 +239,16 @@ html.theme-blue.dark .ai-gradient-icon {
 }
 
 html.theme-blue.dark .ai-gradient-note {
-  border-color: rgba(2, 200, 255, 0.25);
-  background: linear-gradient(135deg, rgba(7, 24, 45, 0.95) 0%, rgba(15, 45, 80, 0.9) 100%);
+  border-color: rgba(2, 200, 255, 0.20);
+  background: linear-gradient(135deg, rgba(7, 24, 45, 0.95) 0%, rgba(15, 45, 80, 0.92) 100%);
 }
 
 html.theme-blue.dark *::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
 }
-
+html.theme-blue.dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
 html.theme-blue.dark * {
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
