@@ -2,6 +2,7 @@ import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTo
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { canAccessModule, isAdminUser } from '@/lib/permissions';
+import { ThemeLogo } from '@/components/ThemeLogo';
 
 interface SidebarProps {
   activeTab?: string;
@@ -70,9 +71,7 @@ export function Sidebar({ mobileOpen, onMobileToggle, isCollapsed = false }: Sid
         {/* Logo */}
         <div className={`border-b border-[var(--panel-border)] h-[64px] flex items-center justify-between ${isCollapsed ? 'px-3 py-2.5' : 'px-4 py-3'}`}>
           <div className={`flex items-center gap-3 ${isCollapsed ? 'md:justify-center md:w-full' : ''}`}>
-            <div className="w-9 h-9 min-w-9 min-h-9 rounded-lg ai-gradient-icon flex items-center justify-center shadow-ai-soft">
-              <Home className="w-4.5 h-4.5 text-white" />
-            </div>
+            <ThemeLogo className="w-9 h-9 min-w-9 min-h-9" />
             <div className={`${isCollapsed ? 'md:hidden' : ''}`}>
               <p className="text-[15px] font-bold text-[var(--app-fg)] leading-tight tracking-[-0.02em]">Griham</p>
               <p className="text-[10px] text-[var(--app-fg-muted)] leading-tight mt-0.5">Home Automation</p>

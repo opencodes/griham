@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Home, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { ThemeLogo } from '@/components/ThemeLogo';
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -37,9 +38,7 @@ export default function Login() {
     <div className="min-h-screen hero-ai-wallpaper flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-12 h-12 rounded-xl ai-gradient-icon flex items-center justify-center shadow-lg">
-            <Home className="w-7 h-7 text-white" />
-          </div>
+          <ThemeLogo className="w-12 h-12" />
           <div>
             <p className="text-2xl font-bold text-[var(--app-fg)]">Griham</p>
             <p className="text-sm text-[var(--app-fg-muted)]">Home Automation</p>
