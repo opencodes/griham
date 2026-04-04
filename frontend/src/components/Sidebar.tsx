@@ -33,6 +33,7 @@ export function Sidebar({ mobileOpen, onMobileToggle, isCollapsed = false }: Sid
   const rootNavItems = [
     { id: 'root-permissions', label: 'Permissions', icon: Shield, path: '/root/permissions' },
     { id: 'root-roles', label: 'Roles', icon: UserCog, path: '/root/roles' },
+    { id: 'root-users', label: 'Users', icon: Users, path: '/root/users' },
     { id: 'root-groups', label: 'Groups', icon: UsersRound, path: '/root/groups' },
     { id: 'root-prompts', label: 'Prompt Lab', icon: FlaskConical, path: '/root/prompts' },
   ];

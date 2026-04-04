@@ -124,10 +124,12 @@ export default function FamilyDetail() {
     if (!createName.trim()) return;
     setIsCreating(true);
     try {
-      // const created = await householdAPI.create(createName.trim(), createAddress.trim() || undefined);
+      const created = await householdAPI.create(createName.trim(), createAddress.trim() || undefined);
       setShowCreateModal(false);
       setCreateName('');
       setCreateAddress('');
+      // Navigate to the newly created family
+      navigate(`/family/${created.id}`);
     } catch (error) {
       console.error('Failed to create family', error);
     } finally {

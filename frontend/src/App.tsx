@@ -29,6 +29,7 @@ import Settings from './pages/Settings';
 import AIUsage from './pages/AIUsage';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
+import RootUsers from './pages/RootUsers';
 import RootGroups from './pages/RootGroups';
 import RootPromptLab from './pages/RootPromptLab';
 import { canAccessModule, isAdminUser } from './lib/permissions';
@@ -89,6 +90,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/root/users"
+          element={
+            <ProtectedRoute>
+              <RootUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/root/groups"
           element={
             <ProtectedRoute>
@@ -123,6 +132,16 @@ function AppRoutes() {
       />
       <Route
         path="/family"
+        element={
+          <ProtectedRoute>
+            <PermissionRoute moduleKey="family">
+              <FamilyDetail />
+            </PermissionRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/family/:id"
         element={
           <ProtectedRoute>
             <PermissionRoute moduleKey="family">

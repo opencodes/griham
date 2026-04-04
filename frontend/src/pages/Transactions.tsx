@@ -7,7 +7,7 @@ import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
 import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
 import SMSParser from '@/components/SMSParser';
-import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus, Sparkles, Pencil } from 'lucide-react';
+import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus, Sparkles, Pencil, MessageSquare, X } from 'lucide-react';
 
 type TypeFilter = 'all' | 'income' | 'expense';
 type SortBy = 'newest' | 'oldest' | 'amount_high' | 'amount_low';
@@ -76,6 +76,7 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showSMSModal, setShowSMSModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [suggestCategoryLoading, setSuggestCategoryLoading] = useState(false);
@@ -116,7 +117,7 @@ export default function TransactionsPage() {
       .then((res) => {
         if (!cancelled && Array.isArray(res?.insights)) setCategoryInsights(res.insights);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         if (!cancelled) setCategoryInsightsLoading(false);
       });
@@ -509,8 +510,15 @@ export default function TransactionsPage() {
                   Reset filters
                 </button>
 
-                {familyId && (
-                  <SMSParser familyId={familyId} onSuccess={() => { loadTransactions(); loadAccounts(); }} />
+
+                {userRole === 'admin' && (
+                  <button
+                    onClick={() => setShowSMSModal(true)}
+                    className="inline-flex h-11 items-center gap-2 ai-gradient-button px-4 rounded-lg text-sm font-medium whitespace-nowrap"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Add from SMS
+                  </button>
                 )}
 
                 {userRole === 'admin' && (
@@ -603,11 +611,10 @@ export default function TransactionsPage() {
                   <button
                     type="button"
                     onClick={() => setAiSearchMode(!aiSearchMode)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition whitespace-nowrap ${
-                      aiSearchMode
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition whitespace-nowrap ${aiSearchMode
                         ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
                         : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                    }`}
+                      }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     AI search
@@ -644,11 +651,10 @@ export default function TransactionsPage() {
                       key={type}
                       type="button"
                       onClick={() => setTypeFilter(type)}
-                      className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition ${
-                        typeFilter === type
+                      className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition ${typeFilter === type
                           ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow-sm'
                           : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                      }`}
+                        }`}
                     >
                       {type === 'all' ? 'All' : type === 'income' ? 'Income' : 'Expense'}
                     </button>
@@ -775,11 +781,10 @@ export default function TransactionsPage() {
 
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                                        isIncome
+                                      <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${isIncome
                                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                                           : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                                      }`}>
+                                        }`}>
                                         {isIncome ? 'Income' : 'Expense'}
                                       </span>
                                       {eventName && (
@@ -804,13 +809,13 @@ export default function TransactionsPage() {
                                     {isIncome ? '+' : '-'}{formatCurrency(amount)}
                                   </p>
                                   {userRole === 'admin' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => void openEditModal(tx)}
-                                    className="mt-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition"
-                                    aria-label={`Edit transaction ${title}`}
-                                  >
-                                    <Pencil className="w-4 h-4" />
+                                    <button
+                                      type="button"
+                                      onClick={() => void openEditModal(tx)}
+                                      className="mt-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition"
+                                      aria-label={`Edit transaction ${title}`}
+                                    >
+                                      <Pencil className="w-4 h-4" />
                                     </button>
                                   )}
                                 </div>
@@ -963,6 +968,26 @@ export default function TransactionsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSMSModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="premium-panel rounded-2xl shadow-xl max-w-md w-full p-6 border border-[var(--panel-border)]">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-[var(--app-fg)]" />
+                <h2 className="text-2xl font-bold text-[var(--app-fg)]">Parse SMS</h2>
+              </div>
+              <button
+                onClick={() => setShowSMSModal(false)}
+                className="text-[var(--app-fg-muted)] hover:text-[var(--app-fg)]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <SMSParser familyId={familyId} onSuccess={() => { loadTransactions(); loadAccounts(); }} onClose={() => setShowSMSModal(false)} />
           </div>
         </div>
       )}

@@ -831,6 +831,10 @@ export const adminAPI = {
     const { data } = await api.get('/admin/users');
     return data.data;
   },
+  createUser: async (payload: { email: string; password: string; full_name: string; phone?: string; rbac_role_id: string }): Promise<User> => {
+    const { data } = await api.post('/admin/users', payload);
+    return data.data;
+  },
   resetUserPassword: async (userId: string, newPassword: string): Promise<void> => {
     await api.put(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
   },
