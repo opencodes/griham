@@ -362,7 +362,9 @@ export const financeController = {
         status: auditMeta.status,
         parse_type: 'transaction_sms',
         transaction_id: null,
-      });
+      }); 
+
+      console.log("Parsed SMS data:", parsed);
 
       if (!parsed || parsed.amount <= 0) {
         res.fail('Could not extract a valid transaction from the SMS', 400);
@@ -375,35 +377,34 @@ export const financeController = {
         : link.accounts[0]?._id ?? null;
       const accountId = link.matchedAccount?._id ?? fallbackAccountId;
       const cardId = link.matchedCard?._id ?? null;
+      console.log("link " , link, "accountId ", accountId, "cardId ", cardId, "fallbackAccountId",);
       const linkedPaymentSource = cardId
         ? 'card'
         : accountId
           ? 'account'
           : null;
-      if ((!accountId && !cardId) || !userId) {
-        await AiModel.updateOne(
-          { _id: auditId },
-          { $set: { status: 'transaction_pending' } }
-        );
-        res.success({
-          parsed: {
-            ...parsed,
-            linked_account_id: accountId,
-            linked_card_id: cardId,
-            linked_payment_source: linkedPaymentSource,
-            matched_last_four_digits: link.matchedLast4,
-          },
-          created: false,
-          ai_model_id: auditId,
-          message: 'Add a matching bank account or card and ensure you are logged in to auto-create the transaction.',
-        });
-        return;
-      }
+      console.log("link " , linkedPaymentSource);
+      
 
       const transactionDate = parsed.transaction_date
         ? new Date(parsed.transaction_date)
         : new Date();
       const id = uuidv4();
+      console.log("Transaction Creating For - ",{
+        _id: id,
+        family_id: familyId,
+        account_id: accountId,
+        card_id: cardId,
+        type: parsed.type,
+        category: parsed.category,
+        amount: parsed.amount,
+        description: parsed.description ?? null,
+        transaction_date: transactionDate,
+        created_by: userId,
+        payment_method: linkedPaymentSource,
+        source_type: 'sms_parse',
+      });
+      
       await TransactionModel.create({
         _id: id,
         family_id: familyId,
@@ -435,8 +436,9 @@ export const financeController = {
         ai_model_id: auditId,
       });
     } catch (e) {
-      console.error('[finance] parseSms:', e);
-      res.fail('Failed to parse SMS', 500);
+      console.error('[finance] parseSms error:', e);
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      res.fail(`Failed to parse SMS: ${errorMessage}`, 500);
     }
   },
 
