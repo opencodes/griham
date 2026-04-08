@@ -9,6 +9,8 @@ import { familiesRoutes } from './modules/families/routes.js';
 import { contactsRoutes } from './modules/contacts/routes.js';
 import { assetsRoutes } from './modules/assets/routes.js';
 import { eventsRoutes } from './modules/events/routes.js';
+import { contentTrackerRoutes } from './modules/content-tracker/routes.js';
+import { channelsRoutes } from './modules/channels/routes.js';
 import morgan from 'morgan';
 
 const app: Express = express();
@@ -24,6 +26,8 @@ app.use(morgan('dev'));
 app.use('/api', authRoutes);
 app.use('/api', familiesRoutes);
 app.use('/api', contactsRoutes);
+app.use('/api', contentTrackerRoutes);
+app.use('/api', channelsRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/assets', assetsRoutes);
 app.use('/api/events', eventsRoutes);

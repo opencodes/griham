@@ -26,6 +26,7 @@ import Organizer from './pages/Organizer';
 import Messaging from './pages/Messaging';
 import Assistant from './pages/Assistant';
 import Settings from './pages/Settings';
+import ContentTracker from './pages/ContentTracker';
 import AIUsage from './pages/AIUsage';
 import RootPermissions from './pages/RootPermissions';
 import RootRoles from './pages/RootRoles';
@@ -355,6 +356,14 @@ function AppRoutes() {
             <AdminRoute>
               <AIUsage />
             </AdminRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/content-tracker"
+        element={
+          <ProtectedRoute>
+            <ContentTracker />
           </ProtectedRoute>
         }
       />

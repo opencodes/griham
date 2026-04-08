@@ -1,4 +1,4 @@
-import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles, FlaskConical, Settings, History } from 'lucide-react';
+import { Home, Users, DollarSign, Calendar, Package, Heart, ContactRound, ListTodo, MessageSquare, LogOut, Shield, UserCog, UsersRound, Sparkles, FlaskConical, Settings, History, Video } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { canAccessModule, isAdminUser } from '@/lib/permissions';
@@ -15,6 +15,7 @@ interface SidebarProps {
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/', module: 'dashboard' },
   { id: 'assistant', label: 'Ask Griham', icon: Sparkles, path: '/assistant', module: 'dashboard' },
+  { id: 'content-tracker', label: 'Content Tracker', icon: Video, path: '/content-tracker', module: 'dashboard' },
   { id: 'family', label: 'Family', icon: Users, path: '/family', module: 'family' },
   { id: 'finance', label: 'Finance', icon: DollarSign, path: '/finance', module: 'finance' },
   { id: 'events', label: 'Events', icon: Calendar, path: '/events', module: 'events' },

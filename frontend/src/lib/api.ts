@@ -286,6 +286,57 @@ export interface EventFinanceSummary {
   }>;
 }
 
+export interface ContentItem {
+  id: string;
+  channel_id: string;
+  episode_number: number;
+  title: string;
+  description?: string;
+  status: 'plan' | 'build' | 'publish';
+  planned_month?: string;
+  planned_publish_date?: string;
+  planned_date?: string | null;
+  start_build_date?: string | null;
+  published_date?: string | null;
+  video_length_seconds?: number;
+  tags?: string[];
+  notes?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Channel {
+  id: string;
+  user_id: string;
+  name: string;
+  youtube_url?: string;
+  description?: string;
+  upload_schedule?: string;
+  target_monthly_uploads?: number;
+  monthly_target_views?: number;
+  color_tag?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MonthlyPlan {
+  id: string;
+  channel_id: string;
+  year_month: string;
+  title?: string;
+  target_uploads?: number;
+  target_views?: number;
+  target_subscribers?: number;
+  focus_topics?: string[];
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreateContentPayload = Omit<ContentItem, 'id' | 'created_by' | 'created_at' | 'updated_at'>;
+export type UpdateContentPayload = Partial<CreateContentPayload>;
+
 export const authAPI = {
   register: async (full_name: string, email: string, password: string) => {
     const { data } = await api.post<AuthResponse>('/auth/register', {
@@ -934,6 +985,104 @@ export const rbacAPI = {
   },
   setUserRoles: async (userId: string, roleIds: string[]): Promise<void> => {
     await api.put(`/admin/users/${userId}/roles`, { role_ids: roleIds });
+  },
+};
+
+export const contentTrackerAPI = {
+  getAll: async (): Promise<ContentItem[]> => {
+    const { data } = await api.get('/content-tracker');
+    return data.data ?? [];
+  },
+
+  getByChannel: async (channelId: string): Promise<ContentItem[]> => {
+    const { data } = await api.get('/content-tracker', { params: { channel_id: channelId } });
+    return data.data ?? [];
+  },
+
+  getOne: async (id: string): Promise<ContentItem> => {
+    const { data } = await api.get(`/content-tracker/${id}`);
+    return data.data;
+  },
+
+  create: async (payload: Partial<ContentItem>): Promise<ContentItem> => {
+    const { data } = await api.post('/content-tracker', payload);
+    return data.data;
+  },
+
+  update: async (id: string, payload: Partial<ContentItem>): Promise<ContentItem> => {
+    const { data } = await api.patch(`/content-tracker/${id}`, payload);
+    return data.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/content-tracker/${id}`);
+  },
+
+  getTimeline: async (channelId: string): Promise<any> => {
+    const { data } = await api.get(`/content-tracker/timeline/${channelId}`);
+    return data.data;
+  },
+
+  getByMonth: async (channelId: string, month: string): Promise<ContentItem[]> => {
+    const { data } = await api.get(`/content-tracker/by-month/${channelId}/${month}`);
+    return data.data ?? [];
+  },
+};
+
+export const channelsAPI = {
+  list: async (): Promise<Channel[]> => {
+    const { data } = await api.get('/channels');
+    return data.data ?? [];
+  },
+
+  get: async (id: string): Promise<Channel> => {
+    const { data } = await api.get(`/channels/${id}`);
+    return data.data;
+  },
+
+  create: async (payload: Partial<Channel>): Promise<Channel> => {
+    const { data } = await api.post('/channels', payload);
+    return data.data;
+  },
+
+  update: async (id: string, payload: Partial<Channel>): Promise<Channel> => {
+    const { data } = await api.put(`/channels/${id}`, payload);
+    return data.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/channels/${id}`);
+  },
+
+  getStats: async (id: string): Promise<any> => {
+    const { data } = await api.get(`/channels/${id}/stats`);
+    return data.data;
+  },
+};
+
+export const monthlyPlansAPI = {
+  list: async (channelId: string): Promise<MonthlyPlan[]> => {
+    const { data } = await api.get(`/channels/${channelId}/monthly-plans`);
+    return data.data ?? [];
+  },
+
+  get: async (channelId: string, month: string): Promise<MonthlyPlan> => {
+    const { data } = await api.get(`/channels/${channelId}/monthly-plans/${month}`);
+    return data.data;
+  },
+
+  create: async (channelId: string, payload: Partial<MonthlyPlan>): Promise<MonthlyPlan> => {
+    const { data } = await api.post(`/channels/${channelId}/monthly-plans`, payload);
+    return data.data;
+  },
+
+  update: async (channelId: string, month: string, payload: Partial<MonthlyPlan>): Promise<MonthlyPlan> => {
+    const { data } = await api.put(`/channels/${channelId}/monthly-plans/${month}`, payload);
+    return data.data;
+  },
+
+  delete: async (channelId: string, month: string): Promise<void> => {
+    await api.delete(`/channels/${channelId}/monthly-plans/${month}`);
   },
 };
 
