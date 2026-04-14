@@ -21,6 +21,7 @@ export default function ChannelForm({ isOpen, channel, onClose, onSuccess }: Cha
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    logo_image_url: '',
     youtube_url: '',
     upload_schedule: 'Mon, Wed, Fri at 8:00 AM',
     target_monthly_uploads: 8,
@@ -35,6 +36,7 @@ export default function ChannelForm({ isOpen, channel, onClose, onSuccess }: Cha
       setFormData({
         name: channel.name || '',
         description: channel.description || '',
+        logo_image_url: channel.logo_image_url || '',
         youtube_url: channel.youtube_url || '',
         upload_schedule: channel.upload_schedule || 'Mon, Wed, Fri at 8:00 AM',
         target_monthly_uploads: channel.target_monthly_uploads || 8,
@@ -45,6 +47,7 @@ export default function ChannelForm({ isOpen, channel, onClose, onSuccess }: Cha
       setFormData({
         name: '',
         description: '',
+        logo_image_url: '',
         youtube_url: '',
         upload_schedule: 'Mon, Wed, Fri at 8:00 AM',
         target_monthly_uploads: 8,
@@ -126,6 +129,20 @@ export default function ChannelForm({ isOpen, channel, onClose, onSuccess }: Cha
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="e.g., AI learning for junior developers"
               rows={2}
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isSaving}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Logo Image URL
+            </label>
+            <input
+              type="url"
+              value={formData.logo_image_url}
+              onChange={(e) => setFormData({ ...formData, logo_image_url: e.target.value })}
+              placeholder="https://example.com/channel-logo.png"
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isSaving}
             />

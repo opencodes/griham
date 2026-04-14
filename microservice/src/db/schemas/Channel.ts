@@ -6,6 +6,7 @@ export interface IChannelDoc {
   id?: string;
   user_id: string;
   name: string;
+  logo_image_url?: string;
   youtube_url?: string;
   description?: string;
   upload_schedule?: string;
@@ -21,6 +22,7 @@ const channelSchema = new Schema<IChannelDoc>(
     _id: { type: String, required: true },
     user_id: { type: String, required: true, ref: 'User', index: true },
     name: { type: String, required: true },
+    logo_image_url: { type: String, default: null },
     youtube_url: { type: String, default: null },
     description: { type: String, default: null },
     upload_schedule: { type: String, default: 'Mon, Wed, Fri at 8:00 AM' },

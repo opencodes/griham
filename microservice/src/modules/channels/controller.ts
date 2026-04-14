@@ -18,6 +18,7 @@ export const channelsController = {
 
     const body = req.body as {
       name?: string;
+      logo_image_url?: string;
       youtube_url?: string;
       description?: string;
       upload_schedule?: string;
@@ -37,6 +38,7 @@ export const channelsController = {
       _id: channelId,
       user_id: userId,
       name: body.name,
+      logo_image_url: body.logo_image_url ?? null,
       youtube_url: body.youtube_url ?? null,
       description: body.description ?? null,
       upload_schedule: body.upload_schedule ?? 'Mon, Wed, Fri at 8:00 AM',

@@ -19,17 +19,20 @@ const STATUS_COLORS = {
   publish: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
 };
 
-const COLUMN_HEADERS = {
-  plan: 'Planning',
-  build: 'Building',
-  publish: 'Published',
+type ContentStatus = 'plan' | 'build' | 'publish';
+type ContentFormState = {
+  title: string;
+  description: string;
+  status: ContentStatus;
+  planned_month: string;
+  planned_publish_date: string;
 };
 
 export default function ContentTrackerPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -39,10 +42,10 @@ export default function ContentTrackerPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [refreshChannels, setRefreshChannels] = useState(0);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ContentFormState>({
     title: '',
     description: '',
-    status: 'plan' as const,
+    status: 'plan',
     planned_month: '',
     planned_publish_date: '',
   });
@@ -79,7 +82,21 @@ export default function ContentTrackerPage() {
   const handleChannelCreated = async () => {
     // Reload channels - increment trigger to force ChannelSelector reload
     setRefreshChannels((prev) => prev + 1);
+    if (editingChannel?.id) {
+      setSelectedChannelId(editingChannel.id);
+    }
+    setEditingChannel(null);
     setShowChannelForm(false);
+  };
+
+  const handleCreateChannel = () => {
+    setEditingChannel(null);
+    setShowChannelForm(true);
+  };
+
+  const handleEditChannel = (channel: Channel) => {
+    setEditingChannel(channel);
+    setShowChannelForm(true);
   };
 
   const handleAdd = () => {
@@ -195,15 +212,44 @@ export default function ContentTrackerPage() {
     };
   }, [contentItems]);
 
+  const summaryCards = useMemo(() => {
+    const plannedCount = itemsByStatus.plan.length;
+    const buildCount = itemsByStatus.build.length;
+    const publishedCount = itemsByStatus.publish.length;
+    const inPipelineCount = plannedCount + buildCount;
+
+    return [
+      {
+        label: 'Planned Content',
+        value: plannedCount,
+        valueClassName: 'text-gray-800 dark:text-gray-100',
+      },
+      {
+        label: 'In Production',
+        value: inPipelineCount,
+        valueClassName: 'text-gray-800 dark:text-gray-100',
+      },
+      {
+        label: selectedChannel ? 'Monthly Target' : 'Published',
+        value: selectedChannel ? selectedChannel.target_monthly_uploads ?? 0 : publishedCount,
+        valueClassName: selectedChannel ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400',
+      },
+    ];
+  }, [itemsByStatus, selectedChannel]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950">
-      <Sidebar mobileOpen={mobileMenuOpen} onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)} collapsed={sidebarCollapsed} onCollapse={(collapsed) => setSidebarCollapsed(collapsed)} />
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+        isCollapsed={false}
+      />
 
       <div className="flex-1 flex flex-col">
         <Header onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
 
         <main className="flex-1 overflow-y-auto px-4 py-6">
-          <div className="max-w-7xl mx-auto">
+          <div className="w-full">
             {/* Header with Channel Selector */}
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -220,6 +266,18 @@ export default function ContentTrackerPage() {
               </button>
             </div>
 
+            <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
+              {summaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5"
+                >
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{card.label}</p>
+                  <p className={`text-2xl font-bold mt-2 ${card.valueClassName}`}>{card.value}</p>
+                </div>
+              ))}
+            </div>
+
             {/* Channel Selector Bar */}
             <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between">
@@ -228,7 +286,8 @@ export default function ContentTrackerPage() {
                   <ChannelSelector
                     selectedChannelId={selectedChannelId}
                     onChannelSelect={setSelectedChannelId}
-                    onCreateChannel={() => setShowChannelForm(true)}
+                    onCreateChannel={handleCreateChannel}
+                    onEditChannel={handleEditChannel}
                     isLoading={isLoading}
                     refreshTrigger={refreshChannels}
                   />
@@ -278,7 +337,7 @@ export default function ContentTrackerPage() {
                 <p className="text-slate-600 dark:text-slate-400 text-lg mb-4">No channel selected</p>
                 <p className="text-slate-500 dark:text-slate-500 text-sm mb-6">Please select or create a channel to get started</p>
                 <button
-                  onClick={() => setShowChannelForm(true)}
+                  onClick={handleCreateChannel}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                 >
                   <Plus className="w-4 h-4" />
@@ -373,6 +432,7 @@ export default function ContentTrackerPage() {
       {/* Channel Form Modal */}
       <ChannelForm
         isOpen={showChannelForm}
+        channel={editingChannel}
         onClose={() => setShowChannelForm(false)}
         onSuccess={handleChannelCreated}
       />

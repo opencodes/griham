@@ -310,6 +310,7 @@ export interface Channel {
   id: string;
   user_id: string;
   name: string;
+  logo_image_url?: string;
   youtube_url?: string;
   description?: string;
   upload_schedule?: string;
