@@ -638,6 +638,16 @@ function extractNumber(text: string, pattern: RegExp): number | undefined {
   return Number.isFinite(value) ? value : undefined;
 }
 
+function extractTenureMonths(text: string): number | undefined {
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(months?|mos?|yrs?|years?)/i);
+  if (!match) return undefined;
+  const value = parseFloat(match[1] || '');
+  if (!Number.isFinite(value) || value <= 0) return undefined;
+  return /yrs?|years?/i.test(match[2] || '')
+    ? Math.round(value * 12)
+    : Math.round(value);
+}
+
 function pickEnumValue<T extends string>(value: string | undefined, allowed: readonly T[], fallback: T): T {
   const normalized = (value || '').trim().toLowerCase();
   const match = allowed.find((item) => item === normalized);
@@ -731,11 +741,11 @@ export async function parseSmsToLoan(smsText: string): Promise<ParsedLoan | null
     if (out) {
       const parts = out.split('|').map((s) => s.trim());
       return {
-        name: parts[0] || undefined,
-        lender: parts[1] || undefined,
+        name: parts[0] || 'Loan',
+        lender: parts[1] || 'Unknown',
         principalAmount: parseFloat(parts[2]?.replace(/[^0-9.]/g, '') || '0') || undefined,
         interestRate: parseFloat(parts[3]?.replace(/[^0-9.]/g, '') || '0') || undefined,
-        tenureMonths: parseInt(parts[4]?.replace(/\D/g, '') || '0', 10) || undefined,
+        tenureMonths: extractTenureMonths(parts[4] || '') ?? (parseInt(parts[4]?.replace(/\D/g, '') || '0', 10) || undefined),
         emiAmount: parseFloat(parts[5]?.replace(/[^0-9.]/g, '') || '0') || undefined,
         startDate: extractDate(parts[6] || ''),
         nextDueDate: extractDate(parts[7] || ''),
@@ -748,10 +758,10 @@ export async function parseSmsToLoan(smsText: string): Promise<ParsedLoan | null
   const lender = text.match(/(?:hdfc|sbi|icici|axis|bajaj finserv|tata capital|pnb|kotak)/i)?.[0];
   return {
     name: text.match(/(home loan|car loan|personal loan|education loan)/i)?.[0] || 'Loan',
-    lender,
+    lender: lender || 'Unknown',
     principalAmount: extractNumber(text, /(?:principal|loan amount|sanctioned)\D+([\d,]+(?:\.\d+)?)/i),
     interestRate: extractNumber(text, /(?:interest|roi)\D+([\d,]+(?:\.\d+)?)/i),
-    tenureMonths: parseInt(text.match(/(\d+)\s*(?:months|month|yrs|years)/i)?.[1] || '', 10) || undefined,
+    tenureMonths: extractTenureMonths(text),
     emiAmount: extractNumber(text, /(?:emi)\D+([\d,]+(?:\.\d+)?)/i),
     startDate: extractDate(text),
     nextDueDate: extractDate(text),

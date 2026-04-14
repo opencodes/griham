@@ -49,6 +49,7 @@ financeRoutes.delete('/investments/:familyId/:investmentId', financeDataControll
 
 // Loans
 financeRoutes.get('/loans/:familyId/summary', financeDataController.getLoanSummary);
+financeRoutes.get('/loans/:familyId/paydown-forecast', financeDataController.getLoanPaydownForecast);
 financeRoutes.get('/loans/:familyId', financeDataController.listLoans);
 financeRoutes.post('/loans', financeDataController.createLoan);
 financeRoutes.put('/loans/:familyId/:loanId', financeDataController.updateLoan);

@@ -388,7 +388,7 @@ export default function Cards() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="premium-panel rounded-2xl shadow-xl max-w-md w-full p-6 border border-[var(--panel-border)]">
+          <div className="premium-panel rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 border border-[var(--panel-border)]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-[var(--app-fg)]">
                 {editingCard ? 'Edit Card' : 'Add Card'}
@@ -421,136 +421,138 @@ export default function Cards() {
                 <p className="text-sm text-[var(--app-fg-muted)] mb-3">Or fill manually:</p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Type</label>
-                <select
-                  value={formData.card_type}
-                  onChange={(e) => setFormData({ ...formData, card_type: e.target.value === 'debit' ? 'debit' : 'credit' })}
-                  required
-                  className="input-theme"
-                >
-                  <option value="credit">Credit Card</option>
-                  <option value="debit">Debit Card</option>
-                </select>
-              </div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Type</label>
+                  <select
+                    value={formData.card_type}
+                    onChange={(e) => setFormData({ ...formData, card_type: e.target.value === 'debit' ? 'debit' : 'credit' })}
+                    required
+                    className="input-theme"
+                  >
+                    <option value="credit">Credit Card</option>
+                    <option value="debit">Debit Card</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Bank Name</label>
-                <input
-                  type="text"
-                  value={formData.bank_name}
-                  onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                  required
-                  placeholder="HDFC Bank"
-                  className="input-theme"
-                  list="card-bank-name-suggestions"
-                />
-                {suggestedBankNames.length > 0 && (
-                  <datalist id="card-bank-name-suggestions">
-                    {suggestedBankNames.map((name) => (
-                      <option key={name} value={name} />
-                    ))}
-                  </datalist>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Name</label>
-                <input
-                  type="text"
-                  value={formData.card_name}
-                  onChange={(e) => setFormData({ ...formData, card_name: e.target.value })}
-                  required
-                  placeholder="Platinum Credit Card"
-                  className="input-theme"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Last 4 Digits</label>
-                <input
-                  type="text"
-                  value={formData.last_four_digits}
-                  onChange={(e) => setFormData({ ...formData, last_four_digits: e.target.value.slice(0, 4) })}
-                  required
-                  maxLength={4}
-                  placeholder="1234"
-                  className="input-theme"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Background</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={getSafeBackgroundColor(formData.background_color)}
-                    onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
-                    className="h-11 w-14 cursor-pointer rounded-md border border-[var(--panel-border)] bg-transparent p-1"
-                    aria-label="Choose card background color"
-                  />
+                <div>
+                  <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Bank Name</label>
                   <input
                     type="text"
-                    value={formData.background_color}
-                    onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
-                    placeholder="#1d4ed8"
+                    value={formData.bank_name}
+                    onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                    required
+                    placeholder="HDFC Bank"
+                    className="input-theme"
+                    list="card-bank-name-suggestions"
+                  />
+                  {suggestedBankNames.length > 0 && (
+                    <datalist id="card-bank-name-suggestions">
+                      {suggestedBankNames.map((name) => (
+                        <option key={name} value={name} />
+                      ))}
+                    </datalist>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Name</label>
+                  <input
+                    type="text"
+                    value={formData.card_name}
+                    onChange={(e) => setFormData({ ...formData, card_name: e.target.value })}
+                    required
+                    placeholder="Platinum Credit Card"
                     className="input-theme"
                   />
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {CARD_COLOR_PRESETS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, background_color: color })}
-                      className={`h-8 w-8 rounded-full border-2 ${formData.background_color === color ? 'border-white ring-2 ring-[var(--brand-primary)]' : 'border-white/40'}`}
-                      style={{ backgroundColor: color }}
-                      aria-label={`Use ${color} for card background`}
-                    />
-                  ))}
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Last 4 Digits</label>
+                  <input
+                    type="text"
+                    value={formData.last_four_digits}
+                    onChange={(e) => setFormData({ ...formData, last_four_digits: e.target.value.slice(0, 4) })}
+                    required
+                    maxLength={4}
+                    placeholder="1234"
+                    className="input-theme"
+                  />
                 </div>
-              </div>
 
-              {formData.card_type === 'credit' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Credit Limit (Optional)</label>
+                {formData.card_type === 'credit' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Credit Limit (Optional)</label>
+                      <input
+                        type="number"
+                        value={formData.card_limit}
+                        onChange={(e) => setFormData({ ...formData, card_limit: e.target.value })}
+                        placeholder="100000"
+                        className="input-theme"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Billing Date (Optional)</label>
+                      <input
+                        type="number"
+                        value={formData.billing_date}
+                        onChange={(e) => setFormData({ ...formData, billing_date: e.target.value })}
+                        min="1"
+                        max="31"
+                        placeholder="15"
+                        className="input-theme"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as CardFormState['status'] })}
+                    required
+                    className="input-theme"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="blocked">Blocked</option>
+                  </select>
+                </div>
+
+                <div className="space-y-3 md:col-span-2 lg:col-span-3">
+                  <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Background</label>
+                  <div className="flex items-center gap-3">
                     <input
-                      type="number"
-                      value={formData.card_limit}
-                      onChange={(e) => setFormData({ ...formData, card_limit: e.target.value })}
-                      placeholder="100000"
+                      type="color"
+                      value={getSafeBackgroundColor(formData.background_color)}
+                      onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                      className="h-11 w-14 cursor-pointer rounded-md border border-[var(--panel-border)] bg-transparent p-1"
+                      aria-label="Choose card background color"
+                    />
+                    <input
+                      type="text"
+                      value={formData.background_color}
+                      onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
+                      placeholder="#1d4ed8"
                       className="input-theme"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Billing Date (Optional)</label>
-                    <input
-                      type="number"
-                      value={formData.billing_date}
-                      onChange={(e) => setFormData({ ...formData, billing_date: e.target.value })}
-                      min="1"
-                      max="31"
-                      placeholder="15"
-                      className="input-theme"
-                    />
+                  <div className="flex flex-wrap gap-2">
+                    {CARD_COLOR_PRESETS.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, background_color: color })}
+                        className={`h-8 w-8 rounded-full border-2 ${formData.background_color === color ? 'border-white ring-2 ring-[var(--brand-primary)]' : 'border-white/40'}`}
+                        style={{ backgroundColor: color }}
+                        aria-label={`Use ${color} for card background`}
+                      />
+                    ))}
                   </div>
-                </>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as CardFormState['status'] })}
-                  required
-                  className="input-theme"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="blocked">Blocked</option>
-                </select>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">

@@ -1,14 +1,278 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { householdAPI, financeAPI, type Loan } from '@/lib/api';
+import { householdAPI, financeAPI, type Loan, type LoanPaydownForecast } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import AISmsFillButton from '@/components/AISmsFillButton';
-import { ArrowLeft, Plus, Landmark, Pencil, Trash2 } from 'lucide-react';
+import LoanSMSParser from '@/components/LoanSMSParser';
+import { ArrowLeft, Plus, Landmark, Pencil, Trash2, TrendingDown } from 'lucide-react';
 
 const LOAN_TYPES: Loan['type'][] = ['home', 'car', 'personal', 'education', 'other'];
 const STATUS_OPTIONS: Loan['status'][] = ['active', 'closed'];
+const compactCurrencyFormatter = new Intl.NumberFormat('en-IN', { notation: 'compact', maximumFractionDigits: 1 });
+const fullCurrencyFormatter = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+const LOAN_LINE_COLORS = ['#f59e0b', '#22c55e', '#3b82f6', '#ef4444', '#8b5cf6', '#14b8a6', '#f97316', '#ec4899'];
+
+function formatCompactCurrency(value: number) {
+  return `₹${compactCurrencyFormatter.format(Math.max(value, 0))}`;
+}
+
+function formatCurrency(value: number) {
+  return `₹${fullCurrencyFormatter.format(Math.max(Math.round(value), 0))}`;
+}
+
+function LoanPaydownForecastCard({ forecast }: { forecast: LoanPaydownForecast | null }) {
+  if (!forecast || forecast.schedule.length === 0) return null;
+
+  const chartWidth = 720;
+  const chartHeight = 240;
+  const padding = 28;
+  const maxOutstanding = Math.max(...forecast.schedule.map((point) => point.totalOutstanding), 1);
+  const graphWidth = chartWidth - padding * 2;
+  const graphHeight = chartHeight - padding * 2;
+  const stepX = forecast.schedule.length > 1 ? graphWidth / (forecast.schedule.length - 1) : 0;
+
+  const points = forecast.schedule.map((point, index) => {
+    const x = padding + (forecast.schedule.length > 1 ? stepX * index : graphWidth / 2);
+    const y = padding + graphHeight - (point.totalOutstanding / maxOutstanding) * graphHeight;
+    return { ...point, x, y };
+  });
+
+  const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
+  const areaPath = `${linePath} L ${points[points.length - 1].x} ${chartHeight - padding} L ${points[0].x} ${chartHeight - padding} Z`;
+  const tickIndexes = Array.from(new Set([0, Math.floor((points.length - 1) / 2), points.length - 1]));
+  const [highlightedLoanId, setHighlightedLoanId] = useState<string | null>(forecast.loans[0]?.loanId ?? null);
+  const highlightedLoan = forecast.loans.find((loan) => loan.loanId === highlightedLoanId) ?? forecast.loans[0] ?? null;
+  const highlightedPoint = highlightedLoan
+    ? points[Math.max(Math.min(highlightedLoan.projectedPayoffMonths - 1, points.length - 1), 0)]
+    : null;
+  const loanLines = forecast.loans.map((loan, loanIndex) => {
+    const color = LOAN_LINE_COLORS[loanIndex % LOAN_LINE_COLORS.length];
+    const loanPoints = points.map((point, monthIndex) => {
+      const schedulePoint = loan.schedule[monthIndex];
+      const endingBalance = schedulePoint?.endingBalance ?? 0;
+      const y = padding + graphHeight - (endingBalance / maxOutstanding) * graphHeight;
+      return {
+        x: point.x,
+        y,
+        monthLabel: point.monthLabel,
+        endingBalance,
+      };
+    });
+
+    return {
+      ...loan,
+      color,
+      points: loanPoints,
+      linePath: loanPoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' '),
+    };
+  });
+  const highlightedLoanLine = loanLines.find((loan) => loan.loanId === highlightedLoan?.loanId) ?? null;
+
+  return (
+    <section className="rounded-xl shadow-sm border border-[var(--panel-border)] p-5 glass-black-surface">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
+            <TrendingDown className="h-3.5 w-3.5" />
+            Loan reduction forecast
+          </div>
+          <h3 className="mt-3 text-xl font-semibold text-gray-800 dark:text-gray-100">Month-by-month payoff view</h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            Projected outstanding balance based on current EMI, rate, and tenure values saved for each active loan.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0 lg:min-w-[420px]">
+          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Outstanding now</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(forecast.overview.totalOutstanding)}</p>
+          </div>
+          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Projected payoff</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{forecast.overview.projectedPayoffMonth || 'N/A'}</p>
+          </div>
+          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Interest left</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(forecast.overview.totalInterestRemaining)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)] gap-5">
+        <div className="rounded-xl border border-[var(--panel-border)] bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-4">
+          <div className="mb-3 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
+            <span>{forecast.overview.projectedPayoffMonths} months to close current active loans</span>
+            <span>Total EMI {formatCurrency(forecast.overview.totalMonthlyEmi)}/mo</span>
+          </div>
+
+          <div className="relative">
+            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-64 w-full">
+              <defs>
+                <linearGradient id="loanForecastArea" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.04" />
+                </linearGradient>
+              </defs>
+
+              {[0, 0.5, 1].map((ratio) => {
+                const y = padding + graphHeight * ratio;
+                return (
+                  <g key={ratio}>
+                    <line x1={padding} x2={chartWidth - padding} y1={y} y2={y} stroke="rgba(148,163,184,0.18)" strokeDasharray="4 6" />
+                    <text x={8} y={y + 4} fill="currentColor" className="text-[11px] text-gray-500 dark:text-gray-400">
+                      {formatCompactCurrency(maxOutstanding * (1 - ratio))}
+                    </text>
+                  </g>
+                );
+              })}
+
+              <path d={areaPath} fill="url(#loanForecastArea)" />
+              <path d={linePath} fill="none" stroke="rgba(245,158,11,0.35)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+
+              {loanLines.map((loan) => (
+                <path
+                  key={loan.loanId}
+                  d={loan.linePath}
+                  fill="none"
+                  stroke={loan.color}
+                  strokeWidth={highlightedLoan?.loanId === loan.loanId ? 3.5 : 2}
+                  strokeOpacity={highlightedLoan?.loanId === loan.loanId ? 1 : 0.65}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ))}
+
+              {highlightedPoint && highlightedLoan && (
+                <>
+                  <line
+                    x1={highlightedPoint.x}
+                    x2={highlightedPoint.x}
+                    y1={padding}
+                    y2={chartHeight - padding}
+                    stroke="rgba(245,158,11,0.55)"
+                    strokeDasharray="6 6"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx={highlightedPoint.x}
+                    cy={highlightedPoint.y}
+                    r={8}
+                    fill="rgba(245,158,11,0.18)"
+                    stroke={highlightedLoanLine?.color || '#f59e0b'}
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx={highlightedPoint.x}
+                    cy={highlightedPoint.y}
+                    r={4.5}
+                    fill={highlightedLoanLine?.color || '#f59e0b'}
+                    stroke="rgba(255,255,255,0.95)"
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={Math.min(highlightedPoint.x + 10, chartWidth - 120)}
+                    y={Math.max(highlightedPoint.y - 12, padding + 12)}
+                    fill="currentColor"
+                    className="text-[11px] text-amber-700 dark:text-amber-200"
+                  >
+                    {`${highlightedLoan.name} closes ${highlightedPoint.monthLabel}`}
+                  </text>
+                </>
+              )}
+
+              {points.map((point, index) => (
+                <circle
+                  key={`${point.monthLabel}-${index}`}
+                  cx={point.x}
+                  cy={point.y}
+                  r={index === points.length - 1 ? 4.5 : 3}
+                  fill="rgba(245,158,11,0.9)"
+                  stroke="rgba(255,255,255,0.9)"
+                  strokeWidth="2"
+                />
+              ))}
+
+              {loanLines.map((loan) => {
+                const payoffPoint = loan.points[Math.max(Math.min(loan.projectedPayoffMonths - 1, loan.points.length - 1), 0)];
+                if (!payoffPoint) return null;
+                return (
+                  <circle
+                    key={`${loan.loanId}-payoff`}
+                    cx={payoffPoint.x}
+                    cy={payoffPoint.y}
+                    r={highlightedLoan?.loanId === loan.loanId ? 4.5 : 3}
+                    fill={loan.color}
+                    stroke="rgba(255,255,255,0.9)"
+                    strokeWidth="1.5"
+                  />
+                );
+              })}
+
+              {tickIndexes.map((index) => (
+                <text
+                  key={`${points[index].monthLabel}-${index}`}
+                  x={points[index].x}
+                  y={chartHeight - 8}
+                  textAnchor="middle"
+                  fill="currentColor"
+                  className="text-[11px] text-gray-500 dark:text-gray-400"
+                >
+                  {points[index].monthLabel}
+                </text>
+              ))}
+            </svg>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {forecast.loans.map((loan) => (
+            <button
+              key={loan.loanId}
+              type="button"
+              onClick={() => setHighlightedLoanId(loan.loanId)}
+              className={`w-full rounded-xl border p-4 text-left transition-colors ${
+                highlightedLoan?.loanId === loan.loanId
+                  ? 'border-amber-500/60 bg-amber-500/10 shadow-[0_0_0_1px_rgba(245,158,11,0.15)]'
+                  : 'border-[var(--panel-border)] bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: loanLines.find((line) => line.loanId === loan.loanId)?.color || LOAN_LINE_COLORS[0] }}
+                    />
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{loan.name}</p>
+                  </div>
+                  <p className="truncate text-xs text-gray-500 dark:text-gray-400">{loan.lender}</p>
+                </div>
+                <div className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
+                  {loan.projectedPayoffMonths} mo left
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">EMI</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-100">{formatCurrency(loan.emiAmount)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Tenure</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-100">{loan.tenureMonths} mo</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Rate</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-100">{loan.interestRate}%</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function LoansPage() {
   const { user } = useAuth();
@@ -20,6 +284,7 @@ export default function LoansPage() {
   const [userRole, setUserRole] = useState('viewer');
   const [loans, setLoans] = useState<Loan[]>([]);
   const [summary, setSummary] = useState({ totalOutstanding: 0, totalEmi: 0, activeCount: 0 });
+  const [paydownForecast, setPaydownForecast] = useState<LoanPaydownForecast | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Loan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,12 +329,14 @@ export default function LoansPage() {
 
   const reload = async () => {
     try {
-      const [list, metrics] = await Promise.all([
+      const [list, metrics, forecast] = await Promise.all([
         financeAPI.listLoans(familyId),
         financeAPI.getLoanSummary(familyId),
+        financeAPI.getLoanPaydownForecast(familyId),
       ]);
       setLoans(list);
       setSummary(metrics);
+      setPaydownForecast(forecast);
     } catch (error) {
       console.error('Failed to load loans', error);
     }
@@ -119,6 +386,23 @@ export default function LoansPage() {
     setShowModal(false);
     setEditingItem(null);
     resetForm();
+  };
+
+  const applyParsedLoan = (parsed: Partial<Loan>) => {
+    setEditingItem(null);
+    setFormData({
+      name: parsed.name ?? '',
+      lender: parsed.lender ?? '',
+      principalAmount: parsed.principalAmount != null ? String(parsed.principalAmount) : '',
+      interestRate: parsed.interestRate != null ? String(parsed.interestRate) : '',
+      tenureMonths: parsed.tenureMonths != null ? String(parsed.tenureMonths) : '',
+      emiAmount: parsed.emiAmount != null ? String(parsed.emiAmount) : '',
+      startDate: parsed.startDate ?? '',
+      nextDueDate: parsed.nextDueDate ?? '',
+      outstandingPrincipal: parsed.outstandingPrincipal != null ? String(parsed.outstandingPrincipal) : '',
+      type: parsed.type ?? 'other',
+      status: parsed.status ?? 'active',
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -184,30 +468,6 @@ export default function LoansPage() {
               </div>
               {userRole === 'admin' && (
                 <div className="flex items-center gap-2">
-                  <AISmsFillButton<Loan>
-                    familyId={familyId}
-                    endpoint="parse-sms-loan"
-                    title="AI Loan Insert"
-                    description="Paste a loan SMS and AI will extract EMI and lender details into the form."
-                    placeholder="Example: Your SBI Home Loan EMI of Rs 24500 is due on 2026-04-05. Outstanding principal Rs 2450000. ROI 8.65%."
-                    onParsed={(parsed) => {
-                      setEditingItem(null);
-                      setFormData({
-                        name: parsed.name ?? '',
-                        lender: parsed.lender ?? '',
-                        principalAmount: parsed.principalAmount != null ? String(parsed.principalAmount) : '',
-                        interestRate: parsed.interestRate != null ? String(parsed.interestRate) : '',
-                        tenureMonths: parsed.tenureMonths != null ? String(parsed.tenureMonths) : '',
-                        emiAmount: parsed.emiAmount != null ? String(parsed.emiAmount) : '',
-                        startDate: parsed.startDate ?? '',
-                        nextDueDate: parsed.nextDueDate ?? '',
-                        outstandingPrincipal: parsed.outstandingPrincipal != null ? String(parsed.outstandingPrincipal) : '',
-                        type: parsed.type ?? 'home',
-                        status: parsed.status ?? 'active',
-                      });
-                      setShowModal(true);
-                    }}
-                  />
                   <button onClick={openAddModal} className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium">
                     <Plus className="w-5 h-5" />
                     Add Loan
@@ -223,6 +483,8 @@ export default function LoansPage() {
                 <div><p className="text-gray-500 dark:text-gray-400">Active Loans</p><p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.activeCount}</p></div>
               </div>
             </div>
+
+            <LoanPaydownForecastCard forecast={paydownForecast} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {loans.map((item) => (
@@ -262,9 +524,22 @@ export default function LoansPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="rounded-2xl shadow-xl max-w-3xl w-full p-6 glass-black-surface border border-[var(--panel-border)]">
+          <div className="rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 glass-black-surface border border-[var(--panel-border)]">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">{editingItem ? 'Edit Loan' : 'Add Loan'}</h2>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="md:col-span-2 lg:col-span-3">
+                <LoanSMSParser
+                  familyId={familyId}
+                  onParsed={(data) => {
+                    applyParsedLoan(data as Partial<Loan>);
+                  }}
+                />
+              </div>
+
+              <div className="md:col-span-2 lg:col-span-3 border-t border-[var(--panel-border)] pt-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Or fill manually:</p>
+              </div>
+
               <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Name</span><input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
               <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Lender</span><input value={formData.lender} onChange={(e) => setFormData({ ...formData, lender: e.target.value })} required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
               <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Principal Amount</span><input type="number" min="0" value={formData.principalAmount} onChange={(e) => setFormData({ ...formData, principalAmount: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
@@ -276,7 +551,7 @@ export default function LoansPage() {
               <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</span><input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
               <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Next Due Date</span><input type="date" value={formData.nextDueDate} onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
               <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</span><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Loan['status'] })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg">{STATUS_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
-              <div className="md:col-span-2 flex justify-end gap-2 mt-2">
+              <div className="md:col-span-2 lg:col-span-3 flex justify-end gap-2 mt-2">
                 <button type="button" onClick={closeModal} className="btn-secondary">Cancel</button>
                 <button type="submit" disabled={isLoading} className="px-4 py-2 rounded-lg ai-gradient-button text-white disabled:opacity-60">{isLoading ? 'Saving...' : editingItem ? 'Update Loan' : 'Save Loan'}</button>
               </div>

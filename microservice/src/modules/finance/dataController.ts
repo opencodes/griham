@@ -20,6 +20,191 @@ function formatDate(value: Date | string | null | undefined): string | null {
   return value;
 }
 
+function startOfUtcMonth(value?: Date | string | null): Date {
+  const source = value ? new Date(value) : new Date();
+  return new Date(Date.UTC(source.getUTCFullYear(), source.getUTCMonth(), 1));
+}
+
+function addUtcMonths(value: Date, months: number): Date {
+  return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth() + months, 1));
+}
+
+function formatMonthLabel(value: Date): string {
+  return value.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+function roundCurrency(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+function calculateAmortizedEmi(balance: number, monthlyRate: number, months: number): number {
+  if (balance <= 0) return 0;
+  if (months <= 0) return balance;
+  if (monthlyRate <= 0) return balance / months;
+  const factor = Math.pow(1 + monthlyRate, months);
+  return (balance * monthlyRate * factor) / (factor - 1);
+}
+
+type LoanForecastPoint = {
+  principalPaid: number;
+  interestPaid: number;
+  endingBalance: number;
+};
+
+type LoanForecastLoanSummary = {
+  loanId: string;
+  name: string;
+  lender: string;
+  interestRate: number;
+  emiAmount: number;
+  tenureMonths: number;
+  outstandingPrincipal: number;
+  projectedPayoffMonths: number;
+  schedule: LoanForecastPoint[];
+};
+
+function buildLoanForecastPoints(loan: {
+  _id: string;
+  name: string;
+  lender: string;
+  interestRate: number;
+  emiAmount: number;
+  tenureMonths: number;
+  outstandingPrincipal: number;
+  principalAmount: number;
+  status: 'active' | 'closed';
+}): { summary: LoanForecastLoanSummary; points: LoanForecastPoint[] } | null {
+  if (loan.status !== 'active') return null;
+
+  let balance = Math.max(loan.outstandingPrincipal || 0, loan.principalAmount || 0, 0);
+  if (balance <= 0) return null;
+
+  const monthlyRate = Math.max(loan.interestRate || 0, 0) / 1200;
+  const monthsTarget = Math.max(Math.min(loan.tenureMonths || 0, 360), 0);
+  const calculatedEmi = calculateAmortizedEmi(balance, monthlyRate, monthsTarget || 1);
+  const minimumInterestCover = balance * monthlyRate;
+  const emiAmount = (() => {
+    const rawEmi = Math.max(loan.emiAmount || 0, 0);
+    if (rawEmi > 0 && (monthlyRate === 0 || rawEmi > minimumInterestCover + 0.01)) return rawEmi;
+    return calculatedEmi > 0 ? calculatedEmi : balance;
+  })();
+
+  const maxMonths = Math.max(monthsTarget || Math.ceil(balance / Math.max(emiAmount, 1)), 1);
+  const points: LoanForecastPoint[] = [];
+
+  for (let monthIndex = 0; monthIndex < Math.min(maxMonths, 360) && balance > 0.01; monthIndex += 1) {
+    const interestPaid = roundCurrency(balance * monthlyRate);
+    const totalDue = balance + interestPaid;
+    const payment = Math.min(roundCurrency(emiAmount), totalDue);
+    const endingBalance = roundCurrency(Math.max(totalDue - payment, 0));
+    const principalPaid = roundCurrency(Math.max(payment - interestPaid, 0));
+
+    points.push({
+      principalPaid,
+      interestPaid,
+      endingBalance,
+    });
+
+    if (endingBalance >= balance) break;
+    balance = endingBalance;
+  }
+
+  return {
+    summary: {
+      loanId: loan._id,
+      name: loan.name,
+      lender: loan.lender,
+      interestRate: loan.interestRate || 0,
+      emiAmount: roundCurrency(emiAmount),
+      tenureMonths: loan.tenureMonths || points.length,
+      outstandingPrincipal: roundCurrency(Math.max(loan.outstandingPrincipal || loan.principalAmount || 0, 0)),
+      projectedPayoffMonths: points.length,
+      schedule: points,
+    },
+    points,
+  };
+}
+
+function buildLoanPaydownForecast(loans: Array<{
+  _id: string;
+  name: string;
+  lender: string;
+  interestRate: number;
+  emiAmount: number;
+  tenureMonths: number;
+  outstandingPrincipal: number;
+  principalAmount: number;
+  status: 'active' | 'closed';
+}>) {
+  const forecasts = loans
+    .map((loan) => buildLoanForecastPoints(loan))
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+
+  if (forecasts.length === 0) {
+    return {
+      generatedAt: new Date().toISOString(),
+      overview: {
+        totalOutstanding: 0,
+        totalMonthlyEmi: 0,
+        projectedPayoffMonths: 0,
+        projectedPayoffMonth: null,
+        totalInterestRemaining: 0,
+      },
+      schedule: [],
+      loans: [],
+    };
+  }
+
+  const startMonth = startOfUtcMonth();
+  const maxMonths = Math.max(...forecasts.map((item) => item.points.length));
+  const schedule = Array.from({ length: maxMonths }, (_, monthIndex) => {
+    const monthDate = addUtcMonths(startMonth, monthIndex);
+    const totals = forecasts.reduce((acc, forecast) => {
+      const point = forecast.points[monthIndex];
+      if (!point) return acc;
+      acc.totalOutstanding += point.endingBalance;
+      acc.totalPrincipalPaid += point.principalPaid;
+      acc.totalInterestPaid += point.interestPaid;
+      if (point.endingBalance > 0.01) acc.activeLoans += 1;
+      return acc;
+    }, {
+      totalOutstanding: 0,
+      totalPrincipalPaid: 0,
+      totalInterestPaid: 0,
+      activeLoans: 0,
+    });
+
+    return {
+      monthIndex,
+      monthLabel: formatMonthLabel(monthDate),
+      totalOutstanding: roundCurrency(totals.totalOutstanding),
+      totalPrincipalPaid: roundCurrency(totals.totalPrincipalPaid),
+      totalInterestPaid: roundCurrency(totals.totalInterestPaid),
+      activeLoans: totals.activeLoans,
+    };
+  });
+
+  const projectedPayoffMonths = schedule.length;
+  const projectedPayoffMonth = projectedPayoffMonths > 0
+    ? formatMonthLabel(addUtcMonths(startMonth, projectedPayoffMonths - 1))
+    : null;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    overview: {
+      totalOutstanding: roundCurrency(forecasts.reduce((sum, item) => sum + item.summary.outstandingPrincipal, 0)),
+      totalMonthlyEmi: roundCurrency(forecasts.reduce((sum, item) => sum + item.summary.emiAmount, 0)),
+      projectedPayoffMonths,
+      projectedPayoffMonth,
+      totalInterestRemaining: roundCurrency(
+        forecasts.reduce((sum, item) => sum + item.points.reduce((inner, point) => inner + point.interestPaid, 0), 0)
+      ),
+    },
+    schedule,
+    loans: forecasts.map((item) => item.summary),
+  };
+}
+
 function normalizeInsuranceType(value: string | undefined): 'life' | 'health' | 'vehicle' | 'term' | 'other' {
   const normalized = (value || '').trim().toLowerCase();
   if (normalized === 'life' || normalized === 'health' || normalized === 'vehicle' || normalized === 'term') return normalized;
@@ -682,5 +867,10 @@ export const financeDataController = {
     const totalEmi = list.reduce((sum, item) => sum + (item.emiAmount || 0), 0);
     const activeCount = list.filter((item) => item.status === 'active').length;
     res.success({ totalOutstanding, totalEmi, activeCount });
+  },
+
+  async getLoanPaydownForecast(req: Request, res: Response): Promise<void> {
+    const list = await LoanModel.find({ family_id: req.params.familyId }).lean();
+    res.success(buildLoanPaydownForecast(list));
   },
 };

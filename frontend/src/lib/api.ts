@@ -229,6 +229,44 @@ export interface Loan {
   status: 'active' | 'closed';
 }
 
+export interface LoanPaydownPoint {
+  monthIndex: number;
+  monthLabel: string;
+  totalOutstanding: number;
+  totalPrincipalPaid: number;
+  totalInterestPaid: number;
+  activeLoans: number;
+}
+
+export interface LoanPaydownLoan {
+  loanId: string;
+  name: string;
+  lender: string;
+  interestRate: number;
+  emiAmount: number;
+  tenureMonths: number;
+  outstandingPrincipal: number;
+  projectedPayoffMonths: number;
+  schedule: Array<{
+    principalPaid: number;
+    interestPaid: number;
+    endingBalance: number;
+  }>;
+}
+
+export interface LoanPaydownForecast {
+  generatedAt: string;
+  overview: {
+    totalOutstanding: number;
+    totalMonthlyEmi: number;
+    projectedPayoffMonths: number;
+    projectedPayoffMonth: string | null;
+    totalInterestRemaining: number;
+  };
+  schedule: LoanPaydownPoint[];
+  loans: LoanPaydownLoan[];
+}
+
 export interface Event {
   id: string;
   family_id: string;
@@ -564,6 +602,10 @@ export const financeAPI = {
   getLoanSummary: async (familyId: string) => {
     const { data } = await api.get(`/finance/loans/${familyId}/summary`);
     return data.data as { totalOutstanding: number; totalEmi: number; activeCount: number };
+  },
+  getLoanPaydownForecast: async (familyId: string) => {
+    const { data } = await api.get(`/finance/loans/${familyId}/paydown-forecast`);
+    return data.data as LoanPaydownForecast;
   },
 
   // AI insights (for Dashboard and Finance Overview)
