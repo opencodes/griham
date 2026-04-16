@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Sparkles, X } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import api from '@/lib/api';
 import { recordSmsParseHistory } from '@/lib/aiUsage';
 

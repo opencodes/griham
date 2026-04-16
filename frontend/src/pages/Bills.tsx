@@ -4,9 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { householdAPI, financeAPI, Bill } from '@/lib/api';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { Plus, Trash2, ArrowLeft, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, AlertCircle, CheckCircle, Sparkles, Pencil } from 'lucide-react';
 
-const BILL_CATEGORIES = ['Electricity', 'Water', 'Gas', 'Internet', 'Phone', 'Rent', 'Insurance', 'Subscription', 'Pocket Money', 'Other'];
+const DEFAULT_RECURRING_EXPENSE_CATEGORIES = ['Electricity', 'Water', 'Gas', 'Internet', 'Phone', 'Rent', 'Insurance', 'Subscription', 'Pocket Money', 'Other'];
 
 export default function Bills() {
   const { user } = useAuth();
@@ -18,10 +18,12 @@ export default function Bills() {
   const [userRole, setUserRole] = useState<string>('viewer');
   const [bills, setBills] = useState<Bill[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestCategoryLoading, setSuggestCategoryLoading] = useState(false);
   const [cashflowTips, setCashflowTips] = useState<string[]>([]);
   const [cashflowTipsLoading, setCashflowTipsLoading] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>(DEFAULT_RECURRING_EXPENSE_CATEGORIES);
   const [formData, setFormData] = useState({
     bill_name: '',
     category: '',
@@ -31,6 +33,23 @@ export default function Bills() {
     recurrence_pattern: 'monthly'
   });
 
+  const resetForm = () => {
+    setEditingBill(null);
+    setFormData({
+      bill_name: '',
+      category: '',
+      amount: '',
+      due_date: '',
+      is_recurring: false,
+      recurrence_pattern: 'monthly'
+    });
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    resetForm();
+  };
+
   useEffect(() => {
     loadFamily();
   }, []);
@@ -38,6 +57,7 @@ export default function Bills() {
   useEffect(() => {
     if (familyId) {
       loadBills();
+      loadRecurringExpenseCategories();
     }
   }, [familyId]);
 
@@ -77,6 +97,16 @@ export default function Bills() {
     }
   };
 
+  const loadRecurringExpenseCategories = async () => {
+    try {
+      const data = await financeAPI.getRecurringExpenseCategories(familyId);
+      setCategoryOptions(data?.categories?.length ? data.categories : DEFAULT_RECURRING_EXPENSE_CATEGORIES);
+    } catch (error) {
+      console.error('Failed to load recurring expense categories', error);
+      setCategoryOptions(DEFAULT_RECURRING_EXPENSE_CATEGORIES);
+    }
+  };
+
   const handleSuggestCategory = async () => {
     const name = (formData.bill_name || '').trim();
     if (!name || !familyId) return;
@@ -97,25 +127,35 @@ export default function Bills() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await financeAPI.createBill(familyId, {
+      const payload = {
         ...formData,
         amount: parseFloat(formData.amount)
-      });
-      setShowModal(false);
-      setFormData({
-        bill_name: '',
-        category: '',
-        amount: '',
-        due_date: '',
-        is_recurring: false,
-        recurrence_pattern: 'monthly'
-      });
-      loadBills();
+      };
+      if (editingBill) {
+        await financeAPI.updateBill(familyId, editingBill.id, payload);
+      } else {
+        await financeAPI.createBill(familyId, payload);
+      }
+      closeModal();
+      await loadBills();
     } catch (error) {
-      console.error('Failed to create bill', error);
+      console.error(`Failed to ${editingBill ? 'update' : 'create'} bill`, error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEdit = (bill: Bill) => {
+    setEditingBill(bill);
+    setFormData({
+      bill_name: bill.bill_name || '',
+      category: bill.category || '',
+      amount: bill.amount?.toString() || '',
+      due_date: bill.due_date || '',
+      is_recurring: Boolean(bill.is_recurring),
+      recurrence_pattern: bill.recurrence_pattern || 'monthly'
+    });
+    setShowModal(true);
   };
 
   const handleMarkPaid = async (id: string) => {
@@ -128,7 +168,7 @@ export default function Bills() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this bill?')) return;
+    if (!confirm('Delete this recurring expense?')) return;
     try {
       await financeAPI.deleteBill(familyId, id);
       loadBills();
@@ -199,16 +239,19 @@ export default function Bills() {
                 <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
               </button>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Bills</h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your recurring bills and payments</p>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Recurring Expenses</h2>
+                <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your recurring expenses and payments</p>
               </div>
               {userRole === 'admin' && (
                 <button
-                  onClick={() => setShowModal(true)}
+                  onClick={() => {
+                    resetForm();
+                    setShowModal(true);
+                  }}
                   className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium"
                 >
                   <Plus className="w-5 h-5" />
-                  Add Bill
+                  Add Recurring Expense
                 </button>
               )}
             </div>
@@ -228,7 +271,7 @@ export default function Bills() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Pending Bills</p>
+                  <p className="text-gray-500 dark:text-gray-400">Pending Recurring Expenses</p>
                   <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.pendingCount}</p>
                 </div>
                 <div>
@@ -240,7 +283,7 @@ export default function Bills() {
                   <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.upcomingCount}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Recurring Bills</p>
+                  <p className="text-gray-500 dark:text-gray-400">Recurring Expenses</p>
                   <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.recurringCount}</p>
                 </div>
               </div>
@@ -316,6 +359,14 @@ export default function Bills() {
 
                   {userRole === 'admin' && (
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(bill)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-indigo-200 dark:border-indigo-900/40 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                        aria-label="Edit recurring expense"
+                        title="Edit recurring expense"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
                       {bill.status === 'pending' && (
                         <button
                           onClick={() => handleMarkPaid(bill.id)}
@@ -338,8 +389,8 @@ export default function Bills() {
               {bills.length === 0 && (
                 <div className="col-span-full text-center py-12">
                   <AlertCircle className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-300 mb-2">No bills yet</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Add your first bill to get started</p>
+                  <p className="text-gray-600 dark:text-gray-300 mb-2">No recurring expenses yet</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Add your first recurring expense to get started</p>
                 </div>
               )}
             </div>
@@ -350,13 +401,15 @@ export default function Bills() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="rounded-2xl shadow-xl max-w-md w-full p-6 glass-black-surface border border-[var(--panel-border)]">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Add Bill</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+              {editingBill ? 'Edit Recurring Expense' : 'Add Recurring Expense'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bill Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recurring Expense Name</label>
                 <input
                   type="text"
-                  placeholder="Electricity Bill"
+                  placeholder="Electricity Expense"
                   value={formData.bill_name}
                   onChange={(e) => setFormData({ ...formData, bill_name: e.target.value })}
                   required
@@ -374,7 +427,7 @@ export default function Bills() {
                     className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="">Select category</option>
-                    {BILL_CATEGORIES.map((cat) => (
+                    {categoryOptions.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
@@ -383,7 +436,7 @@ export default function Bills() {
                     onClick={handleSuggestCategory}
                     disabled={suggestCategoryLoading || !formData.bill_name?.trim()}
                     className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-50 disabled:pointer-events-none"
-                    title="Suggest category from bill name"
+                    title="Suggest category from recurring expense name"
                   >
                     <Sparkles className="w-4 h-4" />
                     {suggestCategoryLoading ? '…' : 'Suggest'}
@@ -423,7 +476,7 @@ export default function Bills() {
                   onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
                   className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                 />
-                <label htmlFor="recurring" className="text-sm text-gray-700 dark:text-gray-300">Recurring bill</label>
+                <label htmlFor="recurring" className="text-sm text-gray-700 dark:text-gray-300">Recurring expense</label>
               </div>
 
               {formData.is_recurring && (
@@ -445,7 +498,7 @@ export default function Bills() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   disabled={isLoading}
                   className="flex-1 btn-secondary"
                 >
@@ -456,7 +509,7 @@ export default function Bills() {
                   disabled={isLoading}
                   className="flex-1 ai-gradient-button text-white px-4 py-2 rounded-lg disabled:opacity-50"
                 >
-                  {isLoading ? 'Adding...' : 'Add Bill'}
+                  {isLoading ? (editingBill ? 'Saving...' : 'Adding...') : (editingBill ? 'Save Changes' : 'Add Recurring Expense')}
                 </button>
               </div>
             </form>

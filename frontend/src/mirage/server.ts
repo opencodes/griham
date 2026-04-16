@@ -15,6 +15,7 @@ const db = {
   accounts: [] as Array<{ id: string; family_id: string; account_name: string; account_number?: string; bank_name: string; account_type: string; balance: number; currency: string }>,
   transactions: [] as Array<{ id: string; family_id: string; account_id: string | null; card_id?: string | null; type: string; category: string; amount: number; description?: string; transaction_date: string; created_by: string; account_name?: string; bank_name?: string; created_by_name?: string; event_id?: string | null; sub_event_id?: string | null; source_type?: string | null }>,
   bills: [] as Array<{ id: string; family_id: string; bill_name: string; category: string; amount: number; due_date: string; is_recurring: boolean; recurrence_pattern?: string; status: string }>,
+  recurring_expense_category_settings: [] as Array<{ family_id: string; categories: string[] }>,
   cards: [] as Array<{ id: string; family_id: string; card_type: 'credit' | 'debit'; bank_name: string; card_name: string; last_four_digits: string; card_limit?: number; billing_date?: number; background_color?: string | null; status: 'active' | 'inactive' | 'blocked'; created_at: string }>,
   insurance: [] as Array<{ id: string; family_id: string; type: string; provider: string; policyName: string; policyNumber: string; premiumAmount: number; premiumFrequency: string; nextDueDate?: string | null; coverageAmount: number; insuredMembers: string[]; status: string }>,
   investments: [] as Array<{ id: string; family_id: string; type: string; name: string; folioNumber: string; sipAmount: number; sipDay: number; startDate: string; currentValue: number; investedAmount: number; units: number; nav: number; platform?: string | null; status: string }>,
@@ -36,6 +37,21 @@ const db = {
 
 function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+const DEFAULT_RECURRING_EXPENSE_CATEGORIES = ['Electricity', 'Water', 'Gas', 'Internet', 'Phone', 'Rent', 'Insurance', 'Subscription', 'Pocket Money', 'Other'];
+
+function sanitizeStringList(values: unknown, fallback: string[]) {
+  if (!Array.isArray(values)) return [...fallback];
+  const unique = new Set<string>();
+  for (const value of values) {
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    unique.add(trimmed);
+  }
+  const list = Array.from(unique);
+  return list.length > 0 ? list : [...fallback];
 }
 
 /** Fixed IDs for seed users so RBAC seed can reference them. */
@@ -183,6 +199,10 @@ function seed() {
     is_recurring: true,
     recurrence_pattern: 'monthly',
     status: 'pending',
+  });
+  db.recurring_expense_category_settings.push({
+    family_id: familyId,
+    categories: [...DEFAULT_RECURRING_EXPENSE_CATEGORIES],
   });
   db.cards.push({
     id: uid(),
@@ -839,6 +859,34 @@ export function makeServer({ environment = 'development' } = {}) {
       this.get('/finance/bills/:familyId/upcoming', (_schema, request) => {
         const list = db.bills.filter((b) => b.family_id === request.params.familyId && b.status === 'pending');
         return { data: list };
+      });
+
+      this.get('/finance/bills/:familyId/categories', (_schema, request) => {
+        const familyId = request.params.familyId;
+        const existing = db.recurring_expense_category_settings.find((item) => item.family_id === familyId);
+        if (existing) {
+          return { data: { categories: sanitizeStringList(existing.categories, DEFAULT_RECURRING_EXPENSE_CATEGORIES) } };
+        }
+        const created = {
+          family_id: familyId,
+          categories: [...DEFAULT_RECURRING_EXPENSE_CATEGORIES],
+        };
+        db.recurring_expense_category_settings.push(created);
+        return { data: { categories: created.categories } };
+      });
+
+      this.put('/finance/bills/:familyId/categories', (_schema, request) => {
+        const familyId = request.params.familyId;
+        const body = JSON.parse(request.requestBody);
+        const categories = sanitizeStringList(body?.categories, DEFAULT_RECURRING_EXPENSE_CATEGORIES);
+        const existing = db.recurring_expense_category_settings.find((item) => item.family_id === familyId);
+        if (existing) {
+          existing.categories = categories;
+          return { data: { categories: existing.categories } };
+        }
+        const created = { family_id: familyId, categories };
+        db.recurring_expense_category_settings.push(created);
+        return { data: { categories: created.categories } };
       });
 
       this.post('/finance/bills', (_schema, request) => {

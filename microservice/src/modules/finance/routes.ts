@@ -22,6 +22,8 @@ financeRoutes.delete('/transactions/:familyId/:transactionId', financeDataContro
 
 // Bills
 financeRoutes.get('/bills/:familyId/upcoming', financeDataController.getUpcomingBills);
+financeRoutes.get('/bills/:familyId/categories', financeDataController.getRecurringExpenseCategories);
+financeRoutes.put('/bills/:familyId/categories', financeDataController.updateRecurringExpenseCategories);
 financeRoutes.get('/bills/:familyId', financeDataController.listBills);
 financeRoutes.post('/bills', financeDataController.createBill);
 financeRoutes.put('/bills/:familyId/:billId', financeDataController.updateBill);

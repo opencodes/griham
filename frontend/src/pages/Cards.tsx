@@ -269,9 +269,9 @@ export default function Cards() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={handleMenuToggle} />
 
-        <main className="flex-1 px-3 md:px-5 py-3 overflow-y-auto">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 flex-wrap">
+        <main className="flex-1 px-3 md:px-4 py-3 overflow-y-auto">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <button
                 onClick={() => navigate('/finance')}
                 className="icon-button glass-black-surface"
@@ -279,7 +279,7 @@ export default function Cards() {
                 <ArrowLeft className="w-4.5 h-4.5 text-[var(--app-fg)]" />
               </button>
               <div className="min-w-0 flex-1">
-                <h2 className="text-[1.375rem] font-bold text-[var(--app-fg)] tracking-tight">My Cards</h2>
+                <h2 className="text-xl font-bold text-[var(--app-fg)] tracking-tight">My Cards</h2>
                 <p className="text-xs text-[var(--app-fg-muted)] mt-0.5">{cards.length} cards</p>
               </div>
               {userRole === 'admin' && (
@@ -288,7 +288,7 @@ export default function Cards() {
                     resetForm();
                     setShowModal(true);
                   }}
-                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 ai-gradient-button text-white px-4 rounded-lg font-medium"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 ai-gradient-button text-white px-3.5 rounded-lg font-medium text-sm"
                 >
                   <Plus className="w-4.5 h-4.5" />
                   Add Card
@@ -296,60 +296,60 @@ export default function Cards() {
               )}
             </div>
 
-            <div className="premium-panel rounded-xl border border-[var(--panel-border)] p-3">
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 text-sm">
-                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+            <div className="premium-panel rounded-xl border border-[var(--panel-border)] p-2.5">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5 text-sm">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-2.5 py-2">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Total Spending</p>
-                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
+                  <p className="text-base font-semibold text-[var(--app-fg)] mt-0.5">
                     ₹{summary.totalSpending.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-2.5 py-2">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Total Payments</p>
-                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
+                  <p className="text-base font-semibold text-[var(--app-fg)] mt-0.5">
                     ₹{summary.totalPayments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-2.5 py-2">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Statement Due</p>
-                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
+                  <p className="text-base font-semibold text-[var(--app-fg)] mt-0.5">
                     ₹{summary.statementDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-2.5 py-2">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Active Cards</p>
-                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">{summary.activeCards}</p>
+                  <p className="text-base font-semibold text-[var(--app-fg)] mt-0.5">{summary.activeCards}</p>
                 </div>
-                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-2.5 py-2">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Total Credit Limit</p>
-                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
+                  <p className="text-base font-semibold text-[var(--app-fg)] mt-0.5">
                     ₹{summary.totalLimit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-3 py-2.5">
+                <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--surface-muted)] px-2.5 py-2">
                   <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-fg-muted)]">Avg Spend / Card</p>
-                  <p className="text-[1.125rem] font-semibold text-[var(--app-fg)] mt-1">
+                  <p className="text-base font-semibold text-[var(--app-fg)] mt-0.5">
                     ₹{summary.avgSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-[var(--panel-border)] p-3 glass-black-surface">
-              <div className="mb-3">
+            <div className="rounded-xl border border-[var(--panel-border)] p-2.5 glass-black-surface">
+              <div className="mb-2.5">
                 <h3 className="text-sm font-semibold text-[var(--app-fg)]">Card Tabs</h3>
                 <p className="text-[11px] text-[var(--app-fg-muted)] mt-0.5">Choose a card tab to view details and transactions below.</p>
               </div>
 
               {cards.length > 0 && (
-                <div className="border-b border-[var(--panel-border)] mb-3">
+                <div className="border-b border-[var(--panel-border)] mb-2.5">
                   <div className="flex gap-1.5 overflow-x-auto pb-0">
                     {cards.map((card) => (
                       <button
                         key={card.id}
                         type="button"
                         onClick={() => setSelectedCardId(card.id)}
-                        className={`shrink-0 rounded-t-lg border border-b-0 px-3 py-2 text-sm font-medium transition-colors ${
+                        className={`shrink-0 rounded-t-lg border border-b-0 px-2.5 py-1.5 text-xs font-medium transition-colors ${
                           selectedCardId === card.id
                             ? 'bg-[var(--panel-bg)] text-[var(--primary-text)] border-[var(--panel-border)] shadow-sm relative'
                             : 'bg-[var(--surface-muted)] text-[var(--app-fg-muted)] border-transparent hover:text-[var(--app-fg)] hover:bg-[var(--surface-subtle)]'
@@ -376,8 +376,8 @@ export default function Cards() {
             </div>
 
             {cards.length === 0 && (
-              <div className="text-center py-12 rounded-xl border border-[var(--panel-border)] glass-black-surface">
-                <CreditCard className="w-16 h-16 text-[var(--app-fg-muted)] mx-auto mb-4" />
+              <div className="text-center py-10 rounded-xl border border-[var(--panel-border)] glass-black-surface">
+                <CreditCard className="w-14 h-14 text-[var(--app-fg-muted)] mx-auto mb-3" />
                 <p className="text-[var(--app-fg-muted)] mb-2">No cards yet</p>
                 <p className="text-sm text-[var(--app-fg-muted)]">Add your first card to get started</p>
               </div>
@@ -388,9 +388,9 @@ export default function Cards() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="premium-panel rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 border border-[var(--panel-border)]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-[var(--app-fg)]">
+          <div className="premium-panel rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-5 border border-[var(--panel-border)]">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-xl font-bold text-[var(--app-fg)]">
                 {editingCard ? 'Edit Card' : 'Add Card'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-[var(--app-fg-muted)] hover:text-[var(--app-fg)]">
@@ -398,7 +398,7 @@ export default function Cards() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               <CardSMSParser
                 familyId={familyId}
                 onParsed={(data) => {
@@ -417,11 +417,11 @@ export default function Cards() {
                 }}
               />
 
-              <div className="border-t border-[var(--panel-border)] pt-4">
-                <p className="text-sm text-[var(--app-fg-muted)] mb-3">Or fill manually:</p>
+              <div className="border-t border-[var(--panel-border)] pt-3">
+                <p className="text-xs text-[var(--app-fg-muted)] mb-2.5">Or fill manually:</p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 <div>
                   <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Type</label>
                   <select
@@ -522,14 +522,14 @@ export default function Cards() {
                   </select>
                 </div>
 
-                <div className="space-y-3 md:col-span-2 lg:col-span-3">
+                <div className="space-y-2.5 md:col-span-2 lg:col-span-3">
                   <label className="block text-sm font-medium text-[var(--app-fg)] mb-1">Card Background</label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     <input
                       type="color"
                       value={getSafeBackgroundColor(formData.background_color)}
                       onChange={(e) => setFormData({ ...formData, background_color: e.target.value })}
-                      className="h-11 w-14 cursor-pointer rounded-md border border-[var(--panel-border)] bg-transparent p-1"
+                      className="h-9 w-12 cursor-pointer rounded-md border border-[var(--panel-border)] bg-transparent p-1"
                       aria-label="Choose card background color"
                     />
                     <input
@@ -540,13 +540,13 @@ export default function Cards() {
                       className="input-theme"
                     />
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {CARD_COLOR_PRESETS.map((color) => (
                       <button
                         key={color}
                         type="button"
                         onClick={() => setFormData({ ...formData, background_color: color })}
-                        className={`h-8 w-8 rounded-full border-2 ${formData.background_color === color ? 'border-white ring-2 ring-[var(--brand-primary)]' : 'border-white/40'}`}
+                        className={`h-7 w-7 rounded-full border-2 ${formData.background_color === color ? 'border-white ring-2 ring-[var(--brand-primary)]' : 'border-white/40'}`}
                         style={{ backgroundColor: color }}
                         aria-label={`Use ${color} for card background`}
                       />
@@ -555,7 +555,7 @@ export default function Cards() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}

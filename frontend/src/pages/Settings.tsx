@@ -1,7 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { useAppSettings, type AppSettings } from '@/contexts/AppSettingsContext';
+import { useAuth } from '@/hooks/useAuth';
+import { financeAPI, householdAPI } from '@/lib/api';
+
+const DEFAULT_RECURRING_EXPENSE_CATEGORIES = ['Electricity', 'Water', 'Gas', 'Internet', 'Phone', 'Rent', 'Insurance', 'Subscription', 'Pocket Money', 'Other'];
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
@@ -106,6 +110,7 @@ function ListSettingEditor({
 }
 
 export default function SettingsPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('settings');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -113,18 +118,96 @@ export default function SettingsPage() {
 
   const [draft, setDraft] = useState<AppSettings>(settings);
   const [saveMessage, setSaveMessage] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [familyId, setFamilyId] = useState('');
+  const [userRole, setUserRole] = useState('viewer');
+  const [recurringExpenseCategories, setRecurringExpenseCategories] = useState<string[]>(DEFAULT_RECURRING_EXPENSE_CATEGORIES);
+  const [savedRecurringExpenseCategories, setSavedRecurringExpenseCategories] = useState<string[]>(DEFAULT_RECURRING_EXPENSE_CATEGORIES);
+  const [recurringCategoriesLoading, setRecurringCategoriesLoading] = useState(true);
+  const isLocalSettingsDirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(settings), [draft, settings]);
+  const isRecurringCategoriesDirty = useMemo(() => {
+    return JSON.stringify(recurringExpenseCategories) !== JSON.stringify(savedRecurringExpenseCategories);
+  }, [recurringExpenseCategories, savedRecurringExpenseCategories]);
 
-  const isDirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(settings), [draft, settings]);
+  useEffect(() => {
+    void loadFamilyAndCategories();
+  }, [user?.id]);
+
+  const isDirty = useMemo(() => {
+    return isLocalSettingsDirty || isRecurringCategoriesDirty;
+  }, [isLocalSettingsDirty, isRecurringCategoriesDirty]);
 
   const handleMenuToggle = () => {
     setMobileMenuOpen(!mobileMenuOpen);
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  const saveSettings = (e: React.FormEvent) => {
+  const loadFamilyAndCategories = async () => {
+    try {
+      setRecurringCategoriesLoading(true);
+      const families = await householdAPI.list();
+      if (families.length === 0) {
+        setFamilyId('');
+        setUserRole('viewer');
+        setRecurringExpenseCategories(DEFAULT_RECURRING_EXPENSE_CATEGORIES);
+        setSavedRecurringExpenseCategories(DEFAULT_RECURRING_EXPENSE_CATEGORIES);
+        return;
+      }
+
+      const currentFamilyId = families[0].id;
+      setFamilyId(currentFamilyId);
+
+      const [members, categorySettings] = await Promise.all([
+        householdAPI.listMembers(currentFamilyId),
+        financeAPI.getRecurringExpenseCategories(currentFamilyId),
+      ]);
+      const currentMember = members.find((member: any) => member.user_id === user?.id);
+      setUserRole(currentMember?.role || 'viewer');
+
+      const categories = Array.isArray(categorySettings?.categories) && categorySettings.categories.length > 0
+        ? categorySettings.categories
+        : DEFAULT_RECURRING_EXPENSE_CATEGORIES;
+
+      setRecurringExpenseCategories(categories);
+      setSavedRecurringExpenseCategories(categories);
+    } catch (error) {
+      console.error('Failed to load settings', error);
+      setSaveError('Unable to load recurring expense categories right now.');
+    } finally {
+      setRecurringCategoriesLoading(false);
+    }
+  };
+
+  const saveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettings(draft);
-    setSaveMessage('Settings saved. All participant dropdowns now use these values.');
+    setIsSaving(true);
+    setSaveError('');
+    setSaveMessage('');
+
+    try {
+      updateSettings(draft);
+      if (familyId && userRole === 'admin') {
+        const saved = await financeAPI.updateRecurringExpenseCategories(familyId, recurringExpenseCategories);
+        const nextCategories = saved?.categories?.length ? saved.categories : DEFAULT_RECURRING_EXPENSE_CATEGORIES;
+        setRecurringExpenseCategories(nextCategories);
+        setSavedRecurringExpenseCategories(nextCategories);
+      }
+      if (isRecurringCategoriesDirty && !familyId) {
+        setRecurringExpenseCategories(savedRecurringExpenseCategories);
+        setSaveMessage('Participant settings were saved. Recurring expense categories need a household before they can be stored through the API.');
+      } else if (isRecurringCategoriesDirty && familyId && userRole !== 'admin') {
+        setRecurringExpenseCategories(savedRecurringExpenseCategories);
+        setSaveMessage('Participant settings were saved. Recurring expense categories can only be updated by a household admin.');
+      } else {
+        setSaveMessage('Settings saved. Participant dropdowns and recurring expense categories are updated.');
+      }
+    } catch (error) {
+      console.error('Failed to save settings', error);
+      setSaveError('Unable to save settings right now.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const restoreDefaults = () => {
@@ -136,7 +219,9 @@ export default function SettingsPage() {
       participantGiftOptions: ['Flowers', 'Cash Gift', 'Gift Card', 'Home Decor'],
     };
     setDraft(defaults);
+    setRecurringExpenseCategories(DEFAULT_RECURRING_EXPENSE_CATEGORIES);
     setSaveMessage('Defaults restored.');
+    setSaveError('');
   };
 
   return (
@@ -167,6 +252,11 @@ export default function SettingsPage() {
                   {saveMessage}
                 </div>
               )}
+              {saveError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+                  {saveError}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 <ListSettingEditor
@@ -192,14 +282,40 @@ export default function SettingsPage() {
                   values={draft.participantGiftOptions}
                   onChange={(participantGiftOptions) => setDraft((prev) => ({ ...prev, participantGiftOptions }))}
                 />
+
+                <ListSettingEditor
+                  title="Recurring Expense Categories"
+                  values={recurringExpenseCategories}
+                  onChange={setRecurringExpenseCategories}
+                />
               </div>
+
+              {recurringCategoriesLoading && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading recurring expense categories…</p>
+              )}
+
+              {!recurringCategoriesLoading && !familyId && (
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  Create or join a household to save recurring expense categories through the API.
+                </p>
+              )}
+
+              {!recurringCategoriesLoading && familyId && userRole !== 'admin' && (
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  You can view recurring expense categories here, but only household admins can manage finance settings.
+                </p>
+              )}
 
               <div className="flex items-center justify-end gap-2">
                 <button type="button" onClick={restoreDefaults} className="btn-secondary">
                   Restore Defaults
                 </button>
-                <button type="submit" disabled={!isDirty} className="px-4 py-2 rounded-lg ai-gradient-button text-white disabled:opacity-50">
-                  Save Settings
+                <button
+                  type="submit"
+                  disabled={!isDirty || isSaving}
+                  className="px-4 py-2 rounded-lg ai-gradient-button text-white disabled:opacity-50"
+                >
+                  {isSaving ? 'Saving...' : 'Save Settings'}
                 </button>
               </div>
             </form>

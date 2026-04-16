@@ -7,7 +7,7 @@ import { Header } from '@/components/Header';
 import { FinanceMonthFilter } from '@/components/FinanceMonthFilter';
 import { useFinanceMonth } from '@/contexts/FinanceMonthContext';
 import SMSParser from '@/components/SMSParser';
-import { Search, ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus, Sparkles, Pencil, MessageSquare, X } from 'lucide-react';
+import { ArrowDownUp, ArrowLeft, TrendingUp, TrendingDown, RotateCcw, Plus, Sparkles, Pencil, MessageSquare, X } from 'lucide-react';
 
 type TypeFilter = 'all' | 'income' | 'expense';
 type SortBy = 'newest' | 'oldest' | 'amount_high' | 'amount_low';
@@ -480,20 +480,20 @@ export default function TransactionsPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={handleMenuToggle} />
 
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
-          <div className="space-y-6">
+        <main className="flex-1 px-3 md:px-4 py-3 overflow-y-auto">
+          <div className="space-y-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => navigate('/finance')}
-                  className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface shrink-0"
+                  className="icon-button glass-black-surface shrink-0"
                   aria-label="Back to Finance"
                 >
-                  <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+                  <ArrowLeft className="w-4 h-4 text-gray-800 dark:text-gray-200" />
                 </button>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Transactions</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Transactions</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {filteredTransactions.length} of {transactions.length} records shown
                   </p>
                 </div>
@@ -503,7 +503,7 @@ export default function TransactionsPage() {
               <div className="flex items-center justify-end gap-2 flex-wrap md:flex-nowrap">
                 <button
                   onClick={clearFilters}
-                  className="inline-flex h-11 items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition whitespace-nowrap"
+                  className="btn-secondary whitespace-nowrap"
                   type="button"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -514,7 +514,7 @@ export default function TransactionsPage() {
                 {userRole === 'admin' && (
                   <button
                     onClick={() => setShowSMSModal(true)}
-                    className="inline-flex h-11 items-center gap-2 ai-gradient-button px-4 rounded-lg text-sm font-medium whitespace-nowrap"
+                    className="inline-flex items-center gap-2 ai-gradient-button px-3.5 rounded-lg text-sm font-medium whitespace-nowrap"
                   >
                     <MessageSquare className="w-4 h-4" />
                     Add from SMS
@@ -524,7 +524,7 @@ export default function TransactionsPage() {
                 {userRole === 'admin' && (
                   <button
                     onClick={openCreateModal}
-                    className="inline-flex h-11 items-center gap-2 ai-gradient-button text-white px-4 rounded-lg text-sm font-medium whitespace-nowrap"
+                    className="inline-flex items-center gap-2 ai-gradient-button text-white px-3.5 rounded-lg text-sm font-medium whitespace-nowrap"
                     type="button"
                   >
                     <Plus className="w-4 h-4" />
@@ -534,44 +534,43 @@ export default function TransactionsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-3.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Income</p>
-                  <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Income</p>
+                  <TrendingUp className="w-4.5 h-4.5 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-2">{formatCurrency(summary.income)}</p>
+                <p className="text-lg font-bold text-green-600 dark:text-green-400 mt-1.5">{formatCurrency(summary.income)}</p>
               </div>
 
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-3.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Expense</p>
-                  <TrendingDown className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Expense</p>
+                  <TrendingDown className="w-4.5 h-4.5 text-red-600 dark:text-red-400" />
                 </div>
-                <p className="text-xl font-bold text-red-600 dark:text-red-400 mt-2">{formatCurrency(summary.expense)}</p>
+                <p className="text-lg font-bold text-red-600 dark:text-red-400 mt-1.5">{formatCurrency(summary.expense)}</p>
               </div>
 
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Net</p>
-                <p className={`text-xl font-bold mt-2 ${(summary.income - summary.expense) >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-orange-600 dark:text-orange-400'}`}>
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-3.5">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Net</p>
+                <p className={`text-lg font-bold mt-1.5 ${(summary.income - summary.expense) >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-orange-600 dark:text-orange-400'}`}>
                   {formatCurrency(summary.income - summary.expense)}
                 </p>
               </div>
 
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Event-tagged Spend</p>
-                <div className="mt-2 flex items-baseline justify-between gap-3">
-                  <p className="text-xl font-bold text-violet-600 dark:text-violet-400">{formatCurrency(eventSummary.amount)}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{eventSummary.count} tagged expense{eventSummary.count === 1 ? '' : 's'}</p>
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-3.5">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Event-tagged Spend</p>
+                <div className="mt-1.5 flex items-baseline justify-between gap-3">
+                  <p className="text-lg font-bold text-violet-600 dark:text-violet-400">{formatCurrency(eventSummary.amount)}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{eventSummary.count} tagged expense{eventSummary.count === 1 ? '' : 's'}</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-4 space-y-3">
+            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-3 space-y-2.5">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
                 <div className="relative lg:col-span-5 flex items-center gap-2">
                   <div className="relative flex-1">
-                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -586,7 +585,7 @@ export default function TransactionsPage() {
                           ? "Try: 'coffee last week', 'biggest expense this month'..."
                           : 'Search category, note, account, bank...'
                       }
-                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-9 pr-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="input-theme px-3"
                     />
                   </div>
                   {aiSearchMode && (
@@ -594,7 +593,7 @@ export default function TransactionsPage() {
                       type="button"
                       onClick={runAiSearch}
                       disabled={aiSearchLoading || !search.trim()}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap"
                     >
                       {aiSearchLoading ? (
                         '...'
@@ -622,7 +621,7 @@ export default function TransactionsPage() {
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="input-theme flex-1 min-w-0"
                   >
                     {categoryOptions.map((category) => (
                       <option key={category} value={category}>
@@ -636,7 +635,7 @@ export default function TransactionsPage() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortBy)}
-                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="input-theme"
                   >
                     <option value="newest">Newest first</option>
                     <option value="oldest">Oldest first</option>
@@ -645,13 +644,13 @@ export default function TransactionsPage() {
                   </select>
                 </div>
 
-                <div className="lg:col-span-2 flex items-center gap-2 bg-gray-100 dark:bg-gray-900 rounded-lg p-1">
+                <div className="lg:col-span-2 flex items-center gap-1.5 bg-gray-100 dark:bg-gray-900 rounded-lg p-1">
                   {(['all', 'income', 'expense'] as const).map((type) => (
                     <button
                       key={type}
                       type="button"
                       onClick={() => setTypeFilter(type)}
-                      className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition ${typeFilter === type
+                      className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition ${typeFilter === type
                           ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow-sm'
                           : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                         }`}
@@ -662,7 +661,7 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+              <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 flex-wrap">
                 <ArrowDownUp className="w-3.5 h-3.5 shrink-0" />
                 <span>Use filters to narrow records and compare inflow vs outflow.</span>
                 {aiSearchMode && (
@@ -680,8 +679,8 @@ export default function TransactionsPage() {
 
             {/* Category insights panel */}
             {familyId && (
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-4">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-3">
+                <div className="flex items-center gap-2 mb-2.5">
                   <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   <h3 className="text-sm font-bold text-[var(--app-fg)]">Category insights</h3>
                   {categoryInsightsLoading && (
@@ -699,7 +698,7 @@ export default function TransactionsPage() {
                     {categoryInsights.map((item) => (
                       <li
                         key={item.category}
-                        className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-3 py-2 border-b border-[var(--panel-border)] last:border-b-0"
+                          className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-2.5 py-2 border-b border-[var(--panel-border)] last:border-b-0"
                       >
                         <span className="font-medium text-[var(--app-fg)]">{getCategoryIcon(item.category)} {item.category}</span>
                         <span className="text-xs text-[var(--app-fg-muted)]">
@@ -714,34 +713,34 @@ export default function TransactionsPage() {
             )}
 
             {loading && (
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-6 text-sm text-gray-500 dark:text-gray-400">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-5 text-sm text-gray-500 dark:text-gray-400">
                 Loading transactions...
               </div>
             )}
 
             {!loading && error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-300">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 text-sm text-red-700 dark:text-red-300">
                 {error}
               </div>
             )}
 
             {!loading && !error && filteredTransactions.length === 0 && (
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-10 text-center">
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-8 text-center">
                 <p className="text-4xl mb-2">🔍</p>
                 <p className="text-gray-600 dark:text-gray-300">No transactions match your filters.</p>
               </div>
             )}
 
             {!loading && !error && filteredTransactions.length > 0 && (
-              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base font-bold text-gray-800 dark:text-gray-100">Transactions</h3>
+              <div className="rounded-xl shadow-sm border border-[var(--panel-border)] glass-black-surface p-3">
+                <div className="flex items-center justify-between mb-2.5">
+                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">Transactions</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{filteredTransactions.length} records</p>
                 </div>
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {groupedTransactions.map(([date, txs]) => (
                     <section key={date} className="space-y-2">
-                      <div className="sticky top-0 z-10 py-1.5">
+                      <div className="sticky top-0 z-10 py-1">
                         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                           {formatDateLabel(date)}
                         </p>
@@ -771,11 +770,11 @@ export default function TransactionsPage() {
                           return (
                             <article
                               key={tx.id}
-                              className="px-3 py-2.5 transition hover:bg-black/5 dark:hover:bg-white/10 border-b border-[var(--panel-border)] last:border-b-0"
+                              className="px-2.5 py-2 transition hover:bg-black/5 dark:hover:bg-white/10 border-b border-[var(--panel-border)] last:border-b-0"
                             >
-                              <div className="flex items-start justify-between gap-2.5">
-                                <div className="min-w-0 flex items-start gap-2.5">
-                                  <div className="w-8 h-8 flex items-center justify-center text-sm shrink-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex items-start gap-2">
+                                  <div className="w-7 h-7 flex items-center justify-center text-sm shrink-0">
                                     {getCategoryIcon(tx.category)}
                                   </div>
 
@@ -797,25 +796,25 @@ export default function TransactionsPage() {
                                           {subEventName}
                                         </span>
                                       )}
-                                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{title}</p>
+                                      <p className="text-xs font-medium text-gray-800 dark:text-gray-100 truncate">{title}</p>
                                     </div>
 
                                     <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">{subtitle}</p>
                                   </div>
                                 </div>
 
-                                <div className="text-right shrink-0">
-                                  <p className={`font-semibold text-sm ${isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                <div className="shrink-0 flex items-center gap-1.5 self-center">
+                                  <p className={`font-semibold text-xs ${isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                     {isIncome ? '+' : '-'}{formatCurrency(amount)}
                                   </p>
                                   {userRole === 'admin' && (
                                     <button
                                       type="button"
                                       onClick={() => void openEditModal(tx)}
-                                      className="mt-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition"
+                                      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition"
                                       aria-label={`Edit transaction ${title}`}
                                     >
-                                      <Pencil className="w-4 h-4" />
+                                      <Pencil className="w-3.5 h-3.5" />
                                     </button>
                                   )}
                                 </div>
@@ -836,9 +835,9 @@ export default function TransactionsPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-xl border border-[var(--panel-border)] shadow-xl glass-black-surface">
-            <form onSubmit={handleCreateTransaction} className="p-5 space-y-4">
+            <form onSubmit={handleCreateTransaction} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">
                   {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
                 </h3>
                 <button
@@ -854,7 +853,7 @@ export default function TransactionsPage() {
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="input-theme"
                 >
                   <option value="income">Income</option>
                   <option value="expense">Expense</option>
@@ -865,14 +864,14 @@ export default function TransactionsPage() {
                     value={formData.category}
                     onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
                     placeholder="Category"
-                    className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="input-theme flex-1"
                     required
                   />
                   <button
                     type="button"
                     onClick={handleSuggestCategory}
                     disabled={suggestCategoryLoading || !formData.description?.trim()}
-                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-50 disabled:pointer-events-none"
+                    className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 disabled:opacity-50 disabled:pointer-events-none"
                     title="Suggest category from description"
                   >
                     <Sparkles className="w-4 h-4" />
@@ -887,7 +886,7 @@ export default function TransactionsPage() {
                   value={formData.amount}
                   onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
                   placeholder="Amount"
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="input-theme"
                   required
                 />
 
@@ -895,7 +894,7 @@ export default function TransactionsPage() {
                   type="date"
                   value={formData.transaction_date}
                   onChange={(e) => setFormData((prev) => ({ ...prev, transaction_date: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="input-theme"
                   required
                 />
               </div>
@@ -904,7 +903,7 @@ export default function TransactionsPage() {
                 <select
                   value={formData.event_id}
                   onChange={(e) => setFormData((prev) => ({ ...prev, event_id: e.target.value, sub_event_id: '' }))}
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="input-theme"
                 >
                   <option value="">No event tag</option>
                   {events.map((event) => (
@@ -917,7 +916,7 @@ export default function TransactionsPage() {
                 <select
                   value={formData.sub_event_id}
                   onChange={(e) => setFormData((prev) => ({ ...prev, sub_event_id: e.target.value }))}
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+                  className="input-theme disabled:opacity-60"
                   disabled={!formData.event_id}
                 >
                   <option value="">No sub-event tag</option>
@@ -932,7 +931,7 @@ export default function TransactionsPage() {
               <select
                 value={formData.account_id}
                 onChange={(e) => setFormData((prev) => ({ ...prev, account_id: e.target.value }))}
-                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="input-theme"
                 required
               >
                 <option value="">Select account</option>
@@ -948,7 +947,7 @@ export default function TransactionsPage() {
                 onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Description (optional)"
                 rows={3}
-                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                className="input-theme resize-none"
               />
 
               <div className="flex justify-end gap-2">
@@ -974,11 +973,11 @@ export default function TransactionsPage() {
 
       {showSMSModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="premium-panel rounded-2xl shadow-xl max-w-md w-full p-6 border border-[var(--panel-border)]">
-            <div className="flex justify-between items-center mb-4">
+          <div className="premium-panel rounded-2xl shadow-xl max-w-md w-full p-5 border border-[var(--panel-border)]">
+            <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-[var(--app-fg)]" />
-                <h2 className="text-2xl font-bold text-[var(--app-fg)]">Parse SMS</h2>
+                <Sparkles className="w-5 h-5 text-[var(--app-fg)]" />
+                <h2 className="text-xl font-bold text-[var(--app-fg)]">Parse SMS</h2>
               </div>
               <button
                 onClick={() => setShowSMSModal(false)}

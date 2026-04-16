@@ -7,6 +7,7 @@ export interface IFamilyDoc {
   name: string;
   address: string | null;
   created_by: string;
+  recurring_expense_categories?: string[];
   created_at?: Date;
   updated_at?: Date;
 }
@@ -17,6 +18,7 @@ const familySchema = new Schema<IFamilyDoc>(
     name: { type: String, required: true },
     address: { type: String, default: null },
     created_by: { type: String, required: true, ref: 'User' },
+    recurring_expense_categories: { type: [String], default: [] },
   },
   { timestamps: true, id: false }
 );

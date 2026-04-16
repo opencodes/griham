@@ -152,6 +152,10 @@ export interface Bill {
   status: string;
 }
 
+export interface RecurringExpenseCategorySettings {
+  categories: string[];
+}
+
 export interface Card {
   id: string;
   family_id: string;
@@ -517,6 +521,14 @@ export const financeAPI = {
   },
   deleteBill: async (familyId: string, billId: string) => {
     const { data } = await api.delete(`/finance/bills/${familyId}/${billId}`);
+    return data.data;
+  },
+  getRecurringExpenseCategories: async (familyId: string) => {
+    const { data } = await api.get<{ data: RecurringExpenseCategorySettings }>(`/finance/bills/${familyId}/categories`);
+    return data.data;
+  },
+  updateRecurringExpenseCategories: async (familyId: string, categories: string[]) => {
+    const { data } = await api.put<{ data: RecurringExpenseCategorySettings }>(`/finance/bills/${familyId}/categories`, { categories });
     return data.data;
   },
 

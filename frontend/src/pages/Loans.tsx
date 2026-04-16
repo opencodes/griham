@@ -70,44 +70,44 @@ function LoanPaydownForecastCard({ forecast }: { forecast: LoanPaydownForecast |
   const highlightedLoanLine = loanLines.find((loan) => loan.loanId === highlightedLoan?.loanId) ?? null;
 
   return (
-    <section className="rounded-xl shadow-sm border border-[var(--panel-border)] p-5 glass-black-surface">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <section className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-200">
             <TrendingDown className="h-3.5 w-3.5" />
             Loan reduction forecast
           </div>
-          <h3 className="mt-3 text-xl font-semibold text-gray-800 dark:text-gray-100">Month-by-month payoff view</h3>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          <h3 className="mt-2 text-lg font-semibold text-gray-800 dark:text-gray-100">Month-by-month payoff view</h3>
+          <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
             Projected outstanding balance based on current EMI, rate, and tenure values saved for each active loan.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0 lg:min-w-[420px]">
-          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 min-w-0 lg:min-w-[390px]">
+          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-2.5">
             <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Outstanding now</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(forecast.overview.totalOutstanding)}</p>
+            <p className="mt-0.5 text-base font-semibold text-gray-900 dark:text-white">{formatCurrency(forecast.overview.totalOutstanding)}</p>
           </div>
-          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-3">
+          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-2.5">
             <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Projected payoff</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{forecast.overview.projectedPayoffMonth || 'N/A'}</p>
+            <p className="mt-0.5 text-base font-semibold text-gray-900 dark:text-white">{forecast.overview.projectedPayoffMonth || 'N/A'}</p>
           </div>
-          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-3">
+          <div className="rounded-xl border border-[var(--panel-border)] bg-white/5 p-2.5">
             <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Interest left</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(forecast.overview.totalInterestRemaining)}</p>
+            <p className="mt-0.5 text-base font-semibold text-gray-900 dark:text-white">{formatCurrency(forecast.overview.totalInterestRemaining)}</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)] gap-5">
-        <div className="rounded-xl border border-[var(--panel-border)] bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-4">
-          <div className="mb-3 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
+      <div className="mt-4 grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)] gap-4">
+        <div className="rounded-xl border border-[var(--panel-border)] bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent p-3">
+          <div className="mb-2.5 flex items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-300">
             <span>{forecast.overview.projectedPayoffMonths} months to close current active loans</span>
             <span>Total EMI {formatCurrency(forecast.overview.totalMonthlyEmi)}/mo</span>
           </div>
 
           <div className="relative">
-            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-64 w-full">
+            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-56 w-full">
               <defs>
                 <linearGradient id="loanForecastArea" x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
@@ -225,13 +225,13 @@ function LoanPaydownForecastCard({ forecast }: { forecast: LoanPaydownForecast |
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {forecast.loans.map((loan) => (
             <button
               key={loan.loanId}
               type="button"
               onClick={() => setHighlightedLoanId(loan.loanId)}
-              className={`w-full rounded-xl border p-4 text-left transition-colors ${
+              className={`w-full rounded-xl border p-3 text-left transition-colors ${
                 highlightedLoan?.loanId === loan.loanId
                   ? 'border-amber-500/60 bg-amber-500/10 shadow-[0_0_0_1px_rgba(245,158,11,0.15)]'
                   : 'border-[var(--panel-border)] bg-white/5 hover:bg-white/10'
@@ -248,11 +248,11 @@ function LoanPaydownForecastCard({ forecast }: { forecast: LoanPaydownForecast |
                   </div>
                   <p className="truncate text-xs text-gray-500 dark:text-gray-400">{loan.lender}</p>
                 </div>
-                <div className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-200">
+                <div className="rounded-full bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-200">
                   {loan.projectedPayoffMonths} mo left
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+              <div className="mt-2.5 grid grid-cols-3 gap-2 text-xs">
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">EMI</p>
                   <p className="font-medium text-gray-800 dark:text-gray-100">{formatCurrency(loan.emiAmount)}</p>
@@ -456,48 +456,48 @@ export default function LoansPage() {
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} mobileOpen={mobileMenuOpen} onMobileToggle={() => setMobileMenuOpen(!mobileMenuOpen)} isCollapsed={sidebarCollapsed} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header onMobileMenuToggle={handleMenuToggle} />
-        <main className="flex-1 px-4 md:px-8 py-6 overflow-y-auto">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <button onClick={() => navigate('/finance')} className="w-10 h-10 rounded-lg border border-[var(--panel-border)] flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 shadow-sm glass-black-surface">
-                <ArrowLeft className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+        <main className="flex-1 px-3 md:px-4 py-3 overflow-y-auto">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => navigate('/finance')} className="icon-button glass-black-surface">
+                <ArrowLeft className="w-4 h-4 text-gray-800 dark:text-gray-200" />
               </button>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Loans</h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">Track EMI commitments and outstanding balances</p>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Loans</h2>
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">Track EMI commitments and outstanding balances</p>
               </div>
               {userRole === 'admin' && (
                 <div className="flex items-center gap-2">
-                  <button onClick={openAddModal} className="flex items-center gap-2 ai-gradient-button text-white px-4 py-2.5 rounded-lg font-medium">
-                    <Plus className="w-5 h-5" />
+                  <button onClick={openAddModal} className="flex items-center gap-2 ai-gradient-button text-white px-3.5 py-2 rounded-lg font-medium text-sm">
+                    <Plus className="w-4 h-4" />
                     Add Loan
                   </button>
                 </div>
               )}
             </div>
 
-            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div><p className="text-gray-500 dark:text-gray-400">Outstanding</p><p className="text-lg font-semibold text-gray-800 dark:text-gray-100">₹{summary.totalOutstanding.toLocaleString()}</p></div>
-                <div><p className="text-gray-500 dark:text-gray-400">Monthly EMI</p><p className="text-lg font-semibold text-gray-800 dark:text-gray-100">₹{summary.totalEmi.toLocaleString()}</p></div>
-                <div><p className="text-gray-500 dark:text-gray-400">Active Loans</p><p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{summary.activeCount}</p></div>
+            <div className="rounded-xl shadow-sm border border-[var(--panel-border)] p-3 glass-black-surface">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div><p className="text-xs text-gray-500 dark:text-gray-400">Outstanding</p><p className="text-base font-semibold text-gray-800 dark:text-gray-100">₹{summary.totalOutstanding.toLocaleString()}</p></div>
+                <div><p className="text-xs text-gray-500 dark:text-gray-400">Monthly EMI</p><p className="text-base font-semibold text-gray-800 dark:text-gray-100">₹{summary.totalEmi.toLocaleString()}</p></div>
+                <div><p className="text-xs text-gray-500 dark:text-gray-400">Active Loans</p><p className="text-base font-semibold text-gray-800 dark:text-gray-100">{summary.activeCount}</p></div>
               </div>
             </div>
 
             <LoanPaydownForecastCard forecast={paydownForecast} />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {loans.map((item) => (
-                <div key={item.id} className="rounded-xl shadow-sm border border-[var(--panel-border)] p-5 glass-black-surface">
+                <div key={item.id} className="rounded-xl shadow-sm border border-[var(--panel-border)] p-4 glass-black-surface">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-amber-600 dark:text-amber-300">{item.type}</p>
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-1">{item.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{item.lender}</p>
+                      <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 mt-1">{item.name}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{item.lender}</p>
                     </div>
-                    <Landmark className="w-6 h-6 text-amber-500" />
+                    <Landmark className="w-5 h-5 text-amber-500" />
                   </div>
-                  <div className="mt-4 space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                  <div className="mt-3 space-y-1 text-xs text-gray-600 dark:text-gray-300">
                     <p>Principal: ₹{item.principalAmount.toLocaleString()}</p>
                     <p>Outstanding: ₹{item.outstandingPrincipal.toLocaleString()}</p>
                     <p>EMI: ₹{item.emiAmount.toLocaleString()}</p>
@@ -505,7 +505,7 @@ export default function LoansPage() {
                     <p>Next Due: {item.nextDueDate || 'N/A'}</p>
                   </div>
                   {userRole === 'admin' && (
-                    <div className="mt-4 flex justify-end gap-2">
+                    <div className="mt-3 flex justify-end gap-2">
                       <button onClick={() => openEditModal(item)} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
                         <Pencil className="w-4 h-4" />
                       </button>
@@ -524,9 +524,9 @@ export default function LoansPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 glass-black-surface border border-[var(--panel-border)]">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">{editingItem ? 'Edit Loan' : 'Add Loan'}</h2>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-5 glass-black-surface border border-[var(--panel-border)]">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-3">{editingItem ? 'Edit Loan' : 'Add Loan'}</h2>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="md:col-span-2 lg:col-span-3">
                 <LoanSMSParser
                   familyId={familyId}
@@ -536,21 +536,21 @@ export default function LoansPage() {
                 />
               </div>
 
-              <div className="md:col-span-2 lg:col-span-3 border-t border-[var(--panel-border)] pt-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Or fill manually:</p>
+              <div className="md:col-span-2 lg:col-span-3 border-t border-[var(--panel-border)] pt-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Or fill manually:</p>
               </div>
 
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Name</span><input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Lender</span><input value={formData.lender} onChange={(e) => setFormData({ ...formData, lender: e.target.value })} required className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Principal Amount</span><input type="number" min="0" value={formData.principalAmount} onChange={(e) => setFormData({ ...formData, principalAmount: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Outstanding Principal</span><input type="number" min="0" value={formData.outstandingPrincipal} onChange={(e) => setFormData({ ...formData, outstandingPrincipal: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Interest Rate (%)</span><input type="number" min="0" step="0.01" value={formData.interestRate} onChange={(e) => setFormData({ ...formData, interestRate: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tenure (Months)</span><input type="number" min="0" value={formData.tenureMonths} onChange={(e) => setFormData({ ...formData, tenureMonths: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">EMI Amount</span><input type="number" min="0" value={formData.emiAmount} onChange={(e) => setFormData({ ...formData, emiAmount: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</span><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as Loan['type'] })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg">{LOAN_TYPES.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</span><input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Next Due Date</span><input type="date" value={formData.nextDueDate} onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg" /></label>
-              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</span><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Loan['status'] })} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg">{STATUS_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Name</span><input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Lender</span><input value={formData.lender} onChange={(e) => setFormData({ ...formData, lender: e.target.value })} required className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Principal Amount</span><input type="number" min="0" value={formData.principalAmount} onChange={(e) => setFormData({ ...formData, principalAmount: e.target.value })} className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Outstanding Principal</span><input type="number" min="0" value={formData.outstandingPrincipal} onChange={(e) => setFormData({ ...formData, outstandingPrincipal: e.target.value })} className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Interest Rate (%)</span><input type="number" min="0" step="0.01" value={formData.interestRate} onChange={(e) => setFormData({ ...formData, interestRate: e.target.value })} className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tenure (Months)</span><input type="number" min="0" value={formData.tenureMonths} onChange={(e) => setFormData({ ...formData, tenureMonths: e.target.value })} className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">EMI Amount</span><input type="number" min="0" value={formData.emiAmount} onChange={(e) => setFormData({ ...formData, emiAmount: e.target.value })} className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</span><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as Loan['type'] })} className="input-theme">{LOAN_TYPES.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</span><input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Next Due Date</span><input type="date" value={formData.nextDueDate} onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })} className="input-theme" /></label>
+              <label className="block"><span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</span><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Loan['status'] })} className="input-theme">{STATUS_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
               <div className="md:col-span-2 lg:col-span-3 flex justify-end gap-2 mt-2">
                 <button type="button" onClick={closeModal} className="btn-secondary">Cancel</button>
                 <button type="submit" disabled={isLoading} className="px-4 py-2 rounded-lg ai-gradient-button text-white disabled:opacity-60">{isLoading ? 'Saving...' : editingItem ? 'Update Loan' : 'Save Loan'}</button>

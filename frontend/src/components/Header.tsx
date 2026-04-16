@@ -57,8 +57,8 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
   };
 
   return (
-    <header className="border-b border-[var(--panel-border)] px-4 md:px-5 h-[64px] flex items-center justify-between glass-black-surface shadow-nav">
-      <div className="flex items-center gap-2.5">
+    <header className="border-b border-[var(--panel-border)] px-3 md:px-4 h-[56px] flex items-center justify-between glass-black-surface shadow-nav">
+      <div className="flex items-center gap-2">
         <button
           className="icon-button"
           onClick={onMobileMenuToggle}
@@ -68,10 +68,10 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           <Menu className="w-4.5 h-4.5" />
         </button>
         <div>
-          <h1 className="font-semibold text-[var(--app-fg)] text-[15px] leading-tight tracking-[-0.02em]">
+          <h1 className="font-semibold text-[var(--app-fg)] text-sm leading-tight tracking-[-0.02em]">
             {getGreeting()}, {user?.full_name || 'User'}
           </h1>
-          <p className="text-[11px] text-[var(--app-fg-muted)] hidden sm:block leading-tight mt-0.5">
+          <p className="text-[10px] text-[var(--app-fg-muted)] hidden sm:block leading-tight mt-0.5">
             {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
@@ -81,7 +81,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         <button
           onClick={() => setShowChangePassword(true)}
           className="icon-button"
@@ -97,7 +97,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
         <div
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold border"
+          className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold border"
           style={{
             background: 'var(--primary-light)',
             color: 'var(--primary-text)',
@@ -115,12 +115,12 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
 
       {showChangePassword && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="rounded-2xl shadow-modal max-w-md w-full p-6 glass-black-surface border border-[var(--panel-border)]">
-            <h2 className="text-xl font-bold text-[var(--app-fg)] mb-1">Change Password</h2>
-            <p className="text-sm text-[var(--app-fg-muted)] mb-5">Enter your current password and choose a new one.</p>
-            <form onSubmit={handleChangePassword} className="space-y-4">
+          <div className="rounded-2xl shadow-modal max-w-md w-full p-5 glass-black-surface border border-[var(--panel-border)]">
+            <h2 className="text-lg font-bold text-[var(--app-fg)] mb-1">Change Password</h2>
+            <p className="text-xs text-[var(--app-fg-muted)] mb-4">Enter your current password and choose a new one.</p>
+            <form onSubmit={handleChangePassword} className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1.5">Current Password</label>
+                <label className="block text-xs font-medium text-[var(--app-fg)] mb-1">Current Password</label>
                 <input
                   type="password"
                   value={currentPassword}
@@ -130,7 +130,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1.5">New Password</label>
+                <label className="block text-xs font-medium text-[var(--app-fg)] mb-1">New Password</label>
                 <input
                   type="password"
                   value={newPassword}
@@ -140,7 +140,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--app-fg)] mb-1.5">Confirm New Password</label>
+                <label className="block text-xs font-medium text-[var(--app-fg)] mb-1">Confirm New Password</label>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -159,7 +159,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                   <p className="text-sm">{passwordSuccess}</p>
                 </div>
               )}
-              <div className="flex gap-3 pt-1">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => { setShowChangePassword(false); setPasswordError(''); setPasswordSuccess(''); }}
@@ -171,7 +171,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
                 <button
                   type="submit"
                   disabled={isSavingPassword}
-                  className="flex-1 ai-gradient-button text-white px-4 py-2.5 rounded-lg disabled:opacity-50 font-semibold text-sm"
+                  className="flex-1 ai-gradient-button text-white px-4 py-2 rounded-lg disabled:opacity-50 font-semibold text-sm"
                 >
                   {isSavingPassword ? 'Saving...' : 'Save'}
                 </button>

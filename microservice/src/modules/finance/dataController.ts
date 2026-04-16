@@ -7,8 +7,12 @@ import { CardModel } from '../../db/schemas/Card.js';
 import { InsuranceModel } from '../../db/schemas/Insurance.js';
 import { InvestmentModel } from '../../db/schemas/Investments.js';
 import { LoanModel } from '../../db/schemas/Loan.js';
+import { FamilyModel } from '../../db/schemas/Family.js';
+import { FamilyMemberModel } from '../../db/schemas/FamilyMember.js';
 
 type AuthRequest = Request & { auth?: { userId: string } };
+
+const DEFAULT_RECURRING_EXPENSE_CATEGORIES = ['Electricity', 'Water', 'Gas', 'Internet', 'Phone', 'Rent', 'Insurance', 'Subscription', 'Pocket Money', 'Other'];
 
 function toId<T extends { _id: string }>(doc: T) {
   return { ...doc, id: doc._id } as T & { id: string };
@@ -250,6 +254,40 @@ function normalizeTransactionSourceType(value: string | undefined): string | nul
   return normalized;
 }
 
+function sanitizeRecurringExpenseCategories(values: unknown): string[] {
+  if (!Array.isArray(values)) return [...DEFAULT_RECURRING_EXPENSE_CATEGORIES];
+  const unique = new Set<string>();
+  for (const value of values) {
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    unique.add(trimmed);
+  }
+  const list = Array.from(unique);
+  return list.length > 0 ? list : [...DEFAULT_RECURRING_EXPENSE_CATEGORIES];
+}
+
+async function getFamilyRole(familyId: string, userId: string): Promise<string | null> {
+  const member = await FamilyMemberModel.findOne({ family_id: familyId, user_id: userId }).lean({ virtuals: true });
+  return member?.role ?? null;
+}
+
+async function canAccessFamily(familyId: string, userId: string): Promise<boolean> {
+  const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
+  if (!family) return false;
+  if (family.created_by === userId) return true;
+  const role = await getFamilyRole(familyId, userId);
+  return Boolean(role);
+}
+
+async function canManageFamilyFinanceSettings(familyId: string, userId: string): Promise<boolean> {
+  const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
+  if (!family) return false;
+  if (family.created_by === userId) return true;
+  const role = await getFamilyRole(familyId, userId);
+  return role === 'admin';
+}
+
 export const financeDataController = {
   // Accounts
   async listAccounts(req: Request, res: Response): Promise<void> {
@@ -461,6 +499,47 @@ export const financeDataController = {
   },
 
   // Bills
+  async getRecurringExpenseCategories(req: AuthRequest, res: Response): Promise<void> {
+    const { familyId } = req.params;
+    const userId = req.auth?.userId ?? '';
+    if (!userId) {
+      res.fail('Unauthorized', 401);
+      return;
+    }
+    if (!(await canAccessFamily(familyId, userId))) {
+      res.fail('Forbidden', 403);
+      return;
+    }
+    const family = await FamilyModel.findById(familyId).lean({ virtuals: true });
+    if (!family) {
+      res.fail('Family not found', 404);
+      return;
+    }
+    res.success({ categories: sanitizeRecurringExpenseCategories(family.recurring_expense_categories) });
+  },
+
+  async updateRecurringExpenseCategories(req: AuthRequest, res: Response): Promise<void> {
+    const { familyId } = req.params;
+    const userId = req.auth?.userId ?? '';
+    if (!userId) {
+      res.fail('Unauthorized', 401);
+      return;
+    }
+    if (!(await canManageFamilyFinanceSettings(familyId, userId))) {
+      res.fail('Forbidden', 403);
+      return;
+    }
+    const family = await FamilyModel.findById(familyId);
+    if (!family) {
+      res.fail('Family not found', 404);
+      return;
+    }
+    const body = req.body as { categories?: unknown };
+    family.recurring_expense_categories = sanitizeRecurringExpenseCategories(body?.categories);
+    await family.save();
+    res.success({ categories: family.recurring_expense_categories });
+  },
+
   async listBills(req: Request, res: Response): Promise<void> {
     const list = await BillModel.find({ family_id: req.params.familyId }).lean();
     res.success(list.map((b) => ({ ...toId(b), due_date: b.due_date instanceof Date ? b.due_date.toISOString().slice(0, 10) : b.due_date })));

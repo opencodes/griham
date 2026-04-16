@@ -1,5 +1,3 @@
-import logoIcon from '@/assets/icon.png';
-
 interface ThemeLogoProps {
   className?: string;
   title?: string;

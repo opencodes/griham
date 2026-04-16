@@ -384,7 +384,7 @@ export default function Dashboard() {
                   </p>
                 </article>
                 <article className="rounded-xl p-4 glass-black-surface border border-[var(--panel-border)]">
-                  <p className="text-xs text-[var(--app-fg-muted)]">Pending Bills</p>
+                  <p className="text-xs text-[var(--app-fg-muted)]">Pending Recurring Expenses</p>
                   <p className={`mt-2 text-2xl font-bold ${overdueBills > 0 ? 'text-red-600 dark:text-red-400' : 'text-[var(--app-fg)]'}`}>
                     {pendingBills}
                   </p>

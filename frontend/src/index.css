@@ -18,11 +18,11 @@
   color-scheme: light;
 
   /* ── Spacing ───────────────────────────────────── */
-  --space-1: 0.375rem;
-  --space-2: 0.75rem;
-  --space-3: 1rem;
-  --space-4: 1.5rem;
-  --space-5: 2rem;
+  --space-1: 0.25rem;
+  --space-2: 0.625rem;
+  --space-3: 0.875rem;
+  --space-4: 1.25rem;
+  --space-5: 1.75rem;
 
   /* ── Primary (emerald) ─────────────────────────── */
   --primary: #10B981;
@@ -152,7 +152,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: 0.01em;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 * {
@@ -170,28 +170,28 @@ body {
 
 /* ── Typography ──────────────────────────────────── */
 h1 {
-  font-size: 1.625rem;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.12;
 }
 
 h2 {
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 h3 {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
 p, li, label, input, button, textarea, select {
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 p {
@@ -238,14 +238,14 @@ button:active:not(:disabled),
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.03em;
 }
 
 .section-title {
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.015em;
@@ -256,8 +256,8 @@ button:active:not(:disabled),
    ─────────────────────────────────────────────────── */
 .input-theme {
   width: 100%;
-  min-height: 2.5rem;
-  padding: 0.625rem 0.875rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
   background: var(--input-bg);
   border: 1.5px solid var(--input-border);
   color: var(--input-text);
@@ -292,7 +292,7 @@ button:active:not(:disabled),
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.input-theme),
   select:not(.input-theme),
   textarea:not(.input-theme) {
-    min-height: 2.5rem;
+    min-height: 2.25rem;
     border-radius: var(--radius-sm);
   }
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.input-theme):focus,
@@ -314,8 +314,8 @@ button:active:not(:disabled),
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 2.5rem;
-  padding: 0.625rem 1rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.875rem;
   background: var(--primary);
   color: #ffffff;
   border: none;
@@ -343,8 +343,8 @@ button:active:not(:disabled),
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 2.5rem;
-  padding: 0.625rem 1rem;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.875rem;
   background: rgba(255, 255, 255, 0.72);
   border: 1.5px solid var(--input-border);
   color: var(--app-fg);
@@ -372,7 +372,7 @@ button:active:not(:disabled),
    ALERTS
    ─────────────────────────────────────────────────── */
 .alert-error {
-  padding: 0.625rem 0.875rem;
+  padding: 0.5rem 0.75rem;
   background: var(--alert-error-bg);
   border: 1px solid var(--alert-error-border);
   color: var(--alert-error-text);
@@ -380,7 +380,7 @@ button:active:not(:disabled),
   font-size: 0.875rem;
 }
 .alert-success {
-  padding: 0.625rem 0.875rem;
+  padding: 0.5rem 0.75rem;
   background: var(--alert-success-bg);
   border: 1px solid var(--alert-success-border);
   color: var(--alert-success-text);
@@ -421,9 +421,9 @@ button:active:not(:disabled),
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
   border: 1px solid transparent;
   color: var(--app-fg-muted);
   background: transparent;
@@ -439,11 +439,11 @@ button:active:not(:disabled),
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  min-height: 2.375rem;
+  gap: 0.5rem;
+  min-height: 2.125rem;
   width: 100%;
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.75rem;
+  padding: 0.5rem 0.6875rem;
+  border-radius: 0.625rem;
   border: 1px solid transparent;
   color: var(--app-fg-muted);
   background: transparent;
@@ -530,7 +530,7 @@ button:active:not(:disabled),
 
 /* ── Primary Gradient Button (CTA) ───────────────── */
 .ai-gradient-button {
-  min-height: 2.5rem;
+  min-height: 2.25rem;
   border: none;
   color: #ffffff;
   background: linear-gradient(135deg, var(--primary) 0%, #059669 60%, #047857 100%);
@@ -682,7 +682,7 @@ button:active:not(:disabled),
     position: sticky;
     top: 0;
     z-index: 1;
-    padding: 0.75rem 0.875rem;
+    padding: 0.625rem 0.75rem;
     background: var(--table-head-bg);
     color: var(--app-fg-muted);
     font-size: 0.6875rem;
@@ -695,7 +695,7 @@ button:active:not(:disabled),
   }
 
   tbody td {
-    padding: 0.8125rem 0.875rem;
+    padding: 0.625rem 0.75rem;
     border-bottom: 1px solid var(--table-row-border);
     color: var(--app-fg);
     vertical-align: middle;
@@ -715,10 +715,20 @@ button:active:not(:disabled),
 
   label {
     display: inline-block;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.25rem;
     color: var(--app-fg);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
+  }
+}
+
+.app-shell main {
+  padding: 0.75rem !important;
+}
+
+@media (min-width: 768px) {
+  .app-shell main {
+    padding: 0.875rem 1rem !important;
   }
 }
 
